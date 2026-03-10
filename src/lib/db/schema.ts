@@ -168,3 +168,27 @@ export const task = pgTable("task", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// ── Payments ────────────────────────────────────────────────────────────────
+
+export const paymentTypeEnum = pgEnum("payment_type", [
+  "join",      // cost-to-join payment
+  "donation",  // crowdfunding donation
+]);
+
+export const payment = pgTable("payment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  type: paymentTypeEnum("type").notNull(),
+  amount: integer("amount").notNull(), // in cents
+  currency: text("currency").notNull().default("usd"),
+  stripeSessionId: text("stripe_session_id"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  status: text("status").notNull().default("pending"), // pending, completed, refunded
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

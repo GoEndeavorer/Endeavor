@@ -69,13 +69,29 @@ export default function EndeavorDetailPage({
     if (!session) return;
     setJoining(true);
     try {
+      // If there's a cost, redirect to Stripe checkout
+      if (endeavor?.costPerPerson && endeavor.costPerPerson > 0) {
+        const res = await fetch(`/api/endeavors/${id}/checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "join" }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        setJoinMessage(data.error || "Failed to start checkout");
+        return;
+      }
+
+      // Free join
       const res = await fetch(`/api/endeavors/${id}/join`, {
         method: "POST",
       });
       const data = await res.json();
       if (res.ok) {
         setJoinMessage(data.message);
-        // Refetch
         const updated = await fetch(`/api/endeavors/${id}`);
         if (updated.ok) setEndeavor(await updated.json());
       } else {
@@ -85,6 +101,23 @@ export default function EndeavorDetailPage({
       setJoinMessage("Something went wrong");
     } finally {
       setJoining(false);
+    }
+  }
+
+  async function handleFund() {
+    if (!session) return;
+    try {
+      const res = await fetch(`/api/endeavors/${id}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "donation" }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setJoinMessage("Something went wrong");
     }
   }
 
@@ -276,6 +309,14 @@ export default function EndeavorDetailPage({
                   )}
                   % funded
                 </p>
+                {session && (
+                  <button
+                    onClick={handleFund}
+                    className="mt-3 w-full border border-code-green px-4 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black"
+                  >
+                    Fund This Endeavor
+                  </button>
+                )}
               </div>
             )}
 
