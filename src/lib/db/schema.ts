@@ -222,3 +222,17 @@ export const notification = pgTable("notification", {
   read: boolean("read").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── Reports / Moderation ────────────────────────────────────────────────────
+
+export const report = pgTable("report", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reporterId: text("reporter_id")
+    .notNull()
+    .references(() => user.id),
+  endeavorId: uuid("endeavor_id").references(() => endeavor.id),
+  reason: text("reason").notNull(),
+  details: text("details"),
+  status: text("status").notNull().default("pending"), // pending, reviewed, dismissed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

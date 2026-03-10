@@ -393,9 +393,70 @@ export default function EndeavorDetailPage({
                 Log in to Join
               </Link>
             )}
+            {/* Report */}
+            {session && !isCreator && (
+              <ReportButton endeavorId={endeavor.id} />
+            )}
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function ReportButton({ endeavorId }: { endeavorId: string }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  async function handleReport() {
+    if (!reason.trim()) return;
+    const res = await fetch("/api/reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ endeavorId, reason }),
+    });
+    if (res.ok) setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <p className="text-center text-xs text-medium-gray">
+        Report submitted. Thank you.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full text-center text-xs text-medium-gray hover:text-red-400"
+      >
+        Report this endeavor
+      </button>
+      {open && (
+        <div className="mt-2 space-y-2">
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full border border-medium-gray/50 bg-black px-3 py-2 text-xs text-white"
+          >
+            <option value="">Select a reason</option>
+            <option value="spam">Spam</option>
+            <option value="inappropriate">Inappropriate content</option>
+            <option value="scam">Potential scam</option>
+            <option value="other">Other</option>
+          </select>
+          <button
+            onClick={handleReport}
+            disabled={!reason}
+            className="w-full border border-red-500/50 px-3 py-2 text-xs text-red-400 hover:bg-red-500 hover:text-black disabled:opacity-50"
+          >
+            Submit Report
+          </button>
+        </div>
+      )}
     </div>
   );
 }
