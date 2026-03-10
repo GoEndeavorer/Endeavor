@@ -192,3 +192,33 @@ export const payment = pgTable("payment", {
   status: text("status").notNull().default("pending"), // pending, completed, refunded
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── Shared Links / Resources ────────────────────────────────────────────────
+
+export const link = pgTable("link", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  addedById: text("added_by_id")
+    .notNull()
+    .references(() => user.id),
+  title: text("title").notNull(),
+  url: text("url").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Notifications ───────────────────────────────────────────────────────────
+
+export const notification = pgTable("notification", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  type: text("type").notNull(), // "join_request", "member_joined", "new_discussion", "task_assigned", "funding_received"
+  message: text("message").notNull(),
+  endeavorId: uuid("endeavor_id").references(() => endeavor.id),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

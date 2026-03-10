@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
+import { NotificationBell } from "@/components/notification-bell";
 
 type Endeavor = {
   id: string;
@@ -215,6 +216,7 @@ export default function FeedPage() {
                 >
                   + New Endeavor
                 </Link>
+                <NotificationBell />
                 <Link
                   href="/profile"
                   className="text-sm text-code-blue hover:text-code-green"

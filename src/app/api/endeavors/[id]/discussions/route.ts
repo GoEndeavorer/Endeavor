@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, desc } from "drizzle-orm";
 import { isMemberOf } from "@/lib/membership";
+import { notifyEndeavorMembers } from "@/lib/notifications";
 
 export async function GET(
   request: NextRequest,
@@ -66,6 +67,15 @@ export async function POST(
       content: content.trim(),
     })
     .returning();
+
+  // Notify other members
+  const preview = content.trim().slice(0, 60);
+  await notifyEndeavorMembers(
+    id,
+    "new_discussion",
+    `${session.user.name}: ${preview}${content.trim().length > 60 ? "..." : ""}`,
+    session.user.id
+  );
 
   return NextResponse.json(
     { ...msg, authorName: session.user.name, authorImage: session.user.image },

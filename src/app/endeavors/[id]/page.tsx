@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
+import { ShareButton } from "@/components/share-button";
 
 type EndeavorDetail = {
   id: string;
@@ -203,10 +204,16 @@ export default function EndeavorDetailPage({
               {endeavor.location}
             </p>
           )}
-          <p className="text-sm text-medium-gray">
-            Created by{" "}
-            <span className="text-code-blue">{endeavor.creator.name}</span>
-          </p>
+          <div className="mb-2 flex items-center gap-3">
+            <p className="text-sm text-medium-gray">
+              Created by{" "}
+              <span className="text-code-blue">{endeavor.creator.name}</span>
+            </p>
+            <ShareButton
+              title={endeavor.title}
+              url={typeof window !== "undefined" ? window.location.href : ""}
+            />
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">

@@ -4,6 +4,7 @@ import { endeavor, member } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
+import { notifyUser, notifyEndeavorMembers } from "@/lib/notifications";
 
 export async function POST(
   _request: NextRequest,
@@ -76,6 +77,23 @@ export async function POST(
       status,
     })
     .returning();
+
+  // Send notifications
+  if (status === "approved") {
+    await notifyEndeavorMembers(
+      id,
+      "member_joined",
+      `${session.user.name} joined "${end.title}"`,
+      session.user.id
+    );
+  } else {
+    await notifyUser(
+      end.creatorId,
+      "join_request",
+      `${session.user.name} requested to join "${end.title}"`,
+      id
+    );
+  }
 
   return NextResponse.json(
     {
