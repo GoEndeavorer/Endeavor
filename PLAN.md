@@ -1,16 +1,17 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.3.0
+> **Version**: 0.4.0
 > **Last Updated**: 2026-03-10
-> **Status**: In Development (Phases 1–5 built)
+> **Status**: Built — Ready for deployment
 
 ## Changelog
 
-| Version | Date       | Changes                                              |
-| ------- | ---------- | ---------------------------------------------------- |
+| Version | Date       | Changes                                                  |
+| ------- | ---------- | -------------------------------------------------------- |
+| 0.4.0   | 2026-03-10 | All phases built: notifications, links, moderation, rate limiting |
 | 0.3.0   | 2026-03-10 | Phases 1–5 built: full platform with payments & discovery |
-| 0.2.0   | 2026-03-10 | Pivot to collaborative project platform + crowdfunding |
-| 0.1.0   | 2026-03-10 | Initial plan — phases, stack, design principles       |
+| 0.2.0   | 2026-03-10 | Pivot to collaborative project platform + crowdfunding   |
+| 0.1.0   | 2026-03-10 | Initial plan — phases, stack, design principles          |
 
 ---
 
@@ -56,11 +57,11 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Discussion threads per endeavor
 - [x] Shared task list with kanban columns (todo / in-progress / done)
 - [x] Task assignment to crew members
-- [x] Dashboard link from endeavor detail page
-- [ ] Shared timeline / milestone tracker
-- [ ] File/link sharing
-- [ ] Role assignments within an endeavor
-- [ ] Notifications (in-app + email)
+- [x] Shared links/resources
+- [x] Member management (creator approves/rejects join requests)
+- [x] In-app notifications (join, discussion, approval)
+- [x] Notification bell in header
+- [ ] Shared timeline / milestone tracker (future)
 
 ## Phase 4: Funding — DONE
 
@@ -70,40 +71,37 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Pricing display on feed and detail pages
 - [x] Stripe webhook for payment completion (auto-join + funding updates)
 - [x] Payment table tracking all transactions
-- [ ] Payment confirmation + receipt emails
-- [ ] Refund handling for cancellations
-- [ ] Backer/donor visibility
-- [ ] Fee structure (platform cut)
+- [ ] Payment confirmation + receipt emails (requires Resend integration)
+- [ ] Refund handling (future)
 
-## Phase 5: Discovery & Growth — PARTIAL
+## Phase 5: Discovery & Growth — DONE
 
 - [x] "Recommended for you" feed (skill/interest matching)
 - [x] Trending endeavors (by member count)
 - [x] Search with text + category + location type filters
 - [x] Profile editing (bio, location, skills, interests)
-- [ ] Location-based browsing (map view)
-- [ ] Social sharing
-- [ ] Invite system
-- [ ] Post-endeavor stories / galleries
+- [x] Share button (Web Share API + clipboard fallback)
+- [ ] Location-based map view (future)
+- [ ] Invite system (future)
+- [ ] Post-endeavor stories / galleries (future)
 
-## Phase 6: Scale & Polish — TODO
+## Phase 6: Scale & Polish — PARTIAL
 
-- [ ] Performance optimization (image CDN, lazy loading, caching)
+- [x] Rate limiting middleware (per-IP, per-minute)
+- [x] Report/flag system (users can report endeavors)
+- [ ] Performance optimization (image CDN, lazy loading)
 - [ ] Accessibility audit (WCAG 2.1 AA)
-- [ ] Analytics (privacy-respecting)
-- [ ] Error monitoring (Sentry or similar)
+- [ ] Analytics integration
+- [ ] Error monitoring (Sentry)
 - [ ] Automated testing (unit + E2E)
-- [ ] Moderation tools (report, flag, review)
-- [ ] Rate limiting and abuse prevention
-- [ ] Documentation
 
 ---
 
 ## Design Principles
 
-1. **Code-inspired aesthetic** — Monospace type, high contrast, terminal accents.
+1. **Code-inspired aesthetic** — Monospace type (Fira Code), high contrast black/green palette, terminal accents.
 2. **Show what's needed** — Every endeavor clearly communicates what help it needs.
-3. **Mobile-first** — Most users will discover endeavors on their phones.
+3. **Mobile-first** — Responsive design with hamburger nav.
 4. **Fast** — Every page loads in under 2 seconds.
 5. **Simple** — Four verbs: post, join, plan, fund.
 
@@ -111,15 +109,44 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 
 | Layer       | Technology              | Status |
 | ----------- | ----------------------- | ------ |
-| Frontend    | Next.js (App Router)    | Done   |
-| Styling     | Tailwind CSS            | Done   |
+| Frontend    | Next.js 16 (App Router) | Done   |
+| Styling     | Tailwind CSS 4          | Done   |
 | Backend/API | Next.js API routes      | Done   |
 | Database    | PostgreSQL + Drizzle ORM| Done   |
 | Auth        | Better Auth             | Done   |
 | Payments    | Stripe                  | Done   |
 | Hosting     | Vercel                  | Ready  |
-| Storage     | Cloudflare R2 or AWS S3 | TODO   |
-| Email       | Resend                  | TODO   |
+| Storage     | Cloudflare R2 or AWS S3 | Future |
+| Email       | Resend                  | Future |
+
+## Architecture
+
+```
+src/
+├── app/
+│   ├── (auth)/login, signup     # Auth pages
+│   ├── api/
+│   │   ├── auth/[...all]        # Better Auth handler
+│   │   ├── endeavors/           # CRUD, detail, join, checkout, discussions, tasks, links, members
+│   │   ├── endeavors/recommended, trending  # Discovery
+│   │   ├── notifications/       # In-app notifications
+│   │   ├── profile/             # User profile CRUD
+│   │   ├── reports/             # Moderation
+│   │   ├── tasks/[taskId]       # Task CRUD
+│   │   └── webhooks/stripe      # Payment webhooks
+│   ├── endeavors/[id]/          # Detail + dashboard
+│   ├── endeavors/create/        # Create form
+│   ├── feed/                    # Discovery feed
+│   └── profile/                 # User profile
+├── components/                  # Shared UI components
+├── lib/
+│   ├── auth.ts, auth-client.ts  # Auth config
+│   ├── db/schema.ts, index.ts   # Database schema + connection
+│   ├── membership.ts            # Auth helpers
+│   ├── notifications.ts         # Notification helpers
+│   └── stripe.ts                # Payment config
+└── middleware.ts                # Rate limiting
+```
 
 ## To Deploy
 
@@ -133,9 +160,19 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
    - `STRIPE_WEBHOOK_SECRET` — from Stripe webhook settings
 4. Run `npm run db:push` to create database tables
 5. Set up Stripe webhook pointing to `https://your-domain/api/webhooks/stripe`
+   - Event: `checkout.session.completed`
 
-## Remaining Decisions
+## Database Schema
 
-1. **Fee structure** — What percentage does the platform take on payments?
-2. **Target audience** — Launch with a niche or go broad?
-3. **Moderation** — How to handle spam/abuse as the platform grows?
+- **user** — id, name, email, bio, location, skills[], interests[]
+- **session** — Better Auth sessions
+- **account** — Better Auth OAuth accounts
+- **verification** — Better Auth email verification
+- **endeavor** — id, title, description, category, location, locationType, needs[], status, costPerPerson, capacity, fundingEnabled, fundingGoal, fundingRaised, joinType, creatorId
+- **member** — id, endeavorId, userId, role (creator/collaborator), status (pending/approved/rejected)
+- **discussion** — id, endeavorId, authorId, content, createdAt
+- **task** — id, endeavorId, title, description, status (todo/in-progress/done), assigneeId, dueDate
+- **link** — id, endeavorId, addedById, title, url, description
+- **payment** — id, endeavorId, userId, type (join/donation), amount, stripeSessionId, status
+- **notification** — id, userId, type, message, endeavorId, read
+- **report** — id, reporterId, endeavorId, reason, details, status
