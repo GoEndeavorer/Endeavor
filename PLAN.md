@@ -24,7 +24,8 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - **Endeavor** — A project someone wants to make happen. Could be anything: a hiking expedition, a documentary, a community garden, a hackathon, an art installation.
 - **Creator** — The person who posts an endeavor.
 - **Collaborators** — People who join an endeavor to help make it happen.
-- **Funding** — Optional. Creators can toggle on a donate/fund button (Kickstarter-style) for endeavors that need money.
+- **Cost to Join** — For planned endeavors, the creator sets a per-person cost to participate (e.g., "$450/person for the Patagonia trek"). Covers travel, lodging, gear, or whatever the endeavor requires. Shown prominently on the detail page so people know what they're signing up for.
+- **Funding** — Optional, separate from cost to join. Creators can toggle on crowdfunding (Kickstarter-style) to raise money for the endeavor itself — equipment, permits, venue, production costs, etc.
 - **Needs** — Each endeavor can list what it needs: skills ("need: videographer"), resources ("need: camera gear"), or funding. This turns passive browsing into active matching.
 
 ## Current State
@@ -53,7 +54,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 
 - [ ] Set up backend framework (Next.js recommended for Vercel)
 - [ ] Set up database (PostgreSQL + Drizzle ORM) with schema for:
-  - Endeavors (title, description, category, location, remote/in-person/either, needs, status, creator)
+  - Endeavors (title, description, category, location, remote/in-person/either, needs, status, creator, cost_per_person, capacity)
   - Users (profile, skills, interests, location)
   - Memberships (user ↔ endeavor, role: creator/collaborator)
 - [ ] Authentication (email/password + OAuth)
@@ -62,7 +63,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
   - Location (local / remote / either)
   - Category
   - Skills needed (match what the user brings)
-- [ ] **Endeavor detail page** — description, creator, who's joined, what's needed
+- [ ] **Endeavor detail page** — description, creator, who's joined, what's needed, cost to join
 - [ ] **Join an endeavor** — request to join or open join
 - [ ] User profile page (skills, interests, endeavors joined/created)
 
@@ -80,11 +81,14 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 
 ## Phase 4: Funding
 
-**Goal**: Optional crowdfunding for endeavors that need money.
+**Goal**: Handle both cost-to-join payments and optional crowdfunding.
 
-- [ ] Creator toggle: enable/disable funding on an endeavor
+- [ ] **Cost to join** — Stripe payment when joining a paid endeavor
+- [ ] Pricing display on discovery feed and detail pages (e.g., "$450/person")
+- [ ] Payment confirmation + receipt emails
+- [ ] Refund handling for cancellations
+- [ ] **Crowdfunding** (optional, separate toggle)
 - [ ] Funding goal + progress bar
-- [ ] Integrate Stripe for donations/contributions
 - [ ] Backer/donor visibility (public or anonymous option)
 - [ ] Fund disbursement to creator
 - [ ] Funding updates (creator posts progress to backers)
