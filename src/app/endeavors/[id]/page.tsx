@@ -319,6 +319,14 @@ export default function EndeavorDetailPage({
                   : "Request to Join"}
               </button>
             )}
+            {(isMember || isCreator) && (
+              <Link
+                href={`/endeavors/${endeavor.id}/dashboard`}
+                className="block w-full border border-code-blue bg-code-blue px-4 py-3 text-center text-sm font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-blue"
+              >
+                Open Dashboard
+              </Link>
+            )}
             {isMember && !isCreator && (
               <div className="border border-code-green/30 p-4 text-center text-sm text-code-green">
                 You&apos;re part of this endeavor

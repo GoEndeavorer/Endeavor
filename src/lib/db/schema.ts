@@ -115,6 +115,12 @@ export const endeavor = pgTable("endeavor", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const taskStatusEnum = pgEnum("task_status", [
+  "todo",
+  "in-progress",
+  "done",
+]);
+
 // ── Memberships (user ↔ endeavor) ───────────────────────────────────────────
 
 export const member = pgTable("member", {
@@ -128,4 +134,37 @@ export const member = pgTable("member", {
   role: memberRoleEnum("role").notNull().default("collaborator"),
   status: memberStatusEnum("status").notNull().default("pending"),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
+});
+
+// ── Discussions ─────────────────────────────────────────────────────────────
+
+export const discussion = pgTable("discussion", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Tasks ───────────────────────────────────────────────────────────────────
+
+export const task = pgTable("task", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: taskStatusEnum("task_status").notNull().default("todo"),
+  assigneeId: text("assignee_id").references(() => user.id),
+  createdById: text("created_by_id")
+    .notNull()
+    .references(() => user.id),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
