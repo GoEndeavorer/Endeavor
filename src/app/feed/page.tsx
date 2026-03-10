@@ -150,6 +150,8 @@ function EndeavorCard({ endeavor }: { endeavor: Endeavor }) {
 export default function FeedPage() {
   const { data: session } = useSession();
   const [endeavors, setEndeavors] = useState<Endeavor[]>([]);
+  const [recommended, setRecommended] = useState<Endeavor[]>([]);
+  const [trending, setTrending] = useState<Endeavor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -176,6 +178,25 @@ export default function FeedPage() {
   useEffect(() => {
     fetchEndeavors();
   }, [fetchEndeavors]);
+
+  // Fetch trending and recommended on mount
+  useEffect(() => {
+    fetch("/api/endeavors/trending")
+      .then((r) => r.json())
+      .then(setTrending)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetch("/api/endeavors/recommended")
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setRecommended(data);
+        })
+        .catch(() => {});
+    }
+  }, [session]);
 
   return (
     <div className="min-h-screen">
@@ -223,6 +244,34 @@ export default function FeedPage() {
 
       <main className="mx-auto max-w-6xl px-4 pt-24 pb-16">
         <h1 className="mb-8 text-3xl font-bold">Explore Endeavors</h1>
+
+        {/* Recommended for you */}
+        {session && recommended.length > 0 && (
+          <div className="mb-12">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-code-green">
+              {"// recommended for you"}
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {recommended.slice(0, 3).map((e) => (
+                <EndeavorCard key={e.id} endeavor={e} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Trending */}
+        {trending.length > 0 && (
+          <div className="mb-12">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-code-blue">
+              {"// trending"}
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {trending.slice(0, 3).map((e) => (
+                <EndeavorCard key={e.id} endeavor={e} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="mb-8 space-y-4">
