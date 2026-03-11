@@ -22,6 +22,8 @@ const shortcutGroups = [
     shortcuts: [
       { keys: "c", label: "Create Endeavor" },
       { keys: "/", label: "Search" },
+      { keys: "Cmd K", label: "Quick Search" },
+      { keys: "Cmd Shift N", label: "Quick Create" },
       { keys: "?", label: "Show Shortcuts" },
       { keys: "Esc", label: "Close / Cancel" },
     ],

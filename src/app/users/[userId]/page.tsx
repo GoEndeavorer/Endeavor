@@ -170,6 +170,15 @@ export default function PublicProfilePage({
                   </Link>
                 </>
               )}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                }}
+                className="px-3 py-1 text-xs border border-medium-gray/20 text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+                title="Copy profile link"
+              >
+                Share
+              </button>
             </div>
             {profile.bio && (
               <p className="mt-2 text-sm text-light-gray leading-relaxed">{profile.bio}</p>

@@ -27,8 +27,8 @@ export function QuickCreateModal() {
         return;
       }
 
-      // Ctrl/Cmd + K to open quick create
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      // Ctrl/Cmd + Shift + N to open quick create
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "n") {
         e.preventDefault();
         setOpen(true);
       }
