@@ -120,6 +120,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 <Link href="/my-endeavors" className="text-sm text-medium-gray hover:text-code-green">
                   My Endeavors
                 </Link>
+                <Link href="/saved" className="text-sm text-medium-gray hover:text-code-green">
+                  Saved
+                </Link>
                 <NotificationBell />
                 <Link href="/profile" className="text-sm text-code-blue hover:text-code-green">
                   Profile
@@ -168,6 +171,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 </Link>
                 <Link href="/my-endeavors" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
                   My Endeavors
+                </Link>
+                <Link href="/saved" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+                  Saved
                 </Link>
                 <Link href="/notifications" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
                   Notifications

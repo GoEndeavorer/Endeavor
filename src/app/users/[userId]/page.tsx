@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 
 type UserProfile = {
@@ -46,9 +47,12 @@ export default function PublicProfilePage({
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = use(params);
+  const { data: session } = useSession();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"endeavors" | "created">("endeavors");
+  const [followData, setFollowData] = useState({ followers: 0, following: 0, isFollowing: false });
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/users/${userId}`)
@@ -56,6 +60,31 @@ export default function PublicProfilePage({
       .then((data) => setProfile(data))
       .finally(() => setLoading(false));
   }, [userId]);
+
+  useEffect(() => {
+    fetch(`/api/follow?userId=${userId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setFollowData(data); })
+      .catch(() => {});
+  }, [userId]);
+
+  async function toggleFollow() {
+    setFollowLoading(true);
+    const res = await fetch("/api/follow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setFollowData((prev) => ({
+        ...prev,
+        isFollowing: data.following,
+        followers: prev.followers + (data.following ? 1 : -1),
+      }));
+    }
+    setFollowLoading(false);
+  }
 
   if (loading) {
     return (
@@ -104,6 +133,27 @@ export default function PublicProfilePage({
               </span>
               {daysSince > 0 && (
                 <span className="text-xs">({daysSince}d ago)</span>
+              )}
+            </div>
+            <div className="mt-2 flex items-center gap-4">
+              <span className="text-xs text-medium-gray">
+                <span className="font-bold text-white">{followData.followers}</span> followers
+              </span>
+              <span className="text-xs text-medium-gray">
+                <span className="font-bold text-white">{followData.following}</span> following
+              </span>
+              {session && session.user.id !== userId && (
+                <button
+                  onClick={toggleFollow}
+                  disabled={followLoading}
+                  className={`px-3 py-1 text-xs font-semibold transition-colors ${
+                    followData.isFollowing
+                      ? "border border-code-green/30 text-code-green hover:border-red-400/30 hover:text-red-400"
+                      : "border border-code-blue bg-code-blue text-black hover:bg-transparent hover:text-code-blue"
+                  } disabled:opacity-50`}
+                >
+                  {followData.isFollowing ? "Following" : "Follow"}
+                </button>
               )}
             </div>
             {profile.bio && (

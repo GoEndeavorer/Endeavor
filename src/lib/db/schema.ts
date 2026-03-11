@@ -272,6 +272,32 @@ export const update = pgTable("update", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Bookmarks (saved endeavors) ──────────────────────────────────────────────
+
+export const bookmark = pgTable("bookmark", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Follows (user → user) ───────────────────────────────────────────────────
+
+export const follow = pgTable("follow", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  followerId: text("follower_id")
+    .notNull()
+    .references(() => user.id),
+  followingId: text("following_id")
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Reports / Moderation ────────────────────────────────────────────────────
 
 export const report = pgTable("report", {

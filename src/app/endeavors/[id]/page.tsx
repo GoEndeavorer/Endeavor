@@ -52,6 +52,7 @@ export default function EndeavorDetailPage({
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
+  const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
     async function fetchEndeavor() {
@@ -70,6 +71,31 @@ export default function EndeavorDetailPage({
     }
     fetchEndeavor();
   }, [id]);
+
+  // Check bookmark status
+  useEffect(() => {
+    if (!session) return;
+    fetch("/api/bookmarks")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: { endeavorId: string }[]) => {
+        if (Array.isArray(data)) {
+          setBookmarked(data.some((b) => b.endeavorId === id));
+        }
+      })
+      .catch(() => {});
+  }, [session, id]);
+
+  async function toggleBookmark() {
+    const res = await fetch("/api/bookmarks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ endeavorId: id }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setBookmarked(data.bookmarked);
+    }
+  }
 
   async function handleJoin() {
     if (!session) return;
@@ -236,6 +262,19 @@ export default function EndeavorDetailPage({
               title={endeavor.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
             />
+            {session && (
+              <button
+                onClick={toggleBookmark}
+                className={`text-xs transition-colors ${
+                  bookmarked
+                    ? "text-yellow-400 hover:text-yellow-300"
+                    : "text-medium-gray hover:text-yellow-400"
+                }`}
+                title={bookmarked ? "Remove bookmark" : "Bookmark"}
+              >
+                {bookmarked ? "[saved]" : "[save]"}
+              </button>
+            )}
           </div>
         </div>
 

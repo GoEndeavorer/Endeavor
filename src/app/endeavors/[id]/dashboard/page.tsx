@@ -100,7 +100,17 @@ type ActivityItem = {
   createdAt: string;
 };
 
-type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "settings";
+type Payment = {
+  id: string;
+  userId: string;
+  userName: string;
+  type: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+};
+
+type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "finances" | "settings";
 
 export default function DashboardPage({
   params,
@@ -119,6 +129,7 @@ export default function DashboardPage({
   const [stories, setStories] = useState<Story[]>([]);
   const [updates, setUpdates] = useState<Update[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [newMessage, setNewMessage] = useState("");
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -144,7 +155,7 @@ export default function DashboardPage({
 
   const fetchData = useCallback(async () => {
     try {
-      const [endRes, discRes, taskRes, linkRes, msRes, storyRes, actRes, updRes] = await Promise.all([
+      const [endRes, discRes, taskRes, linkRes, msRes, storyRes, actRes, updRes, payRes] = await Promise.all([
         fetch(`/api/endeavors/${id}`),
         fetch(`/api/endeavors/${id}/discussions`),
         fetch(`/api/endeavors/${id}/tasks`),
@@ -153,6 +164,7 @@ export default function DashboardPage({
         fetch(`/api/endeavors/${id}/stories`),
         fetch(`/api/endeavors/${id}/activity`),
         fetch(`/api/endeavors/${id}/updates`),
+        fetch(`/api/endeavors/${id}/payments`),
       ]);
 
       if (endRes.ok) setEndeavor(await endRes.json());
@@ -163,6 +175,7 @@ export default function DashboardPage({
       if (storyRes.ok) setStories(await storyRes.json());
       if (actRes.ok) setActivity(await actRes.json());
       if (updRes.ok) setUpdates(await updRes.json());
+      if (payRes.ok) setPayments(await payRes.json());
     } catch (err) {
       console.error("Failed to load dashboard:", err);
     } finally {
@@ -425,6 +438,7 @@ export default function DashboardPage({
     { id: "stories", label: "Stories", count: stories.length },
     { id: "links", label: "Links", count: links.length },
     { id: "members", label: "Members", count: endeavor.members.length },
+    ...(isCreator ? [{ id: "finances" as TabId, label: "Finances" }] : []),
     ...(isCreator ? [{ id: "settings" as TabId, label: "Settings" }] : []),
   ];
 
@@ -1164,6 +1178,89 @@ export default function DashboardPage({
             </div>
           </div>
         )}
+        {/* ── Finances (creator only) ── */}
+        {activeTab === "finances" && isCreator && (
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="border border-medium-gray/30 p-5">
+                <p className="text-xs uppercase text-medium-gray mb-1">Total Revenue</p>
+                <p className="text-2xl font-bold text-code-green">
+                  ${(payments.filter(p => p.status === "completed").reduce((sum, p) => sum + p.amount, 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="border border-medium-gray/30 p-5">
+                <p className="text-xs uppercase text-medium-gray mb-1">Join Payments</p>
+                <p className="text-2xl font-bold text-code-blue">
+                  {payments.filter(p => p.type === "join" && p.status === "completed").length}
+                </p>
+              </div>
+              <div className="border border-medium-gray/30 p-5">
+                <p className="text-xs uppercase text-medium-gray mb-1">Donations</p>
+                <p className="text-2xl font-bold text-purple-400">
+                  ${(payments.filter(p => p.type === "donation" && p.status === "completed").reduce((sum, p) => sum + p.amount, 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+
+            {/* Funding progress */}
+            {endeavor.fundingEnabled && endeavor.fundingGoal && (
+              <div className="border border-medium-gray/30 p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold">Funding Progress</p>
+                  <p className="text-xs text-medium-gray">
+                    {Math.round(((endeavor as unknown as { fundingRaised: number }).fundingRaised / endeavor.fundingGoal) * 100)}% of ${endeavor.fundingGoal.toLocaleString()}
+                  </p>
+                </div>
+                <div className="h-2 w-full bg-medium-gray/30">
+                  <div
+                    className="h-2 bg-code-green transition-all"
+                    style={{ width: `${Math.min(100, ((endeavor as unknown as { fundingRaised: number }).fundingRaised / endeavor.fundingGoal) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Transaction list */}
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-code-green">
+                {"// transactions"}
+              </h3>
+              {payments.length === 0 ? (
+                <div className="border border-medium-gray/20 p-8 text-center text-sm text-medium-gray">
+                  No transactions yet.
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {payments.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between border border-medium-gray/20 p-3">
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-mono font-bold ${p.type === "join" ? "text-code-blue" : "text-purple-400"}`}>
+                          {p.type === "join" ? "JOIN" : "FUND"}
+                        </span>
+                        <div>
+                          <p className="text-sm">{p.userName}</p>
+                          <p className="text-xs text-medium-gray">
+                            {new Date(p.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-code-green">
+                          ${(p.amount / 100).toFixed(2)}
+                        </p>
+                        <p className={`text-xs ${p.status === "completed" ? "text-code-green" : p.status === "pending" ? "text-yellow-400" : "text-red-400"}`}>
+                          {p.status}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── Settings (creator only) ── */}
         {activeTab === "settings" && isCreator && (
           <SettingsTab endeavor={endeavor} endeavorId={id} onUpdate={fetchData} />
