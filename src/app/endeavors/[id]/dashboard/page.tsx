@@ -667,28 +667,25 @@ export default function DashboardPage({
             ) : (
               <div className="space-y-4">
                 {discussions.map((msg) => (
-                  <div key={msg.id} className="border border-medium-gray/20 p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center bg-accent text-xs font-bold">
-                          {msg.authorName.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-sm font-semibold">{msg.authorName}</span>
-                        <span className="text-xs text-medium-gray">
-                          {new Date(msg.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {msg.authorId === session?.user?.id && (
-                        <button
-                          onClick={() => deleteDiscussion(msg.id)}
-                          className="text-xs text-medium-gray hover:text-red-400"
-                        >
-                          x
-                        </button>
-                      )}
-                    </div>
-                    <p className="whitespace-pre-wrap text-sm text-light-gray">{msg.content}</p>
-                  </div>
+                  <DiscussionMessage
+                    key={msg.id}
+                    msg={msg}
+                    isOwn={msg.authorId === session?.user?.id}
+                    canDelete={msg.authorId === session?.user?.id || isCreator}
+                    onDelete={() => deleteDiscussion(msg.id)}
+                    onEdit={async (content) => {
+                      const res = await fetch(`/api/discussions/${msg.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ content }),
+                      });
+                      if (res.ok) {
+                        setDiscussions((prev) =>
+                          prev.map((d) => d.id === msg.id ? { ...d, content } : d)
+                        );
+                      }
+                    }}
+                  />
                 ))}
               </div>
             )}
@@ -1321,6 +1318,90 @@ function TaskColumn({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function DiscussionMessage({
+  msg,
+  isOwn,
+  canDelete,
+  onDelete,
+  onEdit,
+}: {
+  msg: Discussion;
+  isOwn: boolean;
+  canDelete: boolean;
+  onDelete: () => void;
+  onEdit: (content: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [editContent, setEditContent] = useState(msg.content);
+
+  async function handleSave() {
+    if (!editContent.trim()) return;
+    await onEdit(editContent.trim());
+    setEditing(false);
+  }
+
+  return (
+    <div className="border border-medium-gray/20 p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center bg-accent text-xs font-bold">
+            {msg.authorName.charAt(0).toUpperCase()}
+          </div>
+          <span className="text-sm font-semibold">{msg.authorName}</span>
+          <span className="text-xs text-medium-gray">
+            {new Date(msg.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {isOwn && !editing && (
+            <button
+              onClick={() => { setEditContent(msg.content); setEditing(true); }}
+              className="text-xs text-medium-gray hover:text-code-blue"
+            >
+              edit
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={onDelete}
+              className="text-xs text-medium-gray hover:text-red-400"
+            >
+              x
+            </button>
+          )}
+        </div>
+      </div>
+      {editing ? (
+        <div>
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            rows={3}
+            className="mb-2 w-full border border-medium-gray/50 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-code-green"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSave}
+              disabled={!editContent.trim()}
+              className="border border-code-green px-3 py-1 text-xs text-code-green hover:bg-code-green hover:text-black disabled:opacity-50"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="px-3 py-1 text-xs text-medium-gray hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <MarkdownText content={msg.content} />
+      )}
     </div>
   );
 }
