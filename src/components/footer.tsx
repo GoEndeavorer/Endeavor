@@ -86,6 +86,12 @@ export function Footer() {
               <Link href="/saved" className="text-sm text-medium-gray hover:text-code-green">
                 Saved
               </Link>
+              <Link href="/messages" className="text-sm text-medium-gray hover:text-code-green">
+                Messages
+              </Link>
+              <Link href="/settings" className="text-sm text-medium-gray hover:text-code-green">
+                Settings
+              </Link>
             </nav>
           </div>
           <div>
@@ -110,6 +116,12 @@ export function Footer() {
               </Link>
               <Link href="/terms" className="text-sm text-medium-gray hover:text-code-green">
                 Terms of Service
+              </Link>
+              <Link href="/help" className="text-sm text-medium-gray hover:text-code-green">
+                Help Center
+              </Link>
+              <Link href="/compare" className="text-sm text-medium-gray hover:text-code-green">
+                Compare Endeavors
               </Link>
               <Link href="/contact" className="text-sm text-medium-gray hover:text-code-green">
                 Contact

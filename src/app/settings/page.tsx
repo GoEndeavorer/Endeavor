@@ -267,6 +267,35 @@ export default function SettingsPage() {
               <span>Notifications</span>
               <span className="text-xs text-medium-gray">&rarr;</span>
             </Link>
+            <Link
+              href="/messages"
+              className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
+            >
+              <span>Messages</span>
+              <span className="text-xs text-medium-gray">&rarr;</span>
+            </Link>
+            <button
+              onClick={async () => {
+                toast("Preparing export...");
+                const res = await fetch("/api/export");
+                if (res.ok) {
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "endeavor-data.json";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast("Data exported");
+                } else {
+                  toast("Export failed", "error");
+                }
+              }}
+              className="flex w-full items-center justify-between border border-medium-gray/20 p-4 text-sm text-left transition-colors hover:border-code-green/30"
+            >
+              <span>Export My Data</span>
+              <span className="text-xs text-medium-gray">&darr;</span>
+            </button>
           </div>
         </section>
 

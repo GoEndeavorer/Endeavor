@@ -11,6 +11,7 @@ import { formatTimeAgo } from "@/lib/time";
 import { Footer } from "@/components/footer";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { analytics } from "@/lib/analytics";
+import { ProgressTracker } from "@/components/progress-tracker";
 
 type EndeavorDetail = {
   id: string;
@@ -466,6 +467,9 @@ export default function EndeavorDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Progress bars */}
+            <ProgressTracker endeavorId={endeavor.id} />
 
             {/* Stories link */}
             <Link
