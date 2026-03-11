@@ -18,6 +18,10 @@ export async function GET(
       location: user.location,
       skills: user.skills,
       interests: user.interests,
+      website: user.website,
+      github: user.github,
+      twitter: user.twitter,
+      linkedin: user.linkedin,
       createdAt: user.createdAt,
     })
     .from(user)

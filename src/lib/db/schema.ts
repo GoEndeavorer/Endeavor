@@ -47,6 +47,10 @@ export const user = pgTable("user", {
   location: text("location"),
   skills: text("skills").array(),
   interests: text("interests").array(),
+  website: text("website"),
+  github: text("github"),
+  twitter: text("twitter"),
+  linkedin: text("linkedin"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -375,5 +379,18 @@ export const report = pgTable("report", {
   reason: text("reason").notNull(),
   details: text("details"),
   status: text("status").notNull().default("pending"), // pending, reviewed, dismissed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Reactions ──────────────────────────────────────────────────────────────
+export const reaction = pgTable("reaction", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  discussionId: uuid("discussion_id")
+    .notNull()
+    .references(() => discussion.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  emoji: text("emoji").notNull(), // like, heart, fire, thumbsup, thumbsdown, celebrate
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

@@ -34,6 +34,10 @@ export async function PATCH(request: NextRequest) {
   if (body.location !== undefined) updates.location = body.location;
   if (body.skills !== undefined) updates.skills = body.skills;
   if (body.interests !== undefined) updates.interests = body.interests;
+  if (body.website !== undefined) updates.website = body.website || null;
+  if (body.github !== undefined) updates.github = body.github || null;
+  if (body.twitter !== undefined) updates.twitter = body.twitter || null;
+  if (body.linkedin !== undefined) updates.linkedin = body.linkedin || null;
 
   const [updated] = await db
     .update(user)

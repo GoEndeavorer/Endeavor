@@ -16,6 +16,10 @@ type UserProfile = {
   location: string | null;
   skills: string[] | null;
   interests: string[] | null;
+  website: string | null;
+  github: string | null;
+  twitter: string | null;
+  linkedin: string | null;
   createdAt: string;
   endeavors: {
     endeavorId: string;
@@ -161,6 +165,30 @@ export default function PublicProfilePage({
             </div>
             {profile.bio && (
               <p className="mt-2 text-sm text-light-gray leading-relaxed">{profile.bio}</p>
+            )}
+            {(profile.website || profile.github || profile.twitter || profile.linkedin) && (
+              <div className="mt-2 flex flex-wrap gap-3">
+                {profile.website && (
+                  <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                    Website
+                  </a>
+                )}
+                {profile.github && (
+                  <a href={`https://github.com/${profile.github}`} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                    GitHub
+                  </a>
+                )}
+                {profile.twitter && (
+                  <a href={`https://x.com/${profile.twitter}`} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                    X/Twitter
+                  </a>
+                )}
+                {profile.linkedin && (
+                  <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                    LinkedIn
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </div>

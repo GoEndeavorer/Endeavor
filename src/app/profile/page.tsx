@@ -17,6 +17,10 @@ type Profile = {
   location: string | null;
   skills: string[] | null;
   interests: string[] | null;
+  website: string | null;
+  github: string | null;
+  twitter: string | null;
+  linkedin: string | null;
 };
 
 type Endeavor = {
@@ -41,6 +45,10 @@ export default function ProfilePage() {
   const [skills, setSkills] = useState<string[]>([]);
   const [interestsInput, setInterestsInput] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [website, setWebsite] = useState("");
+  const [github, setGithub] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const [linkedin, setLinkedin] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -62,6 +70,10 @@ export default function ProfilePage() {
         setLocation(p.location || "");
         setSkills(p.skills || []);
         setInterests(p.interests || []);
+        setWebsite(p.website || "");
+        setGithub(p.github || "");
+        setTwitter(p.twitter || "");
+        setLinkedin(p.linkedin || "");
       }
       if (endeavorsRes.ok) {
         setEndeavors(await endeavorsRes.json());
@@ -83,7 +95,7 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bio, location, skills, interests }),
+        body: JSON.stringify({ bio, location, skills, interests, website, github, twitter, linkedin }),
       });
       if (res.ok) {
         setProfile(await res.json());
@@ -151,6 +163,31 @@ export default function ProfilePage() {
                 )}
                 {profile?.bio && (
                   <p className="mt-2 text-sm text-light-gray">{profile.bio}</p>
+                )}
+                {/* Social links */}
+                {(profile?.website || profile?.github || profile?.twitter || profile?.linkedin) && (
+                  <div className="mt-2 flex flex-wrap gap-3">
+                    {profile?.website && (
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                        Website
+                      </a>
+                    )}
+                    {profile?.github && (
+                      <a href={`https://github.com/${profile.github}`} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                        GitHub
+                      </a>
+                    )}
+                    {profile?.twitter && (
+                      <a href={`https://x.com/${profile.twitter}`} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                        X/Twitter
+                      </a>
+                    )}
+                    {profile?.linkedin && (
+                      <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-xs text-code-blue hover:text-code-green">
+                        LinkedIn
+                      </a>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -378,6 +415,55 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 </div>
+                {/* Social links */}
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-code-green">
+                    {"// social links"}
+                  </label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs text-medium-gray">Website</label>
+                      <input
+                        type="url"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        className="w-full border border-medium-gray/50 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-code-green"
+                        placeholder="https://yoursite.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs text-medium-gray">GitHub username</label>
+                      <input
+                        type="text"
+                        value={github}
+                        onChange={(e) => setGithub(e.target.value)}
+                        className="w-full border border-medium-gray/50 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-code-green"
+                        placeholder="username"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs text-medium-gray">X/Twitter handle</label>
+                      <input
+                        type="text"
+                        value={twitter}
+                        onChange={(e) => setTwitter(e.target.value)}
+                        className="w-full border border-medium-gray/50 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-code-green"
+                        placeholder="handle"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs text-medium-gray">LinkedIn</label>
+                      <input
+                        type="text"
+                        value={linkedin}
+                        onChange={(e) => setLinkedin(e.target.value)}
+                        className="w-full border border-medium-gray/50 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-code-green"
+                        placeholder="in/username"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   onClick={saveProfile}
                   disabled={saving}
