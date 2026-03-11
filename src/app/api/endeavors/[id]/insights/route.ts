@@ -57,6 +57,34 @@ export async function GET(
     db.select({ count: count() }).from(story).where(and(eq(story.endeavorId, id), eq(story.published, true))),
   ]);
 
+  // Average time from task creation to completion (in days)
+  const avgCompletionTime = await db.execute(sql`
+    SELECT COALESCE(
+      AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 86400),
+      0
+    )::float as avg_days
+    FROM task
+    WHERE endeavor_id = ${id} AND task_status = 'done'
+  `);
+
+  // Most active day of the week (by discussion posts)
+  const mostActiveDay = await db.execute(sql`
+    SELECT
+      EXTRACT(DOW FROM created_at)::int as day_of_week,
+      COUNT(*)::int as post_count
+    FROM discussion
+    WHERE endeavor_id = ${id}
+    GROUP BY day_of_week
+    ORDER BY post_count DESC
+    LIMIT 1
+  `);
+
+  // Member retention rate (approved vs total who ever applied)
+  const [[totalApplied], [totalApproved]] = await Promise.all([
+    db.select({ count: count() }).from(member).where(eq(member.endeavorId, id)),
+    db.select({ count: count() }).from(member).where(and(eq(member.endeavorId, id), eq(member.status, "approved"))),
+  ]);
+
   // Revenue
   const [revenue] = await db
     .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
@@ -113,6 +141,15 @@ export async function GET(
     stories: totalStories.count,
     memberGrowth: memberGrowth.rows,
     topContributors: activeMembers.rows,
+    avgTaskCompletionDays: Math.round(((avgCompletionTime.rows[0] as { avg_days: number })?.avg_days ?? 0) * 10) / 10,
+    mostActiveDayOfWeek: mostActiveDay.rows.length > 0
+      ? ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][
+          (mostActiveDay.rows[0] as { day_of_week: number }).day_of_week
+        ]
+      : null,
+    memberRetentionRate: totalApplied.count > 0
+      ? Math.round((totalApproved.count / totalApplied.count) * 100)
+      : 0,
     createdAt: end.createdAt,
     daysSinceCreation: Math.floor((now.getTime() - new Date(end.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
   });

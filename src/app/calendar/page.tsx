@@ -122,6 +122,13 @@ export default function CalendarPage() {
             {currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}
           </h1>
           <div className="flex gap-2">
+            <a
+              href="/api/calendar/export"
+              download="endeavor-calendar.ics"
+              className="border border-medium-gray/30 px-3 py-1.5 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+            >
+              Export .ics
+            </a>
             <button
               onClick={prevMonth}
               className="border border-medium-gray/30 px-3 py-1.5 text-sm text-medium-gray hover:border-code-green hover:text-code-green transition-colors"

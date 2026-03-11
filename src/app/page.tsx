@@ -10,6 +10,7 @@ import { Footer } from "@/components/footer";
 import { PlatformStats } from "@/components/platform-stats";
 import { FeaturedStories } from "@/components/featured-stories";
 import { Spotlight } from "@/components/spotlight";
+import { TrendingCreators } from "@/components/trending-creators";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,9 @@ export default function Home() {
         </Suspense>
         <Suspense fallback={null}>
           <Spotlight />
+        </Suspense>
+        <Suspense fallback={null}>
+          <TrendingCreators />
         </Suspense>
         <About />
         <CTA />
