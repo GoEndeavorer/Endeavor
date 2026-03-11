@@ -16,6 +16,8 @@ import { CreatorChecklist } from "@/components/creator-checklist";
 import { TaskDependencyGraph } from "@/components/task-dependency-graph";
 import { GanttChart } from "@/components/gantt-chart";
 import { ResourceList } from "@/components/resource-list";
+import { MemberDirectory } from "@/components/member-directory";
+import { Announcements } from "@/components/announcements";
 
 type Discussion = {
   id: string;
@@ -543,6 +545,11 @@ export default function DashboardPage({
                 />
               </div>
             )}
+            {/* Announcements */}
+            <div className="lg:col-span-3">
+              <Announcements endeavorId={id} canPost={isCreator} />
+            </div>
+
             {/* Quick Actions */}
             <div className="lg:col-span-3 flex flex-wrap gap-2">
               <button
@@ -1535,6 +1542,14 @@ export default function DashboardPage({
                   )}
                 </div>
               ))}
+            </div>
+
+            {/* Full member directory */}
+            <div className="mb-6">
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-code-green">
+                {"// member directory"}
+              </h3>
+              <MemberDirectory endeavorId={id} />
             </div>
 
             {/* Leave button (non-creators only) */}
