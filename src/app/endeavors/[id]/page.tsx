@@ -53,6 +53,7 @@ export default function EndeavorDetailPage({
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
   const [bookmarked, setBookmarked] = useState(false);
+  const [similar, setSimilar] = useState<{ id: string; title: string; category: string; status: string; imageUrl: string | null; memberCount: number }[]>([]);
 
   useEffect(() => {
     async function fetchEndeavor() {
@@ -70,6 +71,14 @@ export default function EndeavorDetailPage({
       }
     }
     fetchEndeavor();
+  }, [id]);
+
+  // Fetch similar endeavors
+  useEffect(() => {
+    fetch(`/api/endeavors/${id}/similar`)
+      .then((r) => r.ok ? r.json() : [])
+      .then(setSimilar)
+      .catch(() => {});
   }, [id]);
 
   // Check bookmark status
@@ -492,6 +501,41 @@ export default function EndeavorDetailPage({
             )}
           </div>
         </div>
+
+        {/* Similar endeavors */}
+        {similar.length > 0 && (
+          <div className="mt-12">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-code-green">
+              {"// similar endeavors"}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {similar.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/endeavors/${s.id}`}
+                  className="group border border-medium-gray/30 overflow-hidden transition-colors hover:border-code-green/50"
+                >
+                  {s.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.imageUrl} alt="" className="h-24 w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex h-24 items-center justify-center bg-code-green/5 text-3xl font-bold text-code-green/20">
+                      {s.title.charAt(0)}
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-sm font-semibold truncate group-hover:text-code-green transition-colors">
+                      {s.title}
+                    </p>
+                    <p className="text-xs text-medium-gray mt-1">
+                      {s.category} &middot; {s.memberCount} joined
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
