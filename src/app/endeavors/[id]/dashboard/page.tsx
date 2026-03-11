@@ -909,6 +909,62 @@ function SettingsTab({
           {saved && <span className="text-xs text-code-green">Saved!</span>}
         </div>
       </form>
+
+      <div className="mt-8 border-t border-medium-gray/20 pt-6">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-red-400">
+          {"// danger zone"}
+        </h3>
+        <p className="mb-3 text-xs text-medium-gray">
+          Permanently delete this endeavor and all its data. This cannot be undone.
+        </p>
+        <DeleteEndeavorButton endeavorId={endeavorId} />
+      </div>
+    </div>
+  );
+}
+
+function DeleteEndeavorButton({ endeavorId }: { endeavorId: string }) {
+  const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    const res = await fetch(`/api/endeavors/${endeavorId}`, { method: "DELETE" });
+    if (res.ok) {
+      router.push("/feed");
+    } else {
+      setDeleting(false);
+      setConfirming(false);
+    }
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        onClick={() => setConfirming(true)}
+        className="border border-red-500/50 px-4 py-2 text-xs font-bold uppercase text-red-400 transition-colors hover:bg-red-500 hover:text-black"
+      >
+        Delete Endeavor
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={handleDelete}
+        disabled={deleting}
+        className="border border-red-500 bg-red-500 px-4 py-2 text-xs font-bold uppercase text-black disabled:opacity-50"
+      >
+        {deleting ? "Deleting..." : "Confirm Delete"}
+      </button>
+      <button
+        onClick={() => setConfirming(false)}
+        className="px-4 py-2 text-xs text-medium-gray hover:text-white"
+      >
+        Cancel
+      </button>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { NotificationBell } from "@/components/notification-bell";
@@ -166,15 +166,25 @@ export default function FeedPage() {
   const [trending, setTrending] = useState<Endeavor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [locationType, setLocationType] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Debounce search input
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
   const fetchEndeavors = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (category !== "All") params.set("category", category);
     if (locationType) params.set("locationType", locationType);
-    if (search) params.set("search", search);
+    if (debouncedSearch) params.set("search", debouncedSearch);
 
     try {
       const res = await fetch(`/api/endeavors?${params}`);
@@ -185,7 +195,7 @@ export default function FeedPage() {
     } finally {
       setLoading(false);
     }
-  }, [category, locationType, search]);
+  }, [category, locationType, debouncedSearch]);
 
   useEffect(() => {
     fetchEndeavors();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { endeavor, member, user } from "@/lib/db/schema";
+import { endeavor, member, user, discussion, task, milestone, story, link, notification, payment } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
@@ -103,4 +103,43 @@ export async function PATCH(
     .returning();
 
   return NextResponse.json(updated);
+}
+
+// Creator only: delete endeavor and all related data
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const [existing] = await db
+    .select()
+    .from(endeavor)
+    .where(eq(endeavor.id, id))
+    .limit(1);
+
+  if (!existing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (existing.creatorId !== session.user.id) {
+    return NextResponse.json({ error: "Only the creator can delete" }, { status: 403 });
+  }
+
+  // Delete all related data (order matters for FK constraints)
+  await db.delete(notification).where(eq(notification.endeavorId, id));
+  await db.delete(payment).where(eq(payment.endeavorId, id));
+  await db.delete(story).where(eq(story.endeavorId, id));
+  await db.delete(milestone).where(eq(milestone.endeavorId, id));
+  await db.delete(link).where(eq(link.endeavorId, id));
+  await db.delete(task).where(eq(task.endeavorId, id));
+  await db.delete(discussion).where(eq(discussion.endeavorId, id));
+  await db.delete(member).where(eq(member.endeavorId, id));
+  await db.delete(endeavor).where(eq(endeavor.id, id));
+
+  return NextResponse.json({ success: true });
 }
