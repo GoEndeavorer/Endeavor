@@ -86,13 +86,9 @@ export default function EndeavorDetailPage({
   // Check bookmark status
   useEffect(() => {
     if (!session) return;
-    fetch("/api/bookmarks")
-      .then((r) => r.ok ? r.json() : [])
-      .then((data: { endeavorId: string }[]) => {
-        if (Array.isArray(data)) {
-          setBookmarked(data.some((b) => b.endeavorId === id));
-        }
-      })
+    fetch(`/api/bookmarks/check?endeavorId=${id}`)
+      .then((r) => r.ok ? r.json() : { bookmarked: false })
+      .then((data) => setBookmarked(data.bookmarked))
       .catch(() => {});
   }, [session, id]);
 

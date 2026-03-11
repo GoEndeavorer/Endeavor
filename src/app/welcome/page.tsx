@@ -150,6 +150,18 @@ export default function WelcomePage() {
                     Add
                   </button>
                 </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {["Photography", "Programming", "Design", "Writing", "Video", "Music", "Research", "Marketing", "Teaching", "Engineering"].filter(s => !skills.includes(s)).slice(0, 6).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSkills([...skills, s])}
+                      className="border border-medium-gray/20 px-2 py-0.5 text-xs text-medium-gray hover:border-code-blue hover:text-code-blue transition-colors"
+                    >
+                      + {s}
+                    </button>
+                  ))}
+                </div>
                 {skills.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {skills.map((s) => (
@@ -184,6 +196,18 @@ export default function WelcomePage() {
                   >
                     Add
                   </button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {["Hiking", "Filmmaking", "Science", "Travel", "Art", "Conservation", "Music", "Tech", "Cooking", "Sports"].filter(i => !interests.includes(i)).slice(0, 6).map((i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setInterests([...interests, i])}
+                      className="border border-medium-gray/20 px-2 py-0.5 text-xs text-medium-gray hover:border-purple-400 hover:text-purple-400 transition-colors"
+                    >
+                      + {i}
+                    </button>
+                  ))}
                 </div>
                 {interests.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
