@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { formatTimeAgo } from "@/lib/time";
 
 type Notification = {
   id: string;
@@ -12,12 +13,36 @@ type Notification = {
   createdAt: string;
 };
 
+const typeIcons: Record<string, string> = {
+  join_request: "+",
+  member_joined: "+",
+  new_discussion: "#",
+  task_assigned: ">",
+  funding_received: "$",
+  milestone_completed: "*",
+  status_change: "~",
+  update_posted: "!",
+  member_left: "-",
+};
+
+const typeColors: Record<string, string> = {
+  join_request: "text-code-green",
+  member_joined: "text-code-green",
+  new_discussion: "text-code-blue",
+  task_assigned: "text-yellow-400",
+  funding_received: "text-purple-400",
+  milestone_completed: "text-code-green",
+  status_change: "text-code-blue",
+  update_posted: "text-yellow-400",
+  member_left: "text-red-400",
+};
+
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const fetchNotifications = useCallback(() => {
     fetch("/api/notifications")
       .then((r) => r.json())
       .then((data) => {
@@ -25,6 +50,13 @@ export function NotificationBell() {
       })
       .catch(() => {});
   }, []);
+
+  // Initial fetch + poll every 30s
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -85,31 +117,56 @@ export function NotificationBell() {
                 No notifications
               </div>
             ) : (
-              notifications.slice(0, 20).map((n) => (
-                <div
-                  key={n.id}
-                  className={`border-b border-medium-gray/10 px-4 py-3 ${
-                    !n.read ? "bg-white/5" : ""
-                  }`}
-                >
-                  {n.endeavorId ? (
-                    <Link
-                      href={`/endeavors/${n.endeavorId}`}
-                      className="block text-sm text-light-gray hover:text-white"
-                      onClick={() => setOpen(false)}
-                    >
-                      {n.message}
-                    </Link>
-                  ) : (
-                    <p className="text-sm text-light-gray">{n.message}</p>
-                  )}
-                  <p className="mt-1 text-xs text-medium-gray">
-                    {new Date(n.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))
+              notifications.slice(0, 20).map((n) => {
+                const icon = typeIcons[n.type] || ">";
+                const color = typeColors[n.type] || "text-medium-gray";
+                return (
+                  <div
+                    key={n.id}
+                    className={`border-b border-medium-gray/10 px-4 py-3 ${
+                      !n.read ? "bg-white/5" : ""
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className={`mt-0.5 font-mono text-xs font-bold ${color}`}>
+                        {icon}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        {n.endeavorId ? (
+                          <Link
+                            href={`/endeavors/${n.endeavorId}`}
+                            className="block text-sm text-light-gray hover:text-white"
+                            onClick={() => setOpen(false)}
+                          >
+                            {n.message}
+                          </Link>
+                        ) : (
+                          <p className="text-sm text-light-gray">{n.message}</p>
+                        )}
+                        <p className="mt-1 text-xs text-medium-gray">
+                          {formatTimeAgo(n.createdAt)}
+                        </p>
+                      </div>
+                      {!n.read && (
+                        <span className="mt-1 h-2 w-2 shrink-0 bg-code-green" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
+          {notifications.length > 0 && (
+            <div className="border-t border-medium-gray/20 px-4 py-2">
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="block text-center text-xs text-medium-gray hover:text-code-green transition-colors"
+              >
+                View all notifications &rarr;
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

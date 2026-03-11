@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
+import { UserBadges } from "@/components/user-badges";
 import { formatTimeAgo } from "@/lib/time";
 
 type Profile = {
@@ -179,6 +180,16 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
+
+            {/* Badges */}
+            {!editing && session && (
+              <div className="mb-6">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-code-green">
+                  {"// badges"}
+                </h3>
+                <UserBadges userId={session.user.id} showAll />
+              </div>
+            )}
 
             {/* Quick stats */}
             {!editing && endeavors.length > 0 && (

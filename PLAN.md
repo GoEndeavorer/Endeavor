@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.14.0
+> **Version**: 0.15.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.15.0  | 2026-03-11 | User badges/achievements, about/FAQ page, changelog, featured stories on landing, notification bell improvements (polling, icons, timestamps), nav additions |
 | 0.14.0  | 2026-03-11 | Explore/trending page, keyboard shortcuts, scroll-to-top, endeavor templates, change password, privacy/terms, story loading |
 | 0.13.0  | 2026-03-11 | Search page, people directory, password reset, stories hub, RSS feed, JSON-LD, PWA manifest, enhanced OG metadata |
 | 0.12.0  | 2026-03-11 | Who's Hiring page, leaderboard, recently viewed, form progress indicator, loading skeletons for auth/create/admin |
@@ -277,6 +278,21 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Explore/trending link in footer
 - [x] Loading skeleton for individual story pages
 - [x] Explore page in sitemap
+
+## Phase 15: Achievements & Polish — DONE
+
+- [x] User badges/achievements system — 10 badges (Trailblazer, Serial Starter, Team Player, Collaborator, Doer, Workhorse, Storyteller, Active Voice, Community Pillar, Polymath)
+- [x] Badges API endpoint (/api/badges) computing achievements from real activity data
+- [x] UserBadges component displayed on public user profiles and own profile page
+- [x] About & FAQ page (/about) with how-it-works, FAQ accordion, principles, contact
+- [x] Changelog page (/changelog) with full version history from v0.8.0 to v0.15.0
+- [x] Featured stories component on landing page (server-rendered from published stories)
+- [x] Notification bell improvements — 30s polling, type icons with colors, relative timestamps, unread dot indicators, "View all" link
+- [x] Leaderboard (Ranks) added to desktop header navigation
+- [x] Leaderboard and Stories added to mobile navigation menu
+- [x] About & FAQ link in footer
+- [x] Changelog link in footer
+- [x] About and changelog pages in sitemap
 
 ---
 

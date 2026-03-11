@@ -75,6 +75,12 @@ export function Footer() {
               Post what you want to do. Find people who want to do it with you. Plan it, fund it, make it happen.
             </p>
             <nav className="flex flex-col gap-2">
+              <Link href="/about" className="text-sm text-medium-gray hover:text-code-green">
+                About &amp; FAQ
+              </Link>
+              <Link href="/changelog" className="text-sm text-medium-gray hover:text-code-green">
+                Changelog
+              </Link>
               <Link href="/privacy" className="text-sm text-medium-gray hover:text-code-green">
                 Privacy Policy
               </Link>

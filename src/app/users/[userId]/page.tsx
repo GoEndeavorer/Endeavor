@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
+import { UserBadges } from "@/components/user-badges";
 
 type UserProfile = {
   id: string;
@@ -161,6 +162,11 @@ export default function PublicProfilePage({
               <p className="mt-2 text-sm text-light-gray leading-relaxed">{profile.bio}</p>
             )}
           </div>
+        </div>
+
+        {/* Badges */}
+        <div className="mb-8">
+          <UserBadges userId={userId} />
         </div>
 
         {/* Stats grid */}

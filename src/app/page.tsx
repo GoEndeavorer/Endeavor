@@ -8,6 +8,7 @@ import { About } from "@/components/about";
 import { CTA } from "@/components/cta";
 import { Footer } from "@/components/footer";
 import { PlatformStats } from "@/components/platform-stats";
+import { FeaturedStories } from "@/components/featured-stories";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,9 @@ export default function Home() {
         </Suspense>
         <Suspense fallback={null}>
           <PlatformStats />
+        </Suspense>
+        <Suspense fallback={null}>
+          <FeaturedStories />
         </Suspense>
         <About />
         <CTA />
