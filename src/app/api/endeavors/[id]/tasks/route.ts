@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { task, user } from "@/lib/db/schema";
+import { task, user, endeavor } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { isMemberOf } from "@/lib/membership";
 import { notifyUser } from "@/lib/notifications";
+import { sendTaskAssignmentEmail } from "@/lib/email";
 
 export async function GET(
   _request: NextRequest,
@@ -67,7 +68,7 @@ export async function POST(
     })
     .returning();
 
-  // Notify assigned user
+  // Notify assigned user (in-app + email)
   if (assigneeId && assigneeId !== session.user.id) {
     await notifyUser(
       assigneeId,
@@ -75,6 +76,18 @@ export async function POST(
       `${session.user.name} assigned you a task: "${title.trim()}"`,
       id
     );
+
+    // Send email notification
+    const [[assignee], [end]] = await Promise.all([
+      db.select({ email: user.email, name: user.name }).from(user).where(eq(user.id, assigneeId)).limit(1),
+      db.select({ title: endeavor.title }).from(endeavor).where(eq(endeavor.id, id)).limit(1),
+    ]);
+    if (assignee && end) {
+      sendTaskAssignmentEmail(
+        assignee.email, assignee.name, session.user.name,
+        title.trim(), end.title, id
+      ).catch(() => {});
+    }
   }
 
   return NextResponse.json(newTask, { status: 201 });

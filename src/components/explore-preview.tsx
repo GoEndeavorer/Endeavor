@@ -198,12 +198,18 @@ export function ExplorePreview() {
             <EndeavorCard key={e.title} endeavor={e} />
           ))}
         </div>
-        <div className="mt-12 flex items-center justify-center gap-4">
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/feed"
             className="border border-medium-gray px-8 py-3 text-sm font-bold uppercase transition-colors hover:border-code-green hover:text-code-green"
           >
             Browse All Endeavors
+          </Link>
+          <Link
+            href="/categories"
+            className="border border-code-blue/30 px-8 py-3 text-sm font-bold uppercase text-code-blue transition-colors hover:border-code-blue hover:bg-code-blue hover:text-black"
+          >
+            Browse by Category
           </Link>
           <Link
             href="/endeavors/completed"

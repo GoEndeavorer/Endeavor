@@ -67,6 +67,19 @@ export async function sendJoinNotification(
   }
 }
 
+export async function sendWelcomeEmail(to: string, name: string) {
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to,
+      subject: "Welcome to Endeavor!",
+      text: `Hi ${name},\n\nWelcome to Endeavor — the platform where you post what you want to do and find people who want to do it with you.\n\nHere's how to get started:\n\n1. Browse endeavors at /feed and find something that interests you\n2. Or create your own endeavor and invite collaborators\n3. Fill out your profile with skills and interests for better recommendations\n\nLet's make something happen.\n\n— Endeavor`,
+    });
+  } catch (err) {
+    console.error("Failed to send welcome email:", err);
+  }
+}
+
 export async function sendInviteEmail(
   to: string,
   inviterName: string,
@@ -85,5 +98,28 @@ export async function sendInviteEmail(
     });
   } catch (err) {
     console.error("Failed to send invite email:", err);
+  }
+}
+
+export async function sendTaskAssignmentEmail(
+  to: string,
+  assigneeName: string,
+  assignerName: string,
+  taskTitle: string,
+  endeavorTitle: string,
+  endeavorId: string
+) {
+  const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+  const link = `${baseUrl}/endeavors/${endeavorId}/dashboard`;
+
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to,
+      subject: `New task assigned: ${taskTitle}`,
+      text: `Hi ${assigneeName},\n\n${assignerName} assigned you a task in "${endeavorTitle}":\n\n"${taskTitle}"\n\nView your dashboard: ${link}\n\n— Endeavor`,
+    });
+  } catch (err) {
+    console.error("Failed to send task assignment email:", err);
   }
 }

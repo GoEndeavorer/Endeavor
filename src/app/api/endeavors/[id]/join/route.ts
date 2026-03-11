@@ -5,6 +5,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { notifyUser, notifyEndeavorMembers } from "@/lib/notifications";
+import { sendJoinNotification } from "@/lib/email";
+import { user } from "@/lib/db/schema";
 
 export async function POST(
   _request: NextRequest,
@@ -78,7 +80,7 @@ export async function POST(
     })
     .returning();
 
-  // Send notifications
+  // Send in-app notifications
   if (status === "approved") {
     await notifyEndeavorMembers(
       id,
@@ -93,6 +95,23 @@ export async function POST(
       `${session.user.name} requested to join "${end.title}"`,
       id
     );
+  }
+
+  // Send email to creator
+  const [creator] = await db
+    .select({ email: user.email, name: user.name })
+    .from(user)
+    .where(eq(user.id, end.creatorId))
+    .limit(1);
+
+  if (creator) {
+    sendJoinNotification(
+      creator.email,
+      creator.name,
+      session.user.name,
+      end.title,
+      status === "pending"
+    ).catch(() => {}); // fire and forget
   }
 
   return NextResponse.json(
