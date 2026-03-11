@@ -44,6 +44,193 @@ const categories = [
   "Community",
 ];
 
+const statusOptions = [
+  { value: "all", label: "All" },
+  { value: "open", label: "Open" },
+  { value: "in-progress", label: "In Progress" },
+];
+
+const sortOptions = [
+  { value: "newest", label: "Newest" },
+  { value: "popular", label: "Most Members" },
+  { value: "trending", label: "Trending" },
+  { value: "oldest", label: "Oldest" },
+  { value: "funded", label: "Most Funded" },
+];
+
+function FeedFilterBar({
+  search,
+  onSearchChange,
+  category,
+  onCategoryChange,
+  status,
+  onStatusChange,
+  sort,
+  onSortChange,
+}: {
+  search: string;
+  onSearchChange: (v: string) => void;
+  category: string;
+  onCategoryChange: (v: string) => void;
+  status: string;
+  onStatusChange: (v: string) => void;
+  sort: string;
+  onSortChange: (v: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasActiveFilters = category !== "All" || status !== "all" || sort !== "newest" || search.length > 0;
+
+  return (
+    <div className="mb-6 border border-medium-gray/20 bg-black/30 font-mono">
+      {/* Compact bar */}
+      <div className="flex items-center gap-3 px-4 py-2.5">
+        <span className="text-xs text-code-green shrink-0">{">"}_</span>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="filter feed..."
+          className="min-w-0 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-medium-gray/60"
+        />
+        <div className="hidden sm:flex items-center gap-2">
+          <select
+            value={category}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            className="border border-medium-gray/20 bg-transparent px-2 py-1 text-xs text-light-gray outline-none focus:border-code-green appearance-none cursor-pointer"
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat} className="bg-dark-gray text-white">
+                {cat === "All" ? "all categories" : cat.toLowerCase()}
+              </option>
+            ))}
+          </select>
+          <select
+            value={status}
+            onChange={(e) => onStatusChange(e.target.value)}
+            className="border border-medium-gray/20 bg-transparent px-2 py-1 text-xs text-light-gray outline-none focus:border-code-green appearance-none cursor-pointer"
+          >
+            {statusOptions.map((opt) => (
+              <option key={opt.value} value={opt.value} className="bg-dark-gray text-white">
+                {opt.label.toLowerCase()}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => onSortChange(e.target.value)}
+            className="border border-medium-gray/20 bg-transparent px-2 py-1 text-xs text-light-gray outline-none focus:border-code-green appearance-none cursor-pointer"
+          >
+            {sortOptions.map((opt) => (
+              <option key={opt.value} value={opt.value} className="bg-dark-gray text-white">
+                {opt.label.toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="sm:hidden text-xs text-medium-gray hover:text-code-green transition-colors"
+        >
+          {expanded ? "[-]" : "[+]"}
+        </button>
+        {hasActiveFilters && (
+          <button
+            onClick={() => {
+              onSearchChange("");
+              onCategoryChange("All");
+              onStatusChange("all");
+              onSortChange("newest");
+            }}
+            className="text-xs text-medium-gray hover:text-code-green transition-colors shrink-0"
+            title="Clear all filters"
+          >
+            [clear]
+          </button>
+        )}
+      </div>
+
+      {/* Mobile expanded filters */}
+      {expanded && (
+        <div className="border-t border-medium-gray/20 px-4 py-3 sm:hidden space-y-2">
+          <div>
+            <label className="text-xs text-medium-gray block mb-1">// category</label>
+            <select
+              value={category}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              className="w-full border border-medium-gray/20 bg-transparent px-2 py-1.5 text-xs text-light-gray outline-none focus:border-code-green"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat} className="bg-dark-gray text-white">
+                  {cat === "All" ? "all categories" : cat.toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-medium-gray block mb-1">// status</label>
+            <select
+              value={status}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="w-full border border-medium-gray/20 bg-transparent px-2 py-1.5 text-xs text-light-gray outline-none focus:border-code-green"
+            >
+              {statusOptions.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-dark-gray text-white">
+                  {opt.label.toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-medium-gray block mb-1">// sort</label>
+            <select
+              value={sort}
+              onChange={(e) => onSortChange(e.target.value)}
+              className="w-full border border-medium-gray/20 bg-transparent px-2 py-1.5 text-xs text-light-gray outline-none focus:border-code-green"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-dark-gray text-white">
+                  {opt.label.toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Active filter pills */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-medium-gray/20 px-4 py-2">
+          <span className="text-xs text-medium-gray">active:</span>
+          {category !== "All" && (
+            <span className="inline-flex items-center gap-1 border border-code-green/30 bg-code-green/5 px-2 py-0.5 text-xs text-code-green">
+              {category.toLowerCase()}
+              <button onClick={() => onCategoryChange("All")} className="hover:text-white">&times;</button>
+            </span>
+          )}
+          {status !== "all" && (
+            <span className="inline-flex items-center gap-1 border border-code-blue/30 bg-code-blue/5 px-2 py-0.5 text-xs text-code-blue">
+              {status}
+              <button onClick={() => onStatusChange("all")} className="hover:text-white">&times;</button>
+            </span>
+          )}
+          {sort !== "newest" && (
+            <span className="inline-flex items-center gap-1 border border-purple-400/30 bg-purple-400/5 px-2 py-0.5 text-xs text-purple-400">
+              sort: {sort}
+              <button onClick={() => onSortChange("newest")} className="hover:text-white">&times;</button>
+            </span>
+          )}
+          {search.length > 0 && (
+            <span className="inline-flex items-center gap-1 border border-yellow-400/30 bg-yellow-400/5 px-2 py-0.5 text-xs text-yellow-400">
+              &quot;{search}&quot;
+              <button onClick={() => onSearchChange("")} className="hover:text-white">&times;</button>
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const locationTypes = [
   { value: "", label: "Any" },
   { value: "in-person", label: "In-Person" },
@@ -200,7 +387,10 @@ export default function FeedPage() {
   const [locationType, setLocationType] = useState("");
   const [sort, setSort] = useState("newest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [feedTab, setFeedTab] = useState<"explore" | "for-you">("explore");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [feedTab, setFeedTab] = useState<"explore" | "for-you" | "following">("explore");
+  const [followingFeed, setFollowingFeed] = useState<{ type: string; id: string; title: string; detail: string | null; endeavorId: string | null; endeavorTitle: string | null; category: string | null; status: string | null; userId: string; imageUrl: string | null; memberCount: number; createdAt: string }[]>([]);
+  const [followingLoading, setFollowingLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const PAGE_SIZE = 20;
 
@@ -223,6 +413,7 @@ export default function FeedPage() {
     const params = new URLSearchParams();
     if (category !== "All") params.set("category", category);
     if (locationType) params.set("locationType", locationType);
+    if (statusFilter !== "all") params.set("status", statusFilter);
     if (sort !== "newest") params.set("sort", sort);
     if (debouncedSearch) params.set("search", debouncedSearch);
     params.set("limit", String(PAGE_SIZE));
@@ -246,7 +437,7 @@ export default function FeedPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [category, locationType, sort, debouncedSearch]);
+  }, [category, locationType, sort, statusFilter, debouncedSearch]);
 
   const fetchRef = useRef(fetchEndeavors);
   fetchRef.current = fetchEndeavors;
@@ -315,6 +506,32 @@ export default function FeedPage() {
     }
   }, [session, feedTab, forYou.length]);
 
+  // Fetch "Following" activity feed with filters
+  const fetchFollowingFeed = useCallback(async () => {
+    if (!session) return;
+    setFollowingLoading(true);
+    const params = new URLSearchParams();
+    if (category !== "All") params.set("category", category);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (sort !== "newest") params.set("sort", sort === "popular" ? "most-members" : sort);
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    try {
+      const res = await fetch(`/api/feed?${params}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setFollowingFeed(data);
+    } catch {
+      // ignore
+    } finally {
+      setFollowingLoading(false);
+    }
+  }, [session, category, statusFilter, sort, debouncedSearch]);
+
+  useEffect(() => {
+    if (feedTab === "following") {
+      fetchFollowingFeed();
+    }
+  }, [feedTab, fetchFollowingFeed]);
+
   return (
     <div className="min-h-screen">
       <AppHeader breadcrumb={{ label: "Explore", href: "/feed" }} />
@@ -334,7 +551,7 @@ export default function FeedPage() {
 
         {/* Feed tabs */}
         {session && (
-          <div className="mb-8 flex gap-1 border-b border-medium-gray/20">
+          <div className="mb-6 flex gap-1 border-b border-medium-gray/20">
             <button
               onClick={() => setFeedTab("explore")}
               className={`px-4 py-2 text-sm font-semibold transition-colors ${
@@ -344,6 +561,16 @@ export default function FeedPage() {
               }`}
             >
               Explore
+            </button>
+            <button
+              onClick={() => setFeedTab("following")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                feedTab === "following"
+                  ? "border-b-2 border-code-green text-code-green"
+                  : "text-medium-gray hover:text-white"
+              }`}
+            >
+              Following
             </button>
             <button
               onClick={() => setFeedTab("for-you")}
@@ -357,6 +584,18 @@ export default function FeedPage() {
             </button>
           </div>
         )}
+
+        {/* Filter bar */}
+        <FeedFilterBar
+          search={search}
+          onSearchChange={setSearch}
+          category={category}
+          onCategoryChange={setCategory}
+          status={statusFilter}
+          onStatusChange={setStatusFilter}
+          sort={sort}
+          onSortChange={setSort}
+        />
 
         {/* For You tab */}
         {feedTab === "for-you" && session && (
@@ -378,6 +617,74 @@ export default function FeedPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {forYou.map((e) => (
                   <EndeavorCard key={e.id} endeavor={e as Endeavor} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Following tab */}
+        {feedTab === "following" && session && (
+          <div>
+            {followingLoading ? (
+              <CardSkeletonGrid count={6} />
+            ) : followingFeed.length === 0 ? (
+              <div className="border border-medium-gray/20 p-12 text-center font-mono">
+                <p className="mb-2 text-lg text-medium-gray">{"// no activity yet"}</p>
+                <p className="mb-6 text-sm text-medium-gray">Follow other users to see their endeavors, updates, and stories here.</p>
+                <Link
+                  href="/discover"
+                  className="border border-code-green px-6 py-3 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black"
+                >
+                  Discover People
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {followingFeed.map((item) => (
+                  <Link
+                    key={`${item.type}-${item.id}`}
+                    href={item.type === "endeavor" ? `/endeavors/${item.id}` : item.endeavorId ? `/endeavors/${item.endeavorId}` : "#"}
+                    className="group flex items-start gap-4 border border-medium-gray/20 p-4 transition-colors hover:border-code-green/50"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-medium-gray/30">
+                      <span className={`text-xs font-bold ${
+                        item.type === "endeavor" ? "text-code-green" :
+                        item.type === "update" ? "text-code-blue" :
+                        "text-purple-400"
+                      }`}>
+                        {item.type === "endeavor" ? "E" : item.type === "update" ? "U" : "S"}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className={`border px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
+                          item.type === "endeavor" ? "border-code-green/30 text-code-green" :
+                          item.type === "update" ? "border-code-blue/30 text-code-blue" :
+                          "border-purple-400/30 text-purple-400"
+                        }`}>
+                          {item.type}
+                        </span>
+                        {item.category && (
+                          <span className="text-[10px] text-medium-gray">{item.category}</span>
+                        )}
+                        <span className="text-[10px] text-medium-gray">
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="font-semibold truncate group-hover:text-code-green transition-colors">{item.title}</p>
+                      {item.endeavorTitle && item.type !== "endeavor" && (
+                        <p className="text-xs text-medium-gray truncate">in {item.endeavorTitle}</p>
+                      )}
+                      {item.detail && (
+                        <p className="mt-1 text-xs text-light-gray line-clamp-2">{item.detail}</p>
+                      )}
+                    </div>
+                    {item.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt="" className="h-16 w-24 shrink-0 object-cover" loading="lazy" />
+                    )}
+                  </Link>
                 ))}
               </div>
             )}
@@ -483,30 +790,8 @@ export default function FeedPage() {
           </div>
         )}
 
-        {/* Filters */}
-        <div className="mb-8 space-y-4">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, description, or needed skills..."
-            className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
-          />
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`border px-3 py-1.5 text-xs font-semibold uppercase transition-colors ${
-                  category === cat
-                    ? "border-code-green bg-code-green text-black"
-                    : "border-medium-gray/50 text-medium-gray hover:border-code-green hover:text-code-green"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+        {/* Secondary explore filters */}
+        <div className="mb-6 flex flex-wrap items-center gap-2">
           <div className="flex gap-2">
             {locationTypes.map((lt) => (
               <button
@@ -522,29 +807,8 @@ export default function FeedPage() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-medium-gray">Sort:</span>
-            {[
-              { value: "newest", label: "Newest" },
-              { value: "popular", label: "Popular" },
-              { value: "oldest", label: "Oldest" },
-              { value: "funded", label: "Most Funded" },
-            ].map((s) => (
-              <button
-                key={s.value}
-                onClick={() => setSort(s.value)}
-                className={`border px-3 py-1.5 text-xs uppercase transition-colors ${
-                  sort === s.value
-                    ? "border-code-green text-code-green font-semibold"
-                    : "border-medium-gray/50 text-medium-gray hover:border-code-green hover:text-code-green"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-medium-gray">View:</span>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-medium-gray font-mono">view:</span>
             <button
               onClick={() => setViewMode("grid")}
               className={`border px-3 py-1.5 text-xs uppercase transition-colors ${

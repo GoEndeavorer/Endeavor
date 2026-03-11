@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { report, user } from "@/lib/db/schema";
+import { report, user, endeavor } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +31,17 @@ export async function GET() {
       resolvedAt: report.resolvedAt,
       reporterName: user.name,
       reporterEmail: user.email,
+      targetTitle: sql<string | null>`
+        CASE
+          WHEN ${report.targetType} = 'endeavor' THEN (
+            SELECT ${endeavor.title} FROM ${endeavor} WHERE ${endeavor.id}::text = ${report.targetId}
+          )
+          WHEN ${report.targetType} = 'user' THEN (
+            SELECT ${user.name} FROM ${user} WHERE ${user.id} = ${report.targetId}
+          )
+          ELSE NULL
+        END
+      `,
     })
     .from(report)
     .innerJoin(user, eq(report.reporterId, user.id))

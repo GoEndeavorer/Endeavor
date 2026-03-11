@@ -6,6 +6,17 @@ import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
+const NOTIFICATION_TYPES = [
+  "join_request",
+  "member_joined",
+  "new_discussion",
+  "task_assigned",
+  "funding_received",
+  "milestone_completed",
+  "status_change",
+  "update_posted",
+] as const;
+
 async function ensureTable() {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS notification_preference (
@@ -20,6 +31,18 @@ async function ensureTable() {
   `);
 }
 
+async function ensureTypePreferenceTable() {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS notification_type_preference (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      enabled BOOLEAN DEFAULT true,
+      UNIQUE(user_id, type)
+    )
+  `);
+}
+
 // GET /api/notification-preferences — return current user's preferences
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -28,6 +51,7 @@ export async function GET() {
   }
 
   await ensureTable();
+  await ensureTypePreferenceTable();
 
   const result = await db.execute(sql`
     SELECT email_digest, email_milestones, email_discussions, email_join_requests, updated_at
@@ -35,13 +59,29 @@ export async function GET() {
     WHERE user_id = ${session.user.id}
   `);
 
+  // Fetch per-type preferences
+  const typeResult = await db.execute(sql`
+    SELECT type, enabled
+    FROM notification_type_preference
+    WHERE user_id = ${session.user.id}
+  `);
+
+  // Build type preferences map (default all to true)
+  const typePreferences: Record<string, boolean> = {};
+  for (const t of NOTIFICATION_TYPES) {
+    typePreferences[t] = true;
+  }
+  for (const row of typeResult.rows) {
+    typePreferences[row.type as string] = row.enabled as boolean;
+  }
+
   if (result.rows.length === 0) {
-    // Return defaults when no row exists yet
     return NextResponse.json({
       emailDigest: true,
       emailMilestones: true,
       emailDiscussions: false,
       emailJoinRequests: true,
+      typePreferences,
     });
   }
 
@@ -52,6 +92,7 @@ export async function GET() {
     emailDiscussions: row.email_discussions,
     emailJoinRequests: row.email_join_requests,
     updatedAt: row.updated_at,
+    typePreferences,
   });
 }
 
@@ -104,4 +145,40 @@ export async function PATCH(request: NextRequest) {
     emailJoinRequests: row.email_join_requests,
     updatedAt: row.updated_at,
   });
+}
+
+// POST /api/notification-preferences — update a per-type notification preference
+export async function POST(request: NextRequest) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { type, enabled } = body;
+
+  if (!type || typeof enabled !== "boolean") {
+    return NextResponse.json(
+      { error: "type (string) and enabled (boolean) are required" },
+      { status: 400 }
+    );
+  }
+
+  if (!NOTIFICATION_TYPES.includes(type)) {
+    return NextResponse.json(
+      { error: `Invalid notification type: ${type}` },
+      { status: 400 }
+    );
+  }
+
+  await ensureTypePreferenceTable();
+
+  await db.execute(sql`
+    INSERT INTO notification_type_preference (user_id, type, enabled)
+    VALUES (${session.user.id}, ${type}, ${enabled})
+    ON CONFLICT (user_id, type) DO UPDATE SET
+      enabled = ${enabled}
+  `);
+
+  return NextResponse.json({ type, enabled });
 }
