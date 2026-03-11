@@ -120,6 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/okrs`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     { url: `${baseUrl}/knowledge-base`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${baseUrl}/team-directory`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
+    { url: `${baseUrl}/feedback-board`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     ...endeavorUrls,
     ...storyUrls,
     ...publishedStories.map((s) => ({
