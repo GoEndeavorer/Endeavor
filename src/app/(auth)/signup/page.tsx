@@ -27,7 +27,7 @@ export default function SignUpPage() {
       if (result.error) {
         setError(result.error.message || "Something went wrong");
       } else {
-        router.push("/feed");
+        router.push("/welcome");
       }
     } catch {
       setError("Something went wrong. Please try again.");

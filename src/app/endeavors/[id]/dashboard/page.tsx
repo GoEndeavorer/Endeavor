@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { AppHeader } from "@/components/app-header";
 import { MarkdownText } from "@/components/markdown-text";
 
 type Discussion = {
@@ -425,18 +426,7 @@ export default function DashboardPage({
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-xl font-bold">Endeavor</Link>
-            <span className="text-medium-gray">/</span>
-            <Link href={`/endeavors/${id}`} className="text-sm text-code-blue hover:text-code-green">
-              {endeavor.title}
-            </Link>
-          </div>
-          <Link href="/feed" className="text-sm text-code-blue hover:text-code-green">Feed</Link>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: endeavor.title, href: `/endeavors/${id}` }} />
 
       <main className="mx-auto max-w-6xl px-4 pt-24 pb-16">
         <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none"
