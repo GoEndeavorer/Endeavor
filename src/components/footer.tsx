@@ -46,6 +46,9 @@ export function Footer() {
               <Link href="/tags" className="text-sm text-medium-gray hover:text-code-green">
                 Tags
               </Link>
+              <Link href="/needs" className="text-sm text-medium-gray hover:text-code-green">
+                Browse by Need
+              </Link>
               <Link href="/map" className="text-sm text-medium-gray hover:text-code-green">
                 Map
               </Link>
