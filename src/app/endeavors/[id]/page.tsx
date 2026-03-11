@@ -27,6 +27,7 @@ import { WatchButton } from "@/components/watch-button";
 import { CompletionMeter } from "@/components/completion-meter";
 import { MilestoneProgress } from "@/components/milestone-progress";
 import { EndeavorChangelog } from "@/components/endeavor-changelog";
+import { ResourceList } from "@/components/resource-list";
 
 type EndeavorDetail = {
   id: string;
@@ -487,6 +488,9 @@ export default function EndeavorDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Resources */}
+            <ResourceList endeavorId={endeavor.id} canAdd={isMember || isCreator} />
 
             {/* Changelog */}
             <EndeavorChangelog endeavorId={endeavor.id} />

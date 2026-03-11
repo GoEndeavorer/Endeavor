@@ -62,6 +62,8 @@ const sections: CommandSection[] = [
       { label: "Mentorship", icon: "M", action: "/mentorship" },
       { label: "Events", icon: "E", action: "/events" },
       { label: "Goals", icon: "G", action: "/goals" },
+      { label: "Feedback", icon: "F", action: "/feedback" },
+      { label: "Skills", icon: "S", action: "/skills" },
     ],
   },
 ];
