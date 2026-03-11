@@ -96,6 +96,9 @@ export function Footer() {
               <Link href="/contact" className="text-sm text-medium-gray hover:text-code-green">
                 Contact
               </Link>
+              <Link href="/status" className="text-sm text-medium-gray hover:text-code-green">
+                System Status
+              </Link>
             </nav>
           </div>
         </div>

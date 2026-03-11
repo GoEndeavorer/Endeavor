@@ -3,6 +3,7 @@ import { Fira_Code } from "next/font/google";
 import { ToastProvider } from "@/components/toast";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { WhatsNewBanner } from "@/components/whats-new-banner";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -42,6 +43,7 @@ export default function RootLayout({
         <ToastProvider>
           <KeyboardShortcuts />
           <ScrollToTop />
+          <WhatsNewBanner />
           {children}
         </ToastProvider>
       </body>
