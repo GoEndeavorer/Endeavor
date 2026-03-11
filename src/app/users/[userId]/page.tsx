@@ -14,6 +14,8 @@ import { UserTimeline } from "@/components/user-timeline";
 import { SimilarUsers } from "@/components/similar-users";
 import { UserLevel } from "@/components/user-level";
 import { ActivitySummaryCard } from "@/components/activity-summary-card";
+import { EndorsementList } from "@/components/endorsement-list";
+import { UserPortfolio } from "@/components/user-portfolio";
 
 type UserProfile = {
   id: string;
@@ -320,6 +322,16 @@ export default function PublicProfilePage({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Portfolio */}
+        <div className="mb-8">
+          <UserPortfolio userId={userId} />
+        </div>
+
+        {/* Endorsements */}
+        <div className="mb-8">
+          <EndorsementList userId={userId} />
         </div>
 
         {/* Endeavors */}
