@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.11.0
+> **Version**: 0.12.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.12.0  | 2026-03-11 | Who's Hiring page, leaderboard, recently viewed, form progress indicator, loading skeletons for auth/create/admin |
 | 0.11.0  | 2026-03-11 | Platform activity feed, admin users tab, notification preferences, CSV export, Footer standardization, needs tag fix |
 | 0.10.0  | 2026-03-11 | Discussion threading, account deletion, task reassignment, activity stats, share links, loading skeletons, relative timestamps, markdown descriptions |
 | 0.9.0   | 2026-03-11 | Bookmarks, follows, finances, following feed, similar endeavors, platform stats, dashboard widgets |
@@ -220,6 +221,21 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Activity page in sitemap for SEO
 - [x] Activity page SEO metadata layout
 
+## Phase 12: Discovery & Community — DONE
+
+- [x] Who's Hiring page (/hiring) — skill-based endeavor matching with filterable needs
+- [x] Hiring API endpoint (endeavors with needs, actively open/in-progress)
+- [x] Leaderboard page (/leaderboard) — top creators, contributors, and most active users
+- [x] Leaderboard API with ranked creator/contributor/activity data
+- [x] Recently viewed endeavors on feed page (localStorage-based, horizontal scroll)
+- [x] Recently viewed utility module for tracking viewed endeavors
+- [x] Form completeness indicator on create endeavor page
+- [x] Loading skeletons for login, signup, create endeavor, and admin pages
+- [x] Footer added to create endeavor and admin pages
+- [x] Hiring and leaderboard links in footer and sitemap
+- [x] Hiring link in desktop and mobile navigation
+- [x] SEO metadata layouts for hiring and leaderboard pages
+
 ---
 
 ## Design Principles
@@ -255,8 +271,9 @@ src/
 │   │   ├── admin/reports         # Admin moderation
 │   │   ├── admin/users           # Admin user management
 │   │   ├── activity/             # Global platform activity feed
+│   │   ├── leaderboard/         # Community leaderboard rankings
 │   │   ├── endeavors/           # CRUD, detail, join, leave, checkout, discussions, tasks, links, members, members/[id], milestones, stories, invite, activity, duplicate, report, updates, export
-│   │   ├── endeavors/recommended, trending, trending-needs, stats  # Discovery + analytics
+│   │   ├── endeavors/recommended, trending, trending-needs, stats, hiring  # Discovery + analytics
 │   │   ├── milestones/[id]      # Milestone CRUD
 │   │   ├── notifications/       # In-app notifications
 │   │   ├── account/              # Account deletion
@@ -272,6 +289,8 @@ src/
 │   │   ├── search/              # Global search API
 │   │   └── webhooks/stripe      # Payment webhooks
 │   ├── activity/                # Platform-wide activity feed
+│   ├── hiring/                  # Skill-based endeavor matching
+│   ├── leaderboard/             # Community leaderboard rankings
 │   ├── admin/                   # Admin dashboard (overview, reports, users)
 │   ├── categories/              # Category browser
 │   ├── endeavors/[id]/          # Detail + dashboard + stories + checkout
