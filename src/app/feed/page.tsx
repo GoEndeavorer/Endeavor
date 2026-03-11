@@ -165,11 +165,14 @@ export default function FeedPage() {
   const [recommended, setRecommended] = useState<Endeavor[]>([]);
   const [trending, setTrending] = useState<Endeavor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [locationType, setLocationType] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const PAGE_SIZE = 20;
 
   // Debounce search input
   useEffect(() => {
@@ -179,21 +182,31 @@ export default function FeedPage() {
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
-  const fetchEndeavors = useCallback(async () => {
-    setLoading(true);
+  const fetchEndeavors = useCallback(async (offset = 0) => {
+    if (offset === 0) setLoading(true);
+    else setLoadingMore(true);
+
     const params = new URLSearchParams();
     if (category !== "All") params.set("category", category);
     if (locationType) params.set("locationType", locationType);
     if (debouncedSearch) params.set("search", debouncedSearch);
+    params.set("limit", String(PAGE_SIZE));
+    params.set("offset", String(offset));
 
     try {
       const res = await fetch(`/api/endeavors?${params}`);
       const data = await res.json();
-      setEndeavors(data);
+      if (offset === 0) {
+        setEndeavors(data);
+      } else {
+        setEndeavors((prev) => [...prev, ...data]);
+      }
+      setHasMore(data.length === PAGE_SIZE);
     } catch (err) {
       console.error("Failed to fetch endeavors:", err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [category, locationType, debouncedSearch]);
 
@@ -357,11 +370,24 @@ export default function FeedPage() {
             )}
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {endeavors.map((e) => (
-              <EndeavorCard key={e.id} endeavor={e} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {endeavors.map((e) => (
+                <EndeavorCard key={e.id} endeavor={e} />
+              ))}
+            </div>
+            {hasMore && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => fetchEndeavors(endeavors.length)}
+                  disabled={loadingMore}
+                  className="border border-medium-gray/50 px-8 py-3 text-xs font-bold uppercase text-medium-gray transition-colors hover:border-code-green hover:text-code-green disabled:opacity-50"
+                >
+                  {loadingMore ? "Loading..." : "Load More"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
