@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { StoryComments } from "@/components/story-comments";
 import { RelatedStories } from "@/components/related-stories";
+import { ReadingProgress } from "@/components/reading-progress";
 import { estimateReadingTime } from "@/lib/reading-time";
 import type { Metadata } from "next";
 
@@ -73,6 +74,7 @@ export default async function StoryPage({ params }: Props) {
 
   return (
     <div className="min-h-screen">
+      <ReadingProgress />
       <AppHeader
         breadcrumb={{
           label: s.endeavorTitle,
