@@ -92,6 +92,11 @@ const sections: CommandSection[] = [
       { label: "Team Directory", icon: "T", action: "/team-directory" },
       { label: "Feedback Board", icon: "!", action: "/feedback-board" },
       { label: "Developer Settings", icon: ">", action: "/developer" },
+      { label: "Bookmarks", icon: "*", action: "/bookmarks" },
+      { label: "Export Data", icon: "E", action: "/export" },
+      { label: "Shortcuts", icon: "?", action: "/shortcuts" },
+      { label: "Badges", icon: "B", action: "/badges" },
+      { label: "Levels & Ranks", icon: "L", action: "/levels" },
     ],
   },
 ];

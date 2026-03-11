@@ -122,6 +122,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/team-directory`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     { url: `${baseUrl}/feedback-board`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${baseUrl}/developer`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
+    { url: `${baseUrl}/bookmarks`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 },
+    { url: `${baseUrl}/export`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
+    { url: `${baseUrl}/shortcuts`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
+    { url: `${baseUrl}/badges`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    { url: `${baseUrl}/levels`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     ...endeavorUrls,
     ...storyUrls,
     ...publishedStories.map((s) => ({

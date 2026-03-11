@@ -34,6 +34,9 @@ export default function Error({
           <div className="mb-2 text-xs text-medium-gray/50">
             <span className="text-red-400">ERR!</span> uncaught exception
           </div>
+          <div className="mb-1 font-mono text-xs text-medium-gray/40">
+            {"// process exited with code 1"}
+          </div>
           <p className="mb-1 text-4xl font-bold text-red-400 md:text-5xl">
             500
           </p>
