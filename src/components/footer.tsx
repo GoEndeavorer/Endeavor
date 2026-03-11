@@ -25,6 +25,9 @@ export function Footer() {
               <Link href="/hiring" className="text-sm text-medium-gray hover:text-code-green">
                 Who&apos;s Hiring
               </Link>
+              <Link href="/leaderboard" className="text-sm text-medium-gray hover:text-code-green">
+                Leaderboard
+              </Link>
               <Link href="/activity" className="text-sm text-medium-gray hover:text-code-green">
                 Platform Activity
               </Link>

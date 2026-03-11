@@ -136,6 +136,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             <Link href="/feed" className="text-sm text-code-blue hover:text-code-green">
               Explore
             </Link>
+            <Link href="/hiring" className="text-sm text-medium-gray hover:text-code-green">
+              Hiring
+            </Link>
             {session && (
               <Link href="/following" className="text-sm text-medium-gray hover:text-code-green">
                 Following
@@ -198,6 +201,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             </Link>
             <Link href="/activity" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
               Activity
+            </Link>
+            <Link href="/hiring" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+              Who&apos;s Hiring
             </Link>
             {session ? (
               <>
