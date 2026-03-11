@@ -8,6 +8,29 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.17.0",
+    date: "March 2026",
+    title: "Communication & Insights",
+    items: [
+      "Direct messages — private conversations between users",
+      "Endorsements — member testimonials with 1-5 star ratings on endeavors",
+      "Creator insights dashboard — analytics, growth charts, top contributors",
+      "Media gallery — image grid and file attachments per endeavor",
+      "Weekly digest — personalized 7-day summary of activity",
+      "Member directory page with search for each endeavor",
+      "Endeavor compare — side-by-side comparison of up to 3 endeavors",
+      "Help center — FAQ with expandable accordion sections",
+      "Data export — download all your data as JSON",
+      "Progress tracker bars for milestones, tasks, team, and funding",
+      "Activity feed API aggregating all endeavor events",
+      "Endeavor clone/duplicate API for quick project replication",
+      "Grid/List view toggle on explore feed",
+      "Most Funded sort option",
+      "Member role management and self-leave with notifications",
+      "DM notifications and settings preference",
+    ],
+  },
+  {
     version: "0.16.0",
     date: "March 2026",
     title: "Collaboration & Discovery",

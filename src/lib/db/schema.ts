@@ -171,8 +171,22 @@ export const task = pgTable("task", {
     .notNull()
     .references(() => user.id),
   dueDate: timestamp("due_date"),
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ── Task Dependencies ──────────────────────────────────────────────────────
+
+export const taskDependency = pgTable("task_dependency", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taskId: uuid("task_id")
+    .notNull()
+    .references(() => task.id),
+  dependsOnId: uuid("depends_on_id")
+    .notNull()
+    .references(() => task.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // ── Milestones ──────────────────────────────────────────────────────────────
