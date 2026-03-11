@@ -269,6 +269,33 @@ export default function DashboardPage({
     }
   }
 
+  async function deleteLink(linkId: string) {
+    const res = await fetch(`/api/links/${linkId}`, { method: "DELETE" });
+    if (res.ok) setLinks(links.filter((l) => l.id !== linkId));
+  }
+
+  async function deleteDiscussion(discId: string) {
+    const res = await fetch(`/api/discussions/${discId}`, { method: "DELETE" });
+    if (res.ok) setDiscussions(discussions.filter((d) => d.id !== discId));
+  }
+
+  async function toggleStoryPublish(storyId: string, published: boolean) {
+    const res = await fetch(`/api/stories/${storyId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ published }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setStories(stories.map((s) => (s.id === storyId ? { ...s, published: updated.published } : s)));
+    }
+  }
+
+  async function deleteStory(storyId: string) {
+    const res = await fetch(`/api/stories/${storyId}`, { method: "DELETE" });
+    if (res.ok) setStories(stories.filter((s) => s.id !== storyId));
+  }
+
   async function sendInvite(e: React.FormEvent) {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
@@ -391,14 +418,24 @@ export default function DashboardPage({
               <div className="space-y-4">
                 {discussions.map((msg) => (
                   <div key={msg.id} className="border border-medium-gray/20 p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center bg-accent text-xs font-bold">
-                        {msg.authorName.charAt(0).toUpperCase()}
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center bg-accent text-xs font-bold">
+                          {msg.authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm font-semibold">{msg.authorName}</span>
+                        <span className="text-xs text-medium-gray">
+                          {new Date(msg.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
-                      <span className="text-sm font-semibold">{msg.authorName}</span>
-                      <span className="text-xs text-medium-gray">
-                        {new Date(msg.createdAt).toLocaleDateString()}
-                      </span>
+                      {msg.authorId === session?.user?.id && (
+                        <button
+                          onClick={() => deleteDiscussion(msg.id)}
+                          className="text-xs text-medium-gray hover:text-red-400"
+                        >
+                          x
+                        </button>
+                      )}
                     </div>
                     <p className="whitespace-pre-wrap text-sm text-light-gray">{msg.content}</p>
                   </div>
@@ -603,15 +640,30 @@ export default function DashboardPage({
                   <div key={s.id} className="border border-medium-gray/20 p-4">
                     <div className="mb-2 flex items-center justify-between">
                       <h4 className="text-sm font-semibold">{s.title}</h4>
-                      <span className={`text-xs ${s.published ? "text-code-green" : "text-yellow-400"}`}>
-                        {s.published ? "Published" : "Draft"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleStoryPublish(s.id, !s.published)}
+                          className={`text-xs ${s.published ? "text-code-green hover:text-yellow-400" : "text-yellow-400 hover:text-code-green"}`}
+                        >
+                          {s.published ? "Unpublish" : "Publish"}
+                        </button>
+                        <button
+                          onClick={() => deleteStory(s.id)}
+                          className="text-xs text-medium-gray hover:text-red-400"
+                        >
+                          x
+                        </button>
+                      </div>
                     </div>
                     <p className="whitespace-pre-wrap text-sm text-light-gray">{s.content}</p>
                     <div className="mt-2 flex items-center gap-2 text-xs text-medium-gray">
                       {s.authorName && <span>by {s.authorName}</span>}
                       <span>&middot;</span>
                       <span>{new Date(s.createdAt).toLocaleDateString()}</span>
+                      <span>&middot;</span>
+                      <span className={s.published ? "text-code-green" : "text-yellow-400"}>
+                        {s.published ? "Published" : "Draft"}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -670,6 +722,12 @@ export default function DashboardPage({
                         Added by {l.addedByName} &middot; {new Date(l.createdAt).toLocaleDateString()}
                       </p>
                     </div>
+                    <button
+                      onClick={() => deleteLink(l.id)}
+                      className="text-xs text-medium-gray hover:text-red-400"
+                    >
+                      x
+                    </button>
                   </div>
                 ))}
               </div>
