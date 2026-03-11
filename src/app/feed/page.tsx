@@ -315,6 +315,24 @@ export default function FeedPage() {
           </Link>
         </div>
 
+        {/* Profile completion prompt */}
+        {session && recommended.length === 0 && (
+          <div className="mb-8 border border-code-blue/30 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-code-blue">Complete your profile for personalized recommendations</p>
+                <p className="text-xs text-medium-gray">Add skills and interests to see endeavors matched to you.</p>
+              </div>
+              <Link
+                href="/profile"
+                className="flex-shrink-0 border border-code-blue px-4 py-2 text-xs font-bold uppercase text-code-blue transition-colors hover:bg-code-blue hover:text-black"
+              >
+                Edit Profile
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Recommended for you */}
         {session && recommended.length > 0 && (
           <div className="mb-12">
@@ -349,7 +367,7 @@ export default function FeedPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search endeavors..."
+            placeholder="Search by title, description, or needed skills..."
             className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
           />
           <div className="flex flex-wrap gap-2">

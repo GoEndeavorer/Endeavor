@@ -86,7 +86,8 @@ export async function GET(request: NextRequest) {
     conditions.push(
       or(
         ilike(endeavor.title, `%${search}%`),
-        ilike(endeavor.description, `%${search}%`)
+        ilike(endeavor.description, `%${search}%`),
+        sql`EXISTS (SELECT 1 FROM unnest(${endeavor.needs}) AS n WHERE n ILIKE ${"%" + search + "%"})`
       )!
     );
   }
