@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
+import { ImagePicker } from "@/components/image-picker";
 import { analytics } from "@/lib/analytics";
 
 const categories = [
@@ -478,28 +479,14 @@ export default function CreateEndeavorPage() {
 
           {/* Cover Image */}
           <div>
-            <label htmlFor="imageUrl" className="mb-1 block text-sm text-light-gray">
-              Cover Image URL
+            <label className="mb-1 block text-sm text-light-gray">
+              Cover Image
             </label>
-            <input
-              id="imageUrl"
-              type="url"
+            <ImagePicker
               value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
-              placeholder="https://example.com/image.jpg"
+              onChange={setImageUrl}
+              category={category}
             />
-            {imageUrl && (
-              <div className="mt-2 overflow-hidden border border-medium-gray/30">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imageUrl}
-                  alt="Cover preview"
-                  className="h-40 w-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-              </div>
-            )}
           </div>
 
           {/* Submit */}
