@@ -4,6 +4,7 @@ import { endeavor, member, user, discussion, task, milestone, story, link, notif
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
+import { notifyEndeavorMembers } from "@/lib/notifications";
 
 export async function GET(
   _request: NextRequest,
@@ -101,6 +102,25 @@ export async function PATCH(
     .set(updates)
     .where(eq(endeavor.id, id))
     .returning();
+
+  // Notify members of status changes
+  if (body.status && body.status !== existing.status) {
+    const statusLabels: Record<string, string> = {
+      "in-progress": "is now in progress",
+      completed: "has been completed",
+      cancelled: "has been cancelled",
+      open: "is now open for new members",
+    };
+    const label = statusLabels[body.status];
+    if (label) {
+      await notifyEndeavorMembers(
+        id,
+        session.user.id,
+        "status_change",
+        `"${existing.title}" ${label}`,
+      );
+    }
+  }
 
   return NextResponse.json(updated);
 }

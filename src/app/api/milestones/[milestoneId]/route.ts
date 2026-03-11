@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { isMemberOf } from "@/lib/membership";
+import { notifyEndeavorMembers } from "@/lib/notifications";
 
 export async function PATCH(
   request: NextRequest,
@@ -47,6 +48,16 @@ export async function PATCH(
     .set(updates)
     .where(eq(milestone.id, milestoneId))
     .returning();
+
+  // Notify team when milestone is completed
+  if (body.completed === true) {
+    await notifyEndeavorMembers(
+      existing.endeavorId,
+      session.user.id,
+      "milestone_completed",
+      `Milestone completed: "${existing.title}"`,
+    );
+  }
 
   return NextResponse.json(updated);
 }
