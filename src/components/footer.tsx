@@ -71,9 +71,17 @@ export function Footer() {
             <h4 className="mb-3 text-xs font-semibold uppercase tracking-widest text-code-green">
               {"// about"}
             </h4>
-            <p className="text-sm leading-relaxed text-medium-gray">
+            <p className="mb-4 text-sm leading-relaxed text-medium-gray">
               Post what you want to do. Find people who want to do it with you. Plan it, fund it, make it happen.
             </p>
+            <nav className="flex flex-col gap-2">
+              <Link href="/privacy" className="text-sm text-medium-gray hover:text-code-green">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="text-sm text-medium-gray hover:text-code-green">
+                Terms of Service
+              </Link>
+            </nav>
           </div>
         </div>
         <div className="border-t border-medium-gray/20 pt-6 text-center">
