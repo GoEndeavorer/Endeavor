@@ -16,6 +16,11 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState({
     joinRequests: true,
     newMembers: true,
@@ -117,6 +122,80 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Change Password */}
+        <section className="mb-8">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+            {"// password"}
+          </h2>
+          <div className="space-y-3">
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Current password"
+              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+            />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password (min 8 characters)"
+              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+            />
+            <input
+              type="password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              placeholder="Confirm new password"
+              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+            />
+            {passwordError && (
+              <p className="text-xs text-red-400">{passwordError}</p>
+            )}
+            <button
+              disabled={passwordSaving || !currentPassword || !newPassword}
+              onClick={async () => {
+                setPasswordError("");
+                if (newPassword.length < 8) {
+                  setPasswordError("Password must be at least 8 characters");
+                  return;
+                }
+                if (newPassword !== confirmNewPassword) {
+                  setPasswordError("Passwords do not match");
+                  return;
+                }
+                setPasswordSaving(true);
+                try {
+                  const res = await fetch("/api/change-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      currentPassword,
+                      newPassword,
+                    }),
+                  });
+                  if (res.ok) {
+                    toast("Password updated");
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmNewPassword("");
+                  } else {
+                    const data = await res.json();
+                    setPasswordError(data.error || "Failed to change password");
+                  }
+                } catch {
+                  setPasswordError("Something went wrong");
+                } finally {
+                  setPasswordSaving(false);
+                }
+              }}
+              className="border border-code-green px-4 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
+            >
+              {passwordSaving ? "Updating..." : "Change Password"}
+            </button>
           </div>
         </section>
 

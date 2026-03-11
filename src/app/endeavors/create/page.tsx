@@ -17,6 +17,51 @@ const categories = [
   "Community",
 ];
 
+const templates = [
+  {
+    name: "Hiking Expedition",
+    category: "Adventure",
+    description: "A multi-day hiking trip through scenic trails. We'll plan the route, split costs for transport and camping, and capture the experience together.",
+    needs: ["Photographer", "Navigation", "First Aid"],
+    locationType: "in-person" as const,
+  },
+  {
+    name: "Open Source Project",
+    category: "Tech",
+    description: "Build an open source tool that solves a real problem. Contributors of all skill levels welcome — from code to docs to design.",
+    needs: ["Frontend Dev", "Backend Dev", "Designer", "Technical Writer"],
+    locationType: "remote" as const,
+  },
+  {
+    name: "Documentary Film",
+    category: "Creative",
+    description: "A short documentary exploring a compelling story. Looking for crew members to help with filming, editing, and production.",
+    needs: ["Videographer", "Editor", "Sound Engineer", "Narrator"],
+    locationType: "either" as const,
+  },
+  {
+    name: "Community Workshop",
+    category: "Community",
+    description: "Organize a hands-on workshop to teach a valuable skill to the local community. Free and open to all skill levels.",
+    needs: ["Instructor", "Venue", "Materials", "Marketing"],
+    locationType: "in-person" as const,
+  },
+  {
+    name: "Research Study",
+    category: "Scientific",
+    description: "A collaborative research project investigating an important question. Looking for researchers, data analysts, and domain experts.",
+    needs: ["Researcher", "Data Analyst", "Subject Expert", "Editor"],
+    locationType: "remote" as const,
+  },
+  {
+    name: "Cultural Festival",
+    category: "Cultural",
+    description: "Plan and host a cultural celebration bringing together food, music, art, and traditions from diverse backgrounds.",
+    needs: ["Event Planner", "Musicians", "Chefs", "Artists", "Volunteers"],
+    locationType: "in-person" as const,
+  },
+];
+
 export default function CreateEndeavorPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -36,6 +81,16 @@ export default function CreateEndeavorPage() {
   const [fundingGoal, setFundingGoal] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [joinType, setJoinType] = useState("open");
+  const [showTemplates, setShowTemplates] = useState(true);
+
+  function applyTemplate(tmpl: (typeof templates)[number]) {
+    setTitle(tmpl.name);
+    setDescription(tmpl.description);
+    setCategory(tmpl.category);
+    setNeeds(tmpl.needs);
+    setLocationType(tmpl.locationType);
+    setShowTemplates(false);
+  }
 
   function addNeed() {
     const trimmed = needsInput.trim();
@@ -117,6 +172,35 @@ export default function CreateEndeavorPage() {
         <p className="mb-4 text-sm text-medium-gray">
           Describe what you want to do. Others will find it and join.
         </p>
+
+        {/* Quick-start templates */}
+        {showTemplates && !title && (
+          <div className="mb-8">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-widest text-code-green">
+                Quick Start Templates
+              </p>
+              <button
+                onClick={() => setShowTemplates(false)}
+                className="text-xs text-medium-gray hover:text-white"
+              >
+                Hide
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {templates.map((tmpl) => (
+                <button
+                  key={tmpl.name}
+                  onClick={() => applyTemplate(tmpl)}
+                  className="border border-medium-gray/20 p-3 text-left transition-colors hover:border-code-green/50"
+                >
+                  <p className="text-sm font-semibold">{tmpl.name}</p>
+                  <p className="text-xs text-medium-gray">{tmpl.category} &middot; {tmpl.locationType}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Completeness indicator */}
         {(() => {
