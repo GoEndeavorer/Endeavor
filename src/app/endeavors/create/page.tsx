@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { AppHeader } from "@/components/app-header";
 import { analytics } from "@/lib/analytics";
 
 const categories = [
@@ -80,7 +81,7 @@ export default function CreateEndeavorPage() {
 
       const data = await res.json();
       analytics.endeavorCreated(data.id, category);
-      router.push(`/endeavors/${data.id}`);
+      router.push(`/endeavors/${data.id}/dashboard`);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -108,19 +109,7 @@ export default function CreateEndeavorPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-xl font-bold">
-            Endeavor
-          </Link>
-          <Link
-            href="/feed"
-            className="text-sm text-code-blue hover:text-code-green"
-          >
-            Back to Feed
-          </Link>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: "Create", href: "/endeavors/create" }} />
 
       <main className="mx-auto max-w-2xl px-4 pt-24 pb-16">
         <h1 className="mb-2 text-3xl font-bold">Create an Endeavor</h1>
