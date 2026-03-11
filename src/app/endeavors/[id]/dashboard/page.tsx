@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { MarkdownText } from "@/components/markdown-text";
 import { formatTimeAgo } from "@/lib/time";
+import { useToast } from "@/components/toast";
 
 type Discussion = {
   id: string;
@@ -122,6 +123,7 @@ export default function DashboardPage({
   const { id } = use(params);
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const { toast } = useToast();
 
   const [endeavor, setEndeavor] = useState<EndeavorInfo | null>(null);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
@@ -533,6 +535,7 @@ export default function DashboardPage({
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/endeavors/${id}`);
+                    toast("Link copied to clipboard");
                   }}
                   className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
                 >
@@ -1446,6 +1449,7 @@ function SettingsTab({
   const [fundingGoal, setFundingGoal] = useState(String(endeavor.fundingGoal ?? ""));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const { toast: settingsToast } = useToast();
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -1638,6 +1642,7 @@ function SettingsTab({
             onClick={() => {
               const url = `${window.location.origin}/endeavors/${endeavorId}`;
               navigator.clipboard.writeText(url);
+              settingsToast("Link copied!");
             }}
             className="border border-code-green px-4 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black"
           >

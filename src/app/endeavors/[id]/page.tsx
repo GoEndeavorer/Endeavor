@@ -140,13 +140,16 @@ export default function EndeavorDetailPage({
       const data = await res.json();
       if (res.ok) {
         setJoinMessage(data.message);
+        toast(data.message || "You've joined this endeavor!", "success");
         const updated = await fetch(`/api/endeavors/${id}`);
         if (updated.ok) setEndeavor(await updated.json());
       } else {
         setJoinMessage(data.error || "Failed to join");
+        toast(data.error || "Failed to join", "error");
       }
     } catch {
       setJoinMessage("Something went wrong");
+      toast("Something went wrong", "error");
     } finally {
       setJoining(false);
     }
