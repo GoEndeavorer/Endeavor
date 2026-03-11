@@ -14,6 +14,8 @@ import { TrendingCreators } from "@/components/trending-creators";
 import { MiniStats } from "@/components/mini-stats";
 import { PopularCategories } from "@/components/popular-categories";
 import { TopContributors } from "@/components/top-contributors";
+import { FeaturedEndeavors } from "@/components/featured-endeavors";
+import { Testimonials } from "@/components/testimonials";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +76,10 @@ export default function Home() {
         <Suspense fallback={null}>
           <TopContributors />
         </Suspense>
+        <Suspense fallback={null}>
+          <FeaturedEndeavors />
+        </Suspense>
+        <Testimonials />
         <About />
         <CTA />
       </main>

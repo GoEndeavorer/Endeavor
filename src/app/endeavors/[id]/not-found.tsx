@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function NotFound() {
+export default function EndeavorNotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-black px-4">
       {/* Terminal window */}
@@ -17,53 +17,44 @@ export default function NotFound() {
 
         {/* Terminal body */}
         <div className="p-8 md:p-12">
-          {/* Error code */}
+          {/* Error output */}
           <div className="mb-2 text-xs text-medium-gray/50">
-            <span className="text-code-green">$</span> GET /unknown-route
+            <span className="text-code-green">$</span> GET /endeavors/...
           </div>
-          <p className="mb-1 text-6xl font-bold text-code-green md:text-7xl">
+          <p className="mb-1 text-5xl font-bold text-code-green md:text-6xl">
             404
           </p>
           <p className="mb-1 text-lg font-semibold text-white/90">
-            Page not found
+            Endeavor not found
           </p>
           <p className="mb-8 text-sm leading-relaxed text-medium-gray">
-            This page doesn&apos;t exist. Maybe it&apos;s an endeavor waiting to
-            be created.
+            This endeavor doesn&apos;t exist, may have been removed, or
+            hasn&apos;t been created yet. Why not start one?
           </p>
 
-          {/* Suggested routes */}
+          {/* Suggested actions */}
           <div className="mb-8 border-l-2 border-medium-gray/20 pl-4">
             <p className="mb-3 text-xs font-bold uppercase tracking-wider text-medium-gray/50">
-              Maybe you were looking for
+              What you can do
             </p>
             <div className="flex flex-col gap-2">
               <Link
-                href="/"
+                href="/explore"
                 className="group flex items-center gap-2 text-sm text-medium-gray transition-colors hover:text-code-green"
               >
                 <span className="text-code-green/50 transition-colors group-hover:text-code-green">
-                  ~/
+                  ~/explore
                 </span>
-                Home
+                Browse all endeavors
               </Link>
               <Link
-                href="/feed"
+                href="/endeavors/create"
                 className="group flex items-center gap-2 text-sm text-medium-gray transition-colors hover:text-code-green"
               >
                 <span className="text-code-green/50 transition-colors group-hover:text-code-green">
-                  ~/feed
+                  ~/create
                 </span>
-                Feed
-              </Link>
-              <Link
-                href="/discover"
-                className="group flex items-center gap-2 text-sm text-medium-gray transition-colors hover:text-code-green"
-              >
-                <span className="text-code-green/50 transition-colors group-hover:text-code-green">
-                  ~/discover
-                </span>
-                Discover
+                Start a new endeavor
               </Link>
               <Link
                 href="/search"
@@ -72,16 +63,7 @@ export default function NotFound() {
                 <span className="text-code-green/50 transition-colors group-hover:text-code-green">
                   ~/search
                 </span>
-                Search
-              </Link>
-              <Link
-                href="/explore"
-                className="group flex items-center gap-2 text-sm text-medium-gray transition-colors hover:text-code-green"
-              >
-                <span className="text-code-green/50 transition-colors group-hover:text-code-green">
-                  ~/explore
-                </span>
-                Explore
+                Search for something specific
               </Link>
             </div>
           </div>
@@ -89,16 +71,22 @@ export default function NotFound() {
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/"
+              href="/explore"
               className="border border-code-green bg-code-green px-6 py-3 text-xs font-bold uppercase tracking-wider text-black transition-colors hover:bg-transparent hover:text-code-green"
             >
-              Go Home
+              Explore Endeavors
             </Link>
             <Link
-              href="/search"
+              href="/endeavors/create"
               className="border border-medium-gray/50 px-6 py-3 text-xs font-bold uppercase tracking-wider text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
             >
-              Search
+              Create One
+            </Link>
+            <Link
+              href="/"
+              className="border border-medium-gray/50 px-6 py-3 text-xs font-bold uppercase tracking-wider text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
+            >
+              Go Home
             </Link>
           </div>
         </div>

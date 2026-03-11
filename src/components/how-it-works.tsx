@@ -1,27 +1,27 @@
 const steps = [
   {
     number: "01",
-    title: "Post an Endeavor",
+    title: "Post",
     description:
-      "Got an idea? A hiking trip, a documentary, a community project? Post it. Describe what you want to do, where, and what you need.",
+      "Describe what you want to do — a hiking trip, a documentary, a community garden, a startup. Share your vision, location, and what you need to make it real.",
   },
   {
     number: "02",
-    title: "People Join",
+    title: "Find",
     description:
-      "Others discover your endeavor and join up — bringing skills, energy, and resources. A filmmaker, a guide, a friend you haven't met yet.",
+      "People who want to join discover your endeavor. A filmmaker, a guide, a developer, a friend you haven't met yet — the right crew finds you.",
   },
   {
     number: "03",
-    title: "Plan Together",
+    title: "Plan",
     description:
-      "Collaborate with your crew. Shared tasks, timelines, and discussions — everything you need to go from idea to plan.",
+      "Organize tasks, milestones, and discussions with your team. Turn a rough idea into a concrete plan with shared timelines and clear ownership.",
   },
   {
     number: "04",
-    title: "Fund It (Optional)",
+    title: "Launch",
     description:
-      "Need money to make it happen? Toggle on crowdfunding and let backers support the project. Or set a cost-to-join so participants share the expense.",
+      "Fund it through crowdfunding or shared costs, build it with your crew, and make it happen. From idea to reality — together.",
   },
 ];
 
@@ -37,7 +37,7 @@ export function HowItWorks() {
         </p>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((step) => (
-            <div key={step.number} className="group border border-medium-gray/30 p-6 transition-colors hover:border-code-green/50">
+            <div key={step.number} className="group border border-medium-gray/20 p-6 transition-colors hover:border-code-green/50">
               <span className="mb-4 block text-3xl font-bold text-code-green">
                 {step.number}
               </span>

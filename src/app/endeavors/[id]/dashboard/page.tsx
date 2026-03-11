@@ -14,6 +14,7 @@ import { ActivityFeed } from "@/components/activity-feed";
 import { MediaGallery } from "@/components/media-gallery";
 import { CreatorChecklist } from "@/components/creator-checklist";
 import { TaskDependencyGraph } from "@/components/task-dependency-graph";
+import { GanttChart } from "@/components/gantt-chart";
 
 type Discussion = {
   id: string;
@@ -157,7 +158,7 @@ export default function DashboardPage({
   const [newMilestoneDescription, setNewMilestoneDescription] = useState("");
   const [newMilestoneDate, setNewMilestoneDate] = useState("");
   const [discussionSearch, setDiscussionSearch] = useState("");
-  const [taskView, setTaskView] = useState<"columns" | "dependencies">("columns");
+  const [taskView, setTaskView] = useState<"columns" | "dependencies" | "timeline">("columns");
   const [newUpdateTitle, setNewUpdateTitle] = useState("");
   const [newUpdateContent, setNewUpdateContent] = useState("");
   const [newUpdatePinned, setNewUpdatePinned] = useState(false);
@@ -1096,6 +1097,16 @@ export default function DashboardPage({
                 >
                   Dependencies
                 </button>
+                <button
+                  onClick={() => setTaskView("timeline")}
+                  className={`border px-3 py-1.5 text-xs transition-colors ${
+                    taskView === "timeline"
+                      ? "border-code-green text-code-green"
+                      : "border-medium-gray/30 text-medium-gray hover:text-code-green"
+                  }`}
+                >
+                  Timeline
+                </button>
               </div>
             </div>
             {taskView === "columns" ? (
@@ -1104,6 +1115,17 @@ export default function DashboardPage({
                 <TaskColumn title="In Progress" tasks={inProgressTasks} color="code-blue" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
                 <TaskColumn title="Done" tasks={doneTasks} color="code-green" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
               </div>
+            ) : taskView === "timeline" ? (
+              <GanttChart
+                tasks={filteredTasks.map((t) => ({
+                  id: t.id,
+                  title: t.title,
+                  status: t.status,
+                  startDate: t.createdAt,
+                  dueDate: t.dueDate,
+                  assigneeName: t.assigneeName,
+                }))}
+              />
             ) : (
               <TaskDependencyGraph
                 tasks={filteredTasks.map((t) => ({
