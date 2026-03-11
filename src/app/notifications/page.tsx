@@ -192,9 +192,21 @@ export default function NotificationsPage() {
                       )}
                     </div>
                   </div>
-                  {!n.read && (
-                    <span className="mt-1 h-2 w-2 shrink-0 bg-code-green" />
-                  )}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {!n.read && (
+                      <span className="h-2 w-2 bg-code-green" />
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetch(`/api/notifications/${n.id}`, { method: "DELETE" });
+                        setNotifications((prev) => prev.filter((x) => x.id !== n.id));
+                      }}
+                      className="text-xs text-medium-gray/50 hover:text-red-400"
+                    >
+                      x
+                    </button>
+                  </div>
                 </div>
               );
             })}

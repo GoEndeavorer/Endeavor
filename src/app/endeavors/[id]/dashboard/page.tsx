@@ -582,8 +582,11 @@ export default function DashboardPage({
                     onChange={(e) => setNewUpdateContent(e.target.value)}
                     rows={4}
                     placeholder="Share what's happening with the endeavor..."
-                    className="mb-2 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                    className="mb-1 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
                   />
+                  <p className="mb-2 text-xs text-medium-gray">
+                    Supports **bold**, *italic*, `code`, [links](url)
+                  </p>
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 text-sm text-medium-gray">
                       <input
@@ -869,10 +872,13 @@ export default function DashboardPage({
                 <textarea
                   value={newStoryContent}
                   onChange={(e) => setNewStoryContent(e.target.value)}
-                  rows={6}
+                  rows={8}
                   placeholder="Share your experience, lessons learned, highlights..."
-                  className="mb-2 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                  className="mb-1 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
                 />
+                <p className="mb-2 text-xs text-medium-gray">
+                  Supports **bold**, *italic*, `code`, [links](url), and ## headings
+                </p>
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-sm text-medium-gray">
                     <input
