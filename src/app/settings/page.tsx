@@ -28,6 +28,7 @@ export default function SettingsPage() {
     milestones: true,
     updates: true,
     directMessages: true,
+    soundEnabled: false,
   });
 
   useEffect(() => {
@@ -213,6 +214,7 @@ export default function SettingsPage() {
               { key: "milestones" as const, label: "Milestone updates", desc: "When a milestone is completed" },
               { key: "updates" as const, label: "Endeavor updates", desc: "When an update is posted in endeavors you follow" },
               { key: "directMessages" as const, label: "Direct messages", desc: "When someone sends you a direct message" },
+              { key: "soundEnabled" as const, label: "Notification sound", desc: "Play a sound when new notifications arrive" },
             ].map((pref) => (
               <label
                 key={pref.key}
