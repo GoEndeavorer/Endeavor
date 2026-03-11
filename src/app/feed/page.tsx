@@ -13,6 +13,7 @@ import { MostActiveSidebar } from "@/components/most-active-sidebar";
 import { Recommendations } from "@/components/recommendations";
 import { RecentlyViewed } from "@/components/recently-viewed";
 import { FollowSuggestions } from "@/components/follow-suggestions";
+import { SkillMatches } from "@/components/skill-matches";
 
 type Endeavor = {
   id: string;
@@ -630,6 +631,7 @@ export default function FeedPage() {
             <Recommendations />
             <RecentlyViewed />
             <FollowSuggestions />
+            <SkillMatches />
             {trendingNeeds.length > 0 && (
               <div>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-yellow-400">
