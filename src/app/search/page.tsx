@@ -29,6 +29,9 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResults | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"all" | "endeavors" | "people">("all");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
+  const [sort, setSort] = useState("relevant");
 
   useEffect(() => {
     if (initialQuery.length >= 2) {
@@ -40,7 +43,11 @@ export default function SearchPage() {
     if (q.length < 2) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const params = new URLSearchParams({ q });
+      if (category) params.set("category", category);
+      if (status) params.set("status", status);
+      if (sort !== "relevant") params.set("sort", sort);
+      const res = await fetch(`/api/search?${params.toString()}`);
       if (res.ok) setResults(await res.json());
     } finally {
       setLoading(false);
@@ -83,6 +90,39 @@ export default function SearchPage() {
             </button>
           </div>
         </form>
+
+        {/* Filters */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          <select
+            value={category}
+            onChange={(e) => { setCategory(e.target.value); if (query.length >= 2) performSearch(query); }}
+            className="border border-medium-gray/30 bg-black px-3 py-1.5 text-xs text-white focus:border-code-green focus:outline-none"
+          >
+            <option value="">All Categories</option>
+            {["Adventure", "Scientific", "Creative", "Tech", "Cultural", "Community"].map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <select
+            value={status}
+            onChange={(e) => { setStatus(e.target.value); if (query.length >= 2) performSearch(query); }}
+            className="border border-medium-gray/30 bg-black px-3 py-1.5 text-xs text-white focus:border-code-green focus:outline-none"
+          >
+            <option value="">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => { setSort(e.target.value); if (query.length >= 2) performSearch(query); }}
+            className="border border-medium-gray/30 bg-black px-3 py-1.5 text-xs text-white focus:border-code-green focus:outline-none"
+          >
+            <option value="relevant">Most Relevant</option>
+            <option value="newest">Newest</option>
+            <option value="popular">Most Popular</option>
+          </select>
+        </div>
 
         {loading && (
           <div className="space-y-4">
