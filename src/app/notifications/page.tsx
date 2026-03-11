@@ -46,6 +46,18 @@ const typeColors: Record<string, string> = {
   direct_message: "text-purple-400",
 };
 
+type PrimaryTab = "all" | "unread" | "mentions" | "system";
+
+const primaryTabLabels: Record<PrimaryTab, string> = {
+  all: "All",
+  unread: "Unread",
+  mentions: "Mentions",
+  system: "System",
+};
+
+const mentionTypes = ["direct_message", "new_discussion"];
+const systemTypes = ["status_change", "milestone_completed", "member_joined", "member_left"];
+
 type TypeFilter =
   | "all"
   | "join_requests"
