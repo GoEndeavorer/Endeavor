@@ -176,6 +176,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 <Link href="/saved" className="text-sm text-medium-gray hover:text-code-green">
                   Saved
                 </Link>
+                <Link href="/digest" className="text-sm text-medium-gray hover:text-code-green">
+                  Digest
+                </Link>
                 <Link href="/messages" className="text-sm text-medium-gray hover:text-code-green">
                   DMs
                 </Link>

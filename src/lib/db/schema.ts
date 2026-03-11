@@ -456,3 +456,21 @@ export const endorsement = pgTable("endorsement", {
   rating: integer("rating").notNull(), // 1-5
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── Media / Attachments ─────────────────────────────────────────────────────
+
+export const media = pgTable("media", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  uploadedById: text("uploaded_by_id")
+    .notNull()
+    .references(() => user.id),
+  url: text("url").notNull(),
+  fileName: text("file_name").notNull(),
+  fileType: text("file_type").notNull(), // image/png, application/pdf, etc.
+  fileSize: integer("file_size"), // in bytes
+  caption: text("caption"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

@@ -11,6 +11,7 @@ import { useToast } from "@/components/toast";
 import { Polls } from "@/components/polls";
 import { Schedule } from "@/components/schedule";
 import { ActivityFeed } from "@/components/activity-feed";
+import { MediaGallery } from "@/components/media-gallery";
 
 type Discussion = {
   id: string;
@@ -117,7 +118,7 @@ type Payment = {
   createdAt: string;
 };
 
-type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "finances" | "settings";
+type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "media" | "members" | "finances" | "settings";
 
 export default function DashboardPage({
   params,
@@ -459,6 +460,7 @@ export default function DashboardPage({
     { id: "milestones", label: "Milestones", count: milestones.length },
     { id: "stories", label: "Stories", count: stories.length },
     { id: "links", label: "Links", count: links.length },
+    { id: "media", label: "Media" },
     { id: "members", label: "Members", count: endeavor.members.length },
     ...(isCreator ? [{ id: "finances" as TabId, label: "Finances" }] : []),
     ...(isCreator ? [{ id: "settings" as TabId, label: "Settings" }] : []),
@@ -1262,6 +1264,11 @@ export default function DashboardPage({
               </div>
             )}
           </div>
+        )}
+
+        {/* ── Media ── */}
+        {activeTab === "media" && (
+          <MediaGallery endeavorId={id} />
         )}
 
         {/* ── Members ── */}
