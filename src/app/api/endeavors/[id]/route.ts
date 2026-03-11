@@ -47,7 +47,7 @@ export async function GET(
   const approvedCount = members.filter((m) => m.status === "approved").length;
 
   // Public activity stats
-  const [[milestoneStats], [storyCount], [updateCount]] = await Promise.all([
+  const [[milestoneStats], [storyCount], [updateCount], [taskStats]] = await Promise.all([
     db
       .select({
         total: sql<number>`count(*)::int`,
@@ -63,6 +63,13 @@ export async function GET(
       .select({ count: sql<number>`count(*)::int` })
       .from(update)
       .where(eq(update.endeavorId, id)),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        completed: sql<number>`count(*) filter (where ${task.status} = 'done')::int`,
+      })
+      .from(task)
+      .where(eq(task.endeavorId, id)),
   ]);
 
   return NextResponse.json({
@@ -76,6 +83,8 @@ export async function GET(
       milestonesCompleted: milestoneStats?.completed || 0,
       stories: storyCount?.count || 0,
       updates: updateCount?.count || 0,
+      tasks: taskStats?.total || 0,
+      tasksCompleted: taskStats?.completed || 0,
     },
   });
 }

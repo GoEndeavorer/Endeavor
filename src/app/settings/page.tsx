@@ -27,6 +27,7 @@ export default function SettingsPage() {
     discussions: true,
     milestones: true,
     updates: true,
+    directMessages: true,
   });
 
   useEffect(() => {
@@ -211,6 +212,7 @@ export default function SettingsPage() {
               { key: "discussions" as const, label: "Discussion messages", desc: "When a new message is posted in your endeavor" },
               { key: "milestones" as const, label: "Milestone updates", desc: "When a milestone is completed" },
               { key: "updates" as const, label: "Endeavor updates", desc: "When an update is posted in endeavors you follow" },
+              { key: "directMessages" as const, label: "Direct messages", desc: "When someone sends you a direct message" },
             ].map((pref) => (
               <label
                 key={pref.key}

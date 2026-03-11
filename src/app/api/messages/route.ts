@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { directMessage, user } from "@/lib/db/schema";
+import { directMessage, user, notification } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, or, and, desc, sql } from "drizzle-orm";
@@ -99,6 +99,13 @@ export async function POST(request: NextRequest) {
       content: content.trim(),
     })
     .returning();
+
+  // Create notification for recipient
+  await db.insert(notification).values({
+    userId: recipientId,
+    type: "direct_message",
+    message: `${session.user.name} sent you a message`,
+  });
 
   return NextResponse.json(msg, { status: 201 });
 }

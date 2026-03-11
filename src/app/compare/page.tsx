@@ -1,220 +1,275 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 
-type Endeavor = {
+type CompareEndeavor = {
   id: string;
   title: string;
   description: string;
   category: string;
-  location: string | null;
-  locationType: string;
   status: string;
-  needs: string[] | null;
-  costPerPerson: number | null;
+  locationType: string;
+  location: string | null;
   capacity: number | null;
+  costPerPerson: number | null;
   fundingEnabled: boolean;
   fundingGoal: number | null;
   fundingRaised: number;
-  imageUrl: string | null;
   memberCount: number;
-  joinType: string;
-  createdAt: string;
+  taskCount: number;
+  completedTaskCount: number;
+  imageUrl: string | null;
 };
 
 export default function ComparePage() {
-  const [searchA, setSearchA] = useState("");
-  const [searchB, setSearchB] = useState("");
-  const [resultsA, setResultsA] = useState<{ id: string; title: string }[]>([]);
-  const [resultsB, setResultsB] = useState<{ id: string; title: string }[]>([]);
-  const [endeavorA, setEndeavorA] = useState<Endeavor | null>(null);
-  const [endeavorB, setEndeavorB] = useState<Endeavor | null>(null);
-  const [showSearchA, setShowSearchA] = useState(false);
-  const [showSearchB, setShowSearchB] = useState(false);
+  const [endeavors, setEndeavors] = useState<CompareEndeavor[]>([]);
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState<{ id: string; title: string }[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    if (searchA.length < 2) { setResultsA([]); return; }
-    const t = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(searchA)}`)
-        .then((r) => r.ok ? r.json() : { endeavors: [] })
-        .then((data) => setResultsA(data.endeavors || []));
-    }, 200);
-    return () => clearTimeout(t);
-  }, [searchA]);
-
-  useEffect(() => {
-    if (searchB.length < 2) { setResultsB([]); return; }
-    const t = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(searchB)}`)
-        .then((r) => r.ok ? r.json() : { endeavors: [] })
-        .then((data) => setResultsB(data.endeavors || []));
-    }, 200);
-    return () => clearTimeout(t);
-  }, [searchB]);
-
-  async function selectEndeavor(id: string, side: "A" | "B") {
-    const res = await fetch(`/api/endeavors/${id}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (side === "A") {
-        setEndeavorA(data);
-        setShowSearchA(false);
-        setSearchA("");
-      } else {
-        setEndeavorB(data);
-        setShowSearchB(false);
-        setSearchB("");
-      }
+    if (search.length < 2) {
+      setResults([]);
+      return;
     }
-  }
+    const t = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(search)}`)
+        .then((r) => (r.ok ? r.json() : { endeavors: [] }))
+        .then((data) => setResults(data.endeavors || []));
+    }, 200);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const selectEndeavor = useCallback(
+    async (id: string) => {
+      if (endeavors.length >= 3) return;
+      if (endeavors.some((e) => e.id === id)) return;
+      setLoading(id);
+      try {
+        const res = await fetch(`/api/endeavors/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEndeavors((prev) => [...prev, data]);
+        }
+      } finally {
+        setLoading(null);
+        setShowResults(false);
+        setSearch("");
+      }
+    },
+    [endeavors]
+  );
+
+  const removeEndeavor = (id: string) => {
+    setEndeavors((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const completionRate = (e: CompareEndeavor) => {
+    if (e.taskCount === 0) return "No tasks";
+    const pct = Math.round((e.completedTaskCount / e.taskCount) * 100);
+    return `${pct}% (${e.completedTaskCount}/${e.taskCount})`;
+  };
+
+  const rows: { label: string; getValue: (e: CompareEndeavor) => string }[] = [
+    { label: "Category", getValue: (e) => e.category },
+    { label: "Status", getValue: (e) => e.status },
+    { label: "Members", getValue: (e) => String(e.memberCount) },
+    { label: "Task Completion", getValue: (e) => completionRate(e) },
+    { label: "Location Type", getValue: (e) => e.locationType },
+    {
+      label: "Location",
+      getValue: (e) => e.location || "Not specified",
+    },
+    {
+      label: "Capacity",
+      getValue: (e) => (e.capacity ? String(e.capacity) : "Unlimited"),
+    },
+    {
+      label: "Cost to Join",
+      getValue: (e) =>
+        e.costPerPerson ? `$${e.costPerPerson}` : "Free",
+    },
+    {
+      label: "Funding",
+      getValue: (e) =>
+        e.fundingEnabled
+          ? `$${e.fundingRaised} / $${e.fundingGoal ?? "?"}`
+          : "Not enabled",
+    },
+  ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black text-white">
       <AppHeader breadcrumb={{ label: "Compare", href: "/compare" }} />
 
-      <main className="mx-auto max-w-5xl px-4 pt-24 pb-16">
+      <main className="mx-auto max-w-6xl px-4 pt-24 pb-16">
         <h1 className="mb-2 text-3xl font-bold">Compare Endeavors</h1>
         <p className="mb-8 text-sm text-medium-gray">
-          Pick two endeavors to compare side by side.
+          Select up to 3 endeavors to compare side by side.
         </p>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* Side A */}
-          <div>
-            <div className="relative mb-4">
-              <input
-                type="text"
-                value={searchA}
-                onChange={(e) => { setSearchA(e.target.value); setShowSearchA(true); }}
-                onFocus={() => setShowSearchA(true)}
-                placeholder="Search first endeavor..."
-                className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
-              />
-              {showSearchA && resultsA.length > 0 && (
-                <div className="absolute inset-x-0 top-full z-10 border border-medium-gray/30 bg-black">
-                  {resultsA.slice(0, 5).map((r) => (
+        {/* Search input */}
+        {endeavors.length < 3 && (
+          <div className="relative mb-8 max-w-md">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
+              placeholder="Search endeavors to add..."
+              className="w-full border border-medium-gray/20 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+            />
+            {showResults && results.length > 0 && (
+              <div className="absolute inset-x-0 top-full z-10 border border-medium-gray/20 bg-black">
+                {results
+                  .filter((r) => !endeavors.some((e) => e.id === r.id))
+                  .slice(0, 6)
+                  .map((r) => (
                     <button
                       key={r.id}
-                      onClick={() => selectEndeavor(r.id, "A")}
-                      className="block w-full px-4 py-2 text-left text-sm hover:bg-code-green/10"
+                      onClick={() => selectEndeavor(r.id)}
+                      disabled={loading === r.id}
+                      className="block w-full px-4 py-2 text-left text-sm text-light-gray hover:bg-code-green/10 hover:text-white transition-colors disabled:opacity-50"
                     >
                       {r.title}
+                      {loading === r.id && (
+                        <span className="ml-2 text-xs text-medium-gray">
+                          loading...
+                        </span>
+                      )}
                     </button>
                   ))}
-                </div>
-              )}
-            </div>
-            {endeavorA ? (
-              <CompareCard endeavor={endeavorA} />
-            ) : (
-              <div className="border border-dashed border-medium-gray/30 p-12 text-center text-sm text-medium-gray">
-                Select an endeavor
               </div>
             )}
           </div>
+        )}
 
-          {/* Side B */}
-          <div>
-            <div className="relative mb-4">
-              <input
-                type="text"
-                value={searchB}
-                onChange={(e) => { setSearchB(e.target.value); setShowSearchB(true); }}
-                onFocus={() => setShowSearchB(true)}
-                placeholder="Search second endeavor..."
-                className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
-              />
-              {showSearchB && resultsB.length > 0 && (
-                <div className="absolute inset-x-0 top-full z-10 border border-medium-gray/30 bg-black">
-                  {resultsB.slice(0, 5).map((r) => (
-                    <button
-                      key={r.id}
-                      onClick={() => selectEndeavor(r.id, "B")}
-                      className="block w-full px-4 py-2 text-left text-sm hover:bg-code-green/10"
-                    >
-                      {r.title}
-                    </button>
-                  ))}
+        {/* Empty state */}
+        {endeavors.length === 0 && (
+          <div className="border border-dashed border-medium-gray/20 p-16 text-center">
+            <p className="text-sm text-medium-gray">
+              No endeavors selected. Use the search above to add endeavors for
+              comparison.
+            </p>
+          </div>
+        )}
+
+        {/* Column cards */}
+        {endeavors.length > 0 && (
+          <>
+            <div
+              className={`mb-8 grid gap-4 ${
+                endeavors.length === 1
+                  ? "grid-cols-1 max-w-sm"
+                  : endeavors.length === 2
+                  ? "sm:grid-cols-2"
+                  : "sm:grid-cols-3"
+              }`}
+            >
+              {endeavors.map((e) => (
+                <div
+                  key={e.id}
+                  className="border border-medium-gray/20 overflow-hidden"
+                >
+                  {e.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={e.imageUrl}
+                      alt=""
+                      className="h-32 w-full object-cover"
+                    />
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={`/endeavors/${e.id}`}
+                        className="text-lg font-semibold text-code-blue hover:text-code-green transition-colors"
+                      >
+                        {e.title}
+                      </Link>
+                      <button
+                        onClick={() => removeEndeavor(e.id)}
+                        className="shrink-0 border border-medium-gray/20 px-2 py-1 text-xs text-medium-gray hover:border-red-500/50 hover:text-red-400 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs text-medium-gray">
+                      {e.category} &middot; {e.status} &middot;{" "}
+                      {e.memberCount} members
+                    </p>
+                    <p className="mt-2 text-sm text-light-gray line-clamp-2">
+                      {e.description}
+                    </p>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
-            {endeavorB ? (
-              <CompareCard endeavor={endeavorB} />
-            ) : (
-              <div className="border border-dashed border-medium-gray/30 p-12 text-center text-sm text-medium-gray">
-                Select an endeavor
+
+            {/* Comparison table */}
+            {endeavors.length >= 2 && (
+              <div>
+                <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+                  {"// comparison"}
+                </h2>
+                <div className="border border-medium-gray/20 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-medium-gray/20 bg-medium-gray/5">
+                        <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-medium-gray font-normal">
+                          Field
+                        </th>
+                        {endeavors.map((e, i) => (
+                          <th
+                            key={e.id}
+                            className={`px-4 py-3 text-left text-xs font-semibold ${
+                              i === 0
+                                ? "text-code-green"
+                                : i === 1
+                                ? "text-code-blue"
+                                : "text-purple-400"
+                            }`}
+                          >
+                            {e.title}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((row) => (
+                        <tr
+                          key={row.label}
+                          className="border-b border-medium-gray/10"
+                        >
+                          <td className="px-4 py-2 text-xs text-medium-gray whitespace-nowrap">
+                            {row.label}
+                          </td>
+                          {endeavors.map((e) => (
+                            <td
+                              key={e.id}
+                              className="px-4 py-2 text-light-gray"
+                            >
+                              {row.getValue(e)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Comparison table */}
-        {endeavorA && endeavorB && (
-          <div className="mt-8">
-            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
-              {"// comparison"}
-            </h2>
-            <div className="border border-medium-gray/20 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-medium-gray/20 bg-medium-gray/5">
-                    <th className="px-4 py-3 text-left text-xs text-medium-gray font-normal">Field</th>
-                    <th className="px-4 py-3 text-left text-xs text-code-green font-semibold">{endeavorA.title}</th>
-                    <th className="px-4 py-3 text-left text-xs text-code-blue font-semibold">{endeavorB.title}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Category", endeavorA.category, endeavorB.category],
-                    ["Status", endeavorA.status, endeavorB.status],
-                    ["Location", endeavorA.location || "Not specified", endeavorB.location || "Not specified"],
-                    ["Type", endeavorA.locationType, endeavorB.locationType],
-                    ["Members", String(endeavorA.memberCount), String(endeavorB.memberCount)],
-                    ["Capacity", endeavorA.capacity ? String(endeavorA.capacity) : "Unlimited", endeavorB.capacity ? String(endeavorB.capacity) : "Unlimited"],
-                    ["Cost", endeavorA.costPerPerson ? `$${endeavorA.costPerPerson}` : "Free", endeavorB.costPerPerson ? `$${endeavorB.costPerPerson}` : "Free"],
-                    ["Joining", endeavorA.joinType === "open" ? "Open" : "Request", endeavorB.joinType === "open" ? "Open" : "Request"],
-                    ["Funding", endeavorA.fundingEnabled ? `$${endeavorA.fundingRaised}/${endeavorA.fundingGoal}` : "None", endeavorB.fundingEnabled ? `$${endeavorB.fundingRaised}/${endeavorB.fundingGoal}` : "None"],
-                    ["Needs", (endeavorA.needs || []).join(", ") || "None listed", (endeavorB.needs || []).join(", ") || "None listed"],
-                  ].map(([field, a, b]) => (
-                    <tr key={field} className="border-b border-medium-gray/10">
-                      <td className="px-4 py-2 text-medium-gray">{field}</td>
-                      <td className="px-4 py-2 text-light-gray">{a}</td>
-                      <td className="px-4 py-2 text-light-gray">{b}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          </>
         )}
       </main>
       <Footer />
-    </div>
-  );
-}
-
-function CompareCard({ endeavor }: { endeavor: Endeavor }) {
-  return (
-    <div className="border border-medium-gray/30 overflow-hidden">
-      {endeavor.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={endeavor.imageUrl} alt="" className="h-32 w-full object-cover" />
-      )}
-      <div className="p-4">
-        <Link
-          href={`/endeavors/${endeavor.id}`}
-          className="text-lg font-semibold hover:text-code-green transition-colors"
-        >
-          {endeavor.title}
-        </Link>
-        <p className="mt-1 text-xs text-medium-gray">
-          {endeavor.category} &middot; {endeavor.status} &middot; {endeavor.memberCount} members
-        </p>
-        <p className="mt-2 text-sm text-light-gray line-clamp-2">{endeavor.description}</p>
-      </div>
     </div>
   );
 }

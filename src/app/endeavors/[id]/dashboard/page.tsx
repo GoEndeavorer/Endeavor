@@ -10,6 +10,7 @@ import { formatTimeAgo } from "@/lib/time";
 import { useToast } from "@/components/toast";
 import { Polls } from "@/components/polls";
 import { Schedule } from "@/components/schedule";
+import { ActivityFeed } from "@/components/activity-feed";
 
 type Discussion = {
   id: string;
