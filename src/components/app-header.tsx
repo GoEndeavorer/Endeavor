@@ -109,6 +109,11 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             <Link href="/feed" className="text-sm text-code-blue hover:text-code-green">
               Explore
             </Link>
+            {session && (
+              <Link href="/following" className="text-sm text-medium-gray hover:text-code-green">
+                Following
+              </Link>
+            )}
             {session ? (
               <>
                 <Link
@@ -166,6 +171,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             </Link>
             {session ? (
               <>
+                <Link href="/following" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+                  Following
+                </Link>
                 <Link href="/endeavors/create" className="text-sm text-code-green" onClick={() => setMenuOpen(false)}>
                   + New Endeavor
                 </Link>
