@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.9.0
+> **Version**: 0.10.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.10.0  | 2026-03-11 | Discussion threading, account deletion, task reassignment, activity stats, share links, loading skeletons, relative timestamps, markdown descriptions |
 | 0.9.0   | 2026-03-11 | Bookmarks, follows, finances, following feed, similar endeavors, platform stats, dashboard widgets |
 | 0.8.0   | 2026-03-11 | Notifications page, onboarding flow, member management, discussion editing, SEO, skeletons |
 | 0.7.0   | 2026-03-11 | Cover images, activity timeline, categories, admin panel, leave endeavor, feed sorting, email notifications, markdown stories |
@@ -178,6 +179,24 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Task filter toggle (my tasks vs all tasks)
 - [x] Quick actions bar in dashboard overview
 
+## Phase 10: Refinement & Completeness — DONE
+
+- [x] Discussion threading (parentId, reply UI, threaded display with indentation)
+- [x] Account deletion (DELETE /api/account with safety checks)
+- [x] Inline task reassignment (clickable member picker in task cards)
+- [x] Endeavor detail activity stats (milestones, updates, stories in sidebar)
+- [x] Share & invite link section in dashboard settings
+- [x] Loading skeletons for all remaining pages (saved, following, notifications, my-endeavors, stories, completed, categories, user profiles)
+- [x] Footer component on feed, categories, and completed pages
+- [x] Email helpers for status changes and milestone completions
+- [x] SEO layouts for welcome and admin pages
+- [x] Shared formatTimeAgo utility (extracted from duplicated code)
+- [x] Relative timestamps throughout (discussions, activity, endeavor detail)
+- [x] Markdown rendering on endeavor detail page description
+- [x] Leave endeavor button in dashboard members tab
+- [x] Dashboard status bar with status badge, member count, capacity
+- [x] Task API returns assigneeName for client display
+
 ---
 
 ## Design Principles
@@ -215,6 +234,7 @@ src/
 │   │   ├── endeavors/recommended, trending, stats  # Discovery + analytics
 │   │   ├── milestones/[id]      # Milestone CRUD
 │   │   ├── notifications/       # In-app notifications
+│   │   ├── account/              # Account deletion
 │   │   ├── profile/             # User profile CRUD
 │   │   ├── reports/             # User reports
 │   │   ├── stories/[storyId]    # Story CRUD
@@ -247,6 +267,7 @@ src/
 │   ├── membership.ts            # Auth helpers
 │   ├── notifications.ts         # Notification helpers
 │   ├── analytics.ts             # Typed analytics events
+│   ├── time.ts                  # Shared time formatting utilities
 │   └── stripe.ts                # Payment config
 └── middleware.ts                # Rate limiting
 ```
@@ -276,7 +297,7 @@ src/
 - **verification** — Better Auth email verification
 - **endeavor** — id, title, description, category, location, locationType, needs[], status, costPerPerson, capacity, fundingEnabled, fundingGoal, fundingRaised, imageUrl, joinType, creatorId
 - **member** — id, endeavorId, userId, role (creator/collaborator), status (pending/approved/rejected)
-- **discussion** — id, endeavorId, authorId, content, createdAt
+- **discussion** — id, endeavorId, authorId, content, parentId (threading), createdAt
 - **task** — id, endeavorId, title, description, status (todo/in-progress/done), assigneeId, dueDate
 - **link** — id, endeavorId, addedById, title, url, description
 - **payment** — id, endeavorId, userId, type (join/donation), amount, stripeSessionId, status
