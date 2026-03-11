@@ -13,6 +13,7 @@ import { Spotlight } from "@/components/spotlight";
 import { TrendingCreators } from "@/components/trending-creators";
 import { MiniStats } from "@/components/mini-stats";
 import { PopularCategories } from "@/components/popular-categories";
+import { TopContributors } from "@/components/top-contributors";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,9 @@ export default function Home() {
         </section>
         <Suspense fallback={null}>
           <PopularCategories />
+        </Suspense>
+        <Suspense fallback={null}>
+          <TopContributors />
         </Suspense>
         <About />
         <CTA />
