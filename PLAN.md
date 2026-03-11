@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.13.0
+> **Version**: 0.14.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.14.0  | 2026-03-11 | Explore/trending page, keyboard shortcuts, scroll-to-top, endeavor templates, change password, privacy/terms, story loading |
 | 0.13.0  | 2026-03-11 | Search page, people directory, password reset, stories hub, RSS feed, JSON-LD, PWA manifest, enhanced OG metadata |
 | 0.12.0  | 2026-03-11 | Who's Hiring page, leaderboard, recently viewed, form progress indicator, loading skeletons for auth/create/admin |
 | 0.11.0  | 2026-03-11 | Platform activity feed, admin users tab, notification preferences, CSV export, Footer standardization, needs tag fix |
@@ -260,6 +261,23 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Individual stories indexed in sitemap
 - [x] People and search pages in sitemap
 
+## Phase 14: Engagement & Compliance — DONE
+
+- [x] Explore/trending page (/explore) with category breakdown, in-demand skills, community skills, interests, and locations
+- [x] Trending topics API aggregating data across endeavors and users
+- [x] Quick-start templates on create endeavor page (6 templates: hiking, open source, film, workshop, research, festival)
+- [x] Change password feature in account settings with current password verification
+- [x] Change password API with scrypt hashing matching Better Auth
+- [x] Global keyboard shortcuts (? for help, H/F/N/P/S for navigation)
+- [x] Scroll-to-top button on all pages (appears after 500px scroll)
+- [x] Privacy policy page (/privacy)
+- [x] Terms of service page (/terms)
+- [x] Terms agreement link on signup page
+- [x] Privacy and terms links in footer
+- [x] Explore/trending link in footer
+- [x] Loading skeleton for individual story pages
+- [x] Explore page in sitemap
+
 ---
 
 ## Design Principles
@@ -314,6 +332,8 @@ src/
 │   │   ├── people/              # User directory API
 │   │   ├── forgot-password/     # Password reset request
 │   │   ├── reset-password/      # Password reset execution
+│   │   ├── change-password/     # Authenticated password change
+│   │   ├── trending-topics/     # Trending community data
 │   │   └── webhooks/stripe      # Payment webhooks
 │   ├── activity/                # Platform-wide activity feed
 │   ├── hiring/                  # Skill-based endeavor matching
@@ -335,6 +355,9 @@ src/
 │   ├── search/                  # Full search results page
 │   ├── stories/                 # Stories hub (all published stories)
 │   ├── stories/[storyId]/       # Individual story pages
+│   ├── explore/                 # Trending topics & community insights
+│   ├── privacy/                 # Privacy policy
+│   ├── terms/                   # Terms of service
 │   ├── feed.xml/                # RSS feed
 │   └── profile/                 # User profile editing
 ├── components/                  # Shared UI (AppHeader, Footer, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, Toast, etc.)
