@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Fira_Code } from "next/font/google";
 import { ToastProvider } from "@/components/toast";
+import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -38,6 +40,8 @@ export default function RootLayout({
           Skip to content
         </a>
         <ToastProvider>
+          <KeyboardShortcuts />
+          <ScrollToTop />
           {children}
         </ToastProvider>
       </body>
