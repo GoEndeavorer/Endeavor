@@ -6,6 +6,7 @@ import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { UserBadges } from "@/components/user-badges";
+import { ContributionHeatmap } from "@/components/contribution-heatmap";
 
 type UserProfile = {
   id: string;
@@ -167,6 +168,11 @@ export default function PublicProfilePage({
         {/* Badges */}
         <div className="mb-8">
           <UserBadges userId={userId} />
+        </div>
+
+        {/* Contribution heatmap */}
+        <div className="mb-8">
+          <ContributionHeatmap userId={userId} />
         </div>
 
         {/* Stats grid */}
