@@ -184,6 +184,7 @@ export default function FeedPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [locationType, setLocationType] = useState("");
+  const [sort, setSort] = useState("newest");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const PAGE_SIZE = 20;
 
@@ -202,6 +203,7 @@ export default function FeedPage() {
     const params = new URLSearchParams();
     if (category !== "All") params.set("category", category);
     if (locationType) params.set("locationType", locationType);
+    if (sort !== "newest") params.set("sort", sort);
     if (debouncedSearch) params.set("search", debouncedSearch);
     params.set("limit", String(PAGE_SIZE));
     params.set("offset", String(offset));
@@ -224,7 +226,7 @@ export default function FeedPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [category, locationType, debouncedSearch]);
+  }, [category, locationType, sort, debouncedSearch]);
 
   useEffect(() => {
     fetchEndeavors();
@@ -267,6 +269,12 @@ export default function FeedPage() {
                   + New Endeavor
                 </Link>
                 <NotificationBell />
+                <Link
+                  href="/my-endeavors"
+                  className="text-sm text-medium-gray hover:text-code-green"
+                >
+                  My Endeavors
+                </Link>
                 <Link
                   href="/profile"
                   className="text-sm text-code-blue hover:text-code-green"
@@ -361,6 +369,26 @@ export default function FeedPage() {
                 }`}
               >
                 {lt.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-medium-gray">Sort:</span>
+            {[
+              { value: "newest", label: "Newest" },
+              { value: "popular", label: "Popular" },
+              { value: "oldest", label: "Oldest" },
+            ].map((s) => (
+              <button
+                key={s.value}
+                onClick={() => setSort(s.value)}
+                className={`border px-3 py-1.5 text-xs uppercase transition-colors ${
+                  sort === s.value
+                    ? "border-code-green text-code-green font-semibold"
+                    : "border-medium-gray/50 text-medium-gray hover:border-code-green hover:text-code-green"
+                }`}
+              >
+                {s.label}
               </button>
             ))}
           </div>

@@ -35,6 +35,9 @@ export function Footer() {
               <Link href="/profile" className="text-sm text-medium-gray hover:text-code-green">
                 Profile
               </Link>
+              <Link href="/my-endeavors" className="text-sm text-medium-gray hover:text-code-green">
+                My Endeavors
+              </Link>
             </nav>
           </div>
           <div>

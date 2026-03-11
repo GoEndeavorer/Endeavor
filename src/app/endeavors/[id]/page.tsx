@@ -419,8 +419,14 @@ export default function EndeavorDetailPage({
               </Link>
             )}
             {isMember && !isCreator && (
-              <div className="border border-code-green/30 p-4 text-center text-sm text-code-green">
-                You&apos;re part of this endeavor
+              <div className="space-y-2">
+                <div className="border border-code-green/30 p-4 text-center text-sm text-code-green">
+                  You&apos;re part of this endeavor
+                </div>
+                <LeaveButton endeavorId={endeavor.id} onLeave={() => {
+                  fetch(`/api/endeavors/${id}`).then(r => r.json()).then(setEndeavor);
+                  setJoinMessage("You have left this endeavor.");
+                }} />
               </div>
             )}
             {isCreator && (
@@ -443,6 +449,50 @@ export default function EndeavorDetailPage({
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function LeaveButton({ endeavorId, onLeave }: { endeavorId: string; onLeave: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+
+  async function handleLeave() {
+    setLeaving(true);
+    const res = await fetch(`/api/endeavors/${endeavorId}/leave`, { method: "POST" });
+    if (res.ok) {
+      onLeave();
+    }
+    setLeaving(false);
+    setConfirming(false);
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        onClick={() => setConfirming(true)}
+        className="w-full text-center text-xs text-medium-gray hover:text-red-400"
+      >
+        Leave this endeavor
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex justify-center gap-2">
+      <button
+        onClick={handleLeave}
+        disabled={leaving}
+        className="border border-red-500/50 px-3 py-1 text-xs text-red-400 hover:bg-red-500 hover:text-black disabled:opacity-50"
+      >
+        {leaving ? "Leaving..." : "Confirm Leave"}
+      </button>
+      <button
+        onClick={() => setConfirming(false)}
+        className="px-3 py-1 text-xs text-medium-gray hover:text-white"
+      >
+        Cancel
+      </button>
     </div>
   );
 }

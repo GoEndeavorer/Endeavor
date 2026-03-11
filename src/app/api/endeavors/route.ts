@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { endeavor, member } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { desc, eq, ilike, or, sql } from "drizzle-orm";
+import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search");
   const mine = searchParams.get("mine");
   const statusFilter = searchParams.get("status");
+  const sort = searchParams.get("sort"); // "newest", "popular", "oldest"
   const limit = parseInt(searchParams.get("limit") || "20");
   const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -90,11 +91,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const orderBy = sort === "oldest" ? asc(endeavor.createdAt) : desc(endeavor.createdAt);
+
   const results = await db
     .select()
     .from(endeavor)
     .where(conditions.length > 1 ? sql`${conditions.reduce((a, b) => sql`${a} AND ${b}`)}` : conditions[0])
-    .orderBy(desc(endeavor.createdAt))
+    .orderBy(orderBy)
     .limit(limit)
     .offset(offset);
 
@@ -123,6 +126,11 @@ export async function GET(request: NextRequest) {
     ...e,
     memberCount: (countMap.get(e.id) || 0) + 1, // +1 for creator
   }));
+
+  // Sort by popularity if requested (done post-query since it uses member counts)
+  if (sort === "popular") {
+    enriched.sort((a, b) => b.memberCount - a.memberCount);
+  }
 
   return NextResponse.json(enriched);
 }

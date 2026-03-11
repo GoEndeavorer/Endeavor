@@ -27,7 +27,7 @@ export async function POST(
   if (!end) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (end.status !== "open") {
+  if (end.status !== "open" && end.status !== "in-progress") {
     return NextResponse.json(
       { error: "This endeavor is not accepting new members" },
       { status: 400 }
