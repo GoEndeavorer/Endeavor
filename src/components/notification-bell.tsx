@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { formatTimeAgo } from "@/lib/time";
-import { playNotificationSound } from "@/lib/notification-sound";
+import { useSession } from "@/lib/auth-client";
 
 type Notification = {
   id: string;
@@ -39,35 +39,54 @@ const typeColors: Record<string, string> = {
 };
 
 export function NotificationBell() {
+  const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const prevUnreadRef = useRef(0);
-
-  const fetchNotifications = useCallback(() => {
-    fetch("/api/notifications")
+  // Fetch unread count
+  const fetchUnreadCount = useCallback(() => {
+    fetch("/api/notifications/count")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          const newUnread = data.filter((n: Notification) => !n.read).length;
-          if (newUnread > prevUnreadRef.current && prevUnreadRef.current > 0) {
-            playNotificationSound();
-          }
-          prevUnreadRef.current = newUnread;
-          setNotifications(data);
+        if (typeof data.count === "number") {
+          setUnreadCount(data.count);
         }
       })
       .catch(() => {});
   }, []);
 
-  // Initial fetch + poll every 30s
+  // Poll unread count every 30 seconds
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    if (!session) return;
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchUnreadCount, session]);
 
+  // Fetch notifications when dropdown opens
+  const fetchNotifications = useCallback(() => {
+    setLoading(true);
+    fetch("/api/notifications?limit=10")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNotifications(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      fetchNotifications();
+    }
+  }, [open, fetchNotifications]);
+
+  // Close on click outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -78,56 +97,80 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const unread = notifications.filter((n) => !n.read).length;
-
+  // Mark all as read
   async function markAllRead() {
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markAllRead: true }),
-    });
+    await fetch("/api/notifications/mark-all-read", { method: "POST" });
     setNotifications(notifications.map((n) => ({ ...n, read: true })));
+    setUnreadCount(0);
   }
+
+  if (!session) return null;
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative text-sm text-code-blue hover:text-code-green"
-        aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ""}`}
+        className="relative text-sm text-medium-gray hover:text-code-green transition-colors"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
         aria-expanded={open}
         aria-haspopup="true"
       >
-        Alerts
-        {unread > 0 && (
-          <span aria-hidden="true" className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center bg-code-green text-[10px] font-bold text-black">
-            {unread > 9 ? "9+" : unread}
+        {/* Bell icon */}
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        {unreadCount > 0 && (
+          <span
+            aria-hidden="true"
+            className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center bg-code-green px-0.5 text-xs font-bold text-black"
+          >
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div role="menu" aria-label="Notifications" className="absolute right-0 top-8 z-50 w-80 border border-medium-gray/30 bg-black shadow-lg">
-          <div className="flex items-center justify-between border-b border-medium-gray/30 px-4 py-3">
+        <div
+          role="menu"
+          aria-label="Notifications"
+          className="absolute right-0 top-10 z-50 w-80 border border-medium-gray/20 bg-black shadow-lg"
+        >
+          <div className="flex items-center justify-between border-b border-medium-gray/20 px-4 py-3">
             <span className="text-xs font-semibold uppercase tracking-widest text-code-green">
               Notifications
             </span>
-            {unread > 0 && (
+            {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="text-xs text-code-blue hover:text-code-green"
+                className="text-xs text-code-blue hover:text-code-green transition-colors"
               >
-                Mark all read
+                Mark all as read
               </button>
             )}
           </div>
+
           <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {loading ? (
+              <div className="p-4 text-center text-xs text-medium-gray">
+                Loading...
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="p-4 text-center text-xs text-medium-gray">
                 No notifications
               </div>
             ) : (
-              notifications.slice(0, 20).map((n) => {
+              notifications.map((n) => {
                 const icon = typeIcons[n.type] || ">";
                 const color = typeColors[n.type] || "text-medium-gray";
                 return (
@@ -138,20 +181,30 @@ export function NotificationBell() {
                     }`}
                   >
                     <div className="flex items-start gap-2">
-                      <span className={`mt-0.5 font-mono text-xs font-bold ${color}`}>
+                      <span
+                        className={`mt-0.5 font-mono text-xs font-bold ${color}`}
+                      >
                         {icon}
                       </span>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         {n.endeavorId ? (
                           <Link
                             href={`/endeavors/${n.endeavorId}`}
-                            className="block text-sm text-light-gray hover:text-white"
+                            className={`block text-sm hover:text-white ${
+                              !n.read ? "text-code-green" : "text-medium-gray"
+                            }`}
                             onClick={() => setOpen(false)}
                           >
                             {n.message}
                           </Link>
                         ) : (
-                          <p className="text-sm text-light-gray">{n.message}</p>
+                          <p
+                            className={`text-sm ${
+                              !n.read ? "text-code-green" : "text-medium-gray"
+                            }`}
+                          >
+                            {n.message}
+                          </p>
                         )}
                         <p className="mt-1 text-xs text-medium-gray">
                           {formatTimeAgo(n.createdAt)}
@@ -166,17 +219,16 @@ export function NotificationBell() {
               })
             )}
           </div>
-          {notifications.length > 0 && (
-            <div className="border-t border-medium-gray/20 px-4 py-2">
-              <Link
-                href="/notifications"
-                onClick={() => setOpen(false)}
-                className="block text-center text-xs text-medium-gray hover:text-code-green transition-colors"
-              >
-                View all notifications &rarr;
-              </Link>
-            </div>
-          )}
+
+          <div className="border-t border-medium-gray/20 px-4 py-2">
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="block text-center text-xs text-medium-gray hover:text-code-green transition-colors"
+            >
+              View all &rarr;
+            </Link>
+          </div>
         </div>
       )}
     </div>

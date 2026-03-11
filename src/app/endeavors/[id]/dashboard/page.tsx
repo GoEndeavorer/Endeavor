@@ -22,6 +22,7 @@ import { WikiViewer } from "@/components/wiki-viewer";
 import { DailyStandup } from "@/components/daily-standup";
 import { TimeTracker } from "@/components/time-tracker";
 import { Retrospective } from "@/components/retrospective";
+import { DecisionLog } from "@/components/decision-log";
 
 type Discussion = {
   id: string;
@@ -759,6 +760,11 @@ export default function DashboardPage({
             {/* Time Tracker */}
             <div className="lg:col-span-1">
               <TimeTracker endeavorId={id} />
+            </div>
+
+            {/* Decision Log */}
+            <div className="lg:col-span-1">
+              <DecisionLog endeavorId={id} canAdd={true} />
             </div>
 
             {/* Resources */}
