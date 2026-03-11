@@ -67,6 +67,9 @@ export function Footer() {
               <Link href="/stats" className="text-sm text-medium-gray hover:text-code-green">
                 Platform Stats
               </Link>
+              <Link href="/analytics" className="text-sm text-medium-gray hover:text-code-green">
+                Analytics
+              </Link>
               <Link href="/achievements" className="text-sm text-medium-gray hover:text-code-green">
                 Achievements
               </Link>
