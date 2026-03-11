@@ -293,6 +293,17 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] About & FAQ link in footer
 - [x] Changelog link in footer
 - [x] About and changelog pages in sitemap
+- [x] Platform stats dashboard (/stats) with live metrics and growth indicators
+- [x] Stats API (/api/stats) with comprehensive platform analytics
+- [x] Contact/feedback page (/contact) with typed form and email delivery
+- [x] Contact API (/api/contact) sending emails via Resend
+- [x] Endorsements API (/api/endorsements) for collaboration tracking
+- [x] Guides page (/guides) with 6 curated guides for platform usage
+- [x] CSV export option for endeavor data (alongside existing JSON export)
+- [x] What's New banner with version highlights and localStorage dismissal
+- [x] System status page (/status) with health checks and latency monitoring
+- [x] Reusable EmptyState component
+- [x] Stats, contact, guides, status links in footer
 
 ---
 
@@ -350,6 +361,10 @@ src/
 │   │   ├── reset-password/      # Password reset execution
 │   │   ├── change-password/     # Authenticated password change
 │   │   ├── trending-topics/     # Trending community data
+│   │   ├── badges/              # User achievement badges
+│   │   ├── stats/               # Platform-wide statistics
+│   │   ├── contact/             # Contact form email
+│   │   ├── endorsements/        # User collaboration tracking
 │   │   └── webhooks/stripe      # Payment webhooks
 │   ├── activity/                # Platform-wide activity feed
 │   ├── hiring/                  # Skill-based endeavor matching
@@ -374,9 +389,15 @@ src/
 │   ├── explore/                 # Trending topics & community insights
 │   ├── privacy/                 # Privacy policy
 │   ├── terms/                   # Terms of service
+│   ├── about/                   # About & FAQ page
+│   ├── changelog/               # Platform changelog
+│   ├── contact/                 # Contact/feedback form
+│   ├── guides/                  # Platform usage guides
+│   ├── stats/                   # Platform statistics dashboard
+│   ├── status/                  # System health status
 │   ├── feed.xml/                # RSS feed
 │   └── profile/                 # User profile editing
-├── components/                  # Shared UI (AppHeader, Footer, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, Toast, etc.)
+├── components/                  # Shared UI (AppHeader, Footer, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, Toast, UserBadges, EmptyState, WhatsNewBanner, FeaturedStories, ImagePicker, etc.)
 ├── lib/
 │   ├── auth.ts, auth-client.ts  # Auth config
 │   ├── db/schema.ts, index.ts   # Database schema + connection
