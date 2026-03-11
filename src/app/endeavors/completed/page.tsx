@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { AppHeader } from "@/components/app-header";
 import { db } from "@/lib/db";
 import { endeavor, member, story, user } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
@@ -75,18 +76,7 @@ export default async function CompletedEndeavorsPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-xl font-bold">Endeavor</Link>
-            <span className="text-medium-gray">/</span>
-            <span className="text-sm text-code-blue">Completed</span>
-          </div>
-          <Link href="/feed" className="text-sm text-code-blue hover:text-code-green">
-            Explore
-          </Link>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: "Completed", href: "/endeavors/completed" }} />
 
       <main id="main-content" className="mx-auto max-w-6xl px-4 pt-24 pb-16">
         <div className="mb-8">

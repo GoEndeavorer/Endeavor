@@ -29,6 +29,7 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const updates: Record<string, unknown> = { updatedAt: new Date() };
 
+  if (body.name !== undefined && body.name.trim()) updates.name = body.name.trim();
   if (body.bio !== undefined) updates.bio = body.bio;
   if (body.location !== undefined) updates.location = body.location;
   if (body.skills !== undefined) updates.skills = body.skills;
