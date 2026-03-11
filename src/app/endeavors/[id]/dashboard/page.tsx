@@ -19,6 +19,7 @@ import { ResourceList } from "@/components/resource-list";
 import { MemberDirectory } from "@/components/member-directory";
 import { Announcements } from "@/components/announcements";
 import { WikiViewer } from "@/components/wiki-viewer";
+import { DailyStandup } from "@/components/daily-standup";
 
 type Discussion = {
   id: string;
@@ -547,8 +548,13 @@ export default function DashboardPage({
                 />
               </div>
             )}
+            {/* Daily Standup */}
+            <div className="lg:col-span-2">
+              <DailyStandup endeavorId={id} />
+            </div>
+
             {/* Announcements */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-1">
               <Announcements endeavorId={id} canPost={isCreator} />
             </div>
 

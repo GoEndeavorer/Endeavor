@@ -93,6 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/goals`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 },
     { url: `${baseUrl}/feedback`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 },
     { url: `${baseUrl}/skills`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    { url: `${baseUrl}/referrals`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
     ...endeavorUrls,
     ...storyUrls,
     ...publishedStories.map((s) => ({
