@@ -109,10 +109,53 @@ export async function GET(
     exportedAt: new Date().toISOString(),
   };
 
+  const format = _request.nextUrl.searchParams.get("format") || "json";
+  const safeName = end.title.replace(/[^a-z0-9]/gi, "_");
+
+  if (format === "csv") {
+    const lines: string[] = [];
+    lines.push("Section,Field,Value");
+
+    // Endeavor info
+    lines.push(`Endeavor,Title,"${end.title}"`);
+    lines.push(`Endeavor,Category,"${end.category}"`);
+    lines.push(`Endeavor,Status,"${end.status}"`);
+    lines.push(`Endeavor,Location,"${end.location || "N/A"}"`);
+    lines.push(`Endeavor,Created,"${end.createdAt}"`);
+    lines.push("");
+
+    // Members
+    lines.push("Members,Name,Email,Role,Joined");
+    members.forEach((m) => {
+      lines.push(`,"${m.name}","${m.email}","${m.role}","${m.joinedAt}"`);
+    });
+    lines.push("");
+
+    // Tasks
+    lines.push("Tasks,Title,Status,Due Date");
+    tasks.forEach((t) => {
+      lines.push(`,"${t.title}","${t.status}","${t.dueDate || "N/A"}"`);
+    });
+    lines.push("");
+
+    // Milestones
+    lines.push("Milestones,Title,Completed,Target Date");
+    milestones.forEach((m) => {
+      lines.push(`,"${m.title}","${m.completed}","${m.targetDate || "N/A"}"`);
+    });
+
+    return new NextResponse(lines.join("\n"), {
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment; filename="${safeName}_export.csv"`,
+      },
+    });
+  }
+
   return new NextResponse(JSON.stringify(exportData, null, 2), {
     headers: {
       "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="${end.title.replace(/[^a-z0-9]/gi, "_")}_export.json"`,
+      "Content-Disposition": `attachment; filename="${safeName}_export.json"`,
     },
   });
 }
