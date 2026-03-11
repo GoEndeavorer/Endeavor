@@ -11,6 +11,7 @@ type Discussion = {
   id: string;
   content: string;
   createdAt: string;
+  parentId: string | null;
   authorId: string;
   authorName: string;
   authorImage: string | null;
@@ -132,6 +133,7 @@ export default function DashboardPage({
   const [payments, setPayments] = useState<Payment[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [newMessage, setNewMessage] = useState("");
+  const [replyTo, setReplyTo] = useState<Discussion | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
@@ -199,12 +201,13 @@ export default function DashboardPage({
       const res = await fetch(`/api/endeavors/${id}/discussions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newMessage }),
+        body: JSON.stringify({ content: newMessage, parentId: replyTo?.id }),
       });
       if (res.ok) {
         const msg = await res.json();
         setDiscussions([msg, ...discussions]);
         setNewMessage("");
+        setReplyTo(null);
       }
     } finally {
       setSending(false);
@@ -248,6 +251,18 @@ export default function DashboardPage({
   async function deleteTask(taskId: string) {
     const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
     if (res.ok) setTasks(tasks.filter((t) => t.id !== taskId));
+  }
+
+  async function reassignTask(taskId: string, assigneeId: string | null) {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assigneeId }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setTasks(tasks.map((t) => t.id === taskId ? { ...t, assigneeId: data.assigneeId, assigneeName: data.assigneeName } : t));
+    }
   }
 
   async function addLink(e: React.FormEvent) {
@@ -748,11 +763,25 @@ export default function DashboardPage({
         {activeTab === "discussion" && (
           <div>
             <form onSubmit={sendMessage} className="mb-6">
+              {replyTo && (
+                <div className="mb-2 flex items-center gap-2 border-l-2 border-code-blue pl-3 py-1">
+                  <span className="text-xs text-code-blue">
+                    Replying to <span className="font-semibold">{replyTo.authorName}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setReplyTo(null)}
+                    className="text-xs text-medium-gray hover:text-white"
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
               <textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 rows={3}
-                placeholder="Write a message to your crew..."
+                placeholder={replyTo ? `Reply to ${replyTo.authorName}...` : "Write a message to your crew..."}
                 className="mb-2 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
               />
               <button
@@ -760,7 +789,7 @@ export default function DashboardPage({
                 disabled={sending || !newMessage.trim()}
                 className="border border-code-green px-4 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
               >
-                {sending ? "Sending..." : "Send"}
+                {sending ? "Sending..." : replyTo ? "Reply" : "Send"}
               </button>
             </form>
             {discussions.length === 0 ? (
@@ -769,27 +798,62 @@ export default function DashboardPage({
               </div>
             ) : (
               <div className="space-y-4">
-                {discussions.map((msg) => (
-                  <DiscussionMessage
-                    key={msg.id}
-                    msg={msg}
-                    isOwn={msg.authorId === session?.user?.id}
-                    canDelete={msg.authorId === session?.user?.id || isCreator}
-                    onDelete={() => deleteDiscussion(msg.id)}
-                    onEdit={async (content) => {
-                      const res = await fetch(`/api/discussions/${msg.id}`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ content }),
-                      });
-                      if (res.ok) {
-                        setDiscussions((prev) =>
-                          prev.map((d) => d.id === msg.id ? { ...d, content } : d)
-                        );
-                      }
-                    }}
-                  />
-                ))}
+                {discussions
+                  .filter((msg) => !msg.parentId)
+                  .map((msg) => {
+                    const replies = discussions
+                      .filter((r) => r.parentId === msg.id)
+                      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                    return (
+                      <div key={msg.id}>
+                        <DiscussionMessage
+                          msg={msg}
+                          isOwn={msg.authorId === session?.user?.id}
+                          canDelete={msg.authorId === session?.user?.id || isCreator}
+                          onDelete={() => deleteDiscussion(msg.id)}
+                          onReply={() => setReplyTo(msg)}
+                          onEdit={async (content) => {
+                            const res = await fetch(`/api/discussions/${msg.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ content }),
+                            });
+                            if (res.ok) {
+                              setDiscussions((prev) =>
+                                prev.map((d) => d.id === msg.id ? { ...d, content } : d)
+                              );
+                            }
+                          }}
+                        />
+                        {replies.length > 0 && (
+                          <div className="ml-6 mt-1 space-y-1 border-l-2 border-medium-gray/20 pl-4">
+                            {replies.map((reply) => (
+                              <DiscussionMessage
+                                key={reply.id}
+                                msg={reply}
+                                isOwn={reply.authorId === session?.user?.id}
+                                canDelete={reply.authorId === session?.user?.id || isCreator}
+                                onDelete={() => deleteDiscussion(reply.id)}
+                                onReply={() => setReplyTo(reply)}
+                                onEdit={async (content) => {
+                                  const res = await fetch(`/api/discussions/${reply.id}`, {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ content }),
+                                  });
+                                  if (res.ok) {
+                                    setDiscussions((prev) =>
+                                      prev.map((d) => d.id === reply.id ? { ...d, content } : d)
+                                    );
+                                  }
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -859,9 +923,9 @@ export default function DashboardPage({
               </span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <TaskColumn title="To Do" tasks={todoTasks} color="medium-gray" onStatusChange={updateTaskStatus} onDelete={deleteTask} />
-              <TaskColumn title="In Progress" tasks={inProgressTasks} color="code-blue" onStatusChange={updateTaskStatus} onDelete={deleteTask} />
-              <TaskColumn title="Done" tasks={doneTasks} color="code-green" onStatusChange={updateTaskStatus} onDelete={deleteTask} />
+              <TaskColumn title="To Do" tasks={todoTasks} color="medium-gray" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
+              <TaskColumn title="In Progress" tasks={inProgressTasks} color="code-blue" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
+              <TaskColumn title="Done" tasks={doneTasks} color="code-green" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
             </div>
           </div>
         )}
@@ -1583,12 +1647,16 @@ function TaskColumn({
   color,
   onStatusChange,
   onDelete,
+  members,
+  onReassign,
 }: {
   title: string;
   tasks: Task[];
   color: string;
   onStatusChange: (id: string, status: string) => void;
   onDelete: (id: string) => void;
+  members: Member[];
+  onReassign: (id: string, assigneeId: string | null) => void;
 }) {
   const nextStatus: Record<string, string> = {
     todo: "in-progress",
@@ -1608,28 +1676,86 @@ function TaskColumn({
       </h3>
       <div className="space-y-2">
         {tasks.map((t) => (
-          <div key={t.id} className="border border-medium-gray/20 p-3">
-            <div className="mb-1 flex items-start justify-between">
-              <p className="text-sm font-semibold">{t.title}</p>
-              <button onClick={() => onDelete(t.id)} className="ml-2 flex-shrink-0 text-xs text-medium-gray hover:text-red-400">x</button>
-            </div>
-            {t.description && <p className="mb-1 text-xs text-light-gray">{t.description}</p>}
-            {t.assigneeName && <p className="mb-1 text-xs text-medium-gray">Assigned to {t.assigneeName}</p>}
-            {t.dueDate && (
-              <p className={`mb-1 text-xs ${new Date(t.dueDate) < new Date() && t.status !== "done" ? "text-red-400" : "text-medium-gray"}`}>
-                Due {new Date(t.dueDate).toLocaleDateString()}
-                {new Date(t.dueDate) < new Date() && t.status !== "done" && " (overdue)"}
-              </p>
-            )}
-            <button
-              onClick={() => onStatusChange(t.id, nextStatus[t.status])}
-              className="mt-1 text-xs text-code-blue hover:text-code-green"
-            >
-              {actionLabel[t.status]}
-            </button>
-          </div>
+          <TaskCard key={t.id} task={t} members={members} onStatusChange={onStatusChange} onDelete={onDelete} onReassign={onReassign} nextStatus={nextStatus} actionLabel={actionLabel} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function TaskCard({
+  task: t,
+  members,
+  onStatusChange,
+  onDelete,
+  onReassign,
+  nextStatus,
+  actionLabel,
+}: {
+  task: Task;
+  members: Member[];
+  onStatusChange: (id: string, status: string) => void;
+  onDelete: (id: string) => void;
+  onReassign: (id: string, assigneeId: string | null) => void;
+  nextStatus: Record<string, string>;
+  actionLabel: Record<string, string>;
+}) {
+  const [showAssign, setShowAssign] = useState(false);
+
+  return (
+    <div className="border border-medium-gray/20 p-3">
+      <div className="mb-1 flex items-start justify-between">
+        <p className="text-sm font-semibold">{t.title}</p>
+        <button onClick={() => onDelete(t.id)} className="ml-2 flex-shrink-0 text-xs text-medium-gray hover:text-red-400">x</button>
+      </div>
+      {t.description && <p className="mb-1 text-xs text-light-gray">{t.description}</p>}
+      <div className="mb-1 flex items-center gap-2">
+        <button
+          onClick={() => setShowAssign(!showAssign)}
+          className="text-xs text-medium-gray hover:text-code-blue"
+        >
+          {t.assigneeName ? `→ ${t.assigneeName}` : "assign"}
+        </button>
+        {t.assigneeId && (
+          <button
+            onClick={() => onReassign(t.id, null)}
+            className="text-xs text-medium-gray hover:text-red-400"
+          >
+            unassign
+          </button>
+        )}
+      </div>
+      {showAssign && (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {members
+            .filter((m) => m.status === "approved")
+            .map((m) => (
+              <button
+                key={m.userId}
+                onClick={() => { onReassign(t.id, m.userId); setShowAssign(false); }}
+                className={`px-2 py-0.5 text-xs border transition-colors ${
+                  m.userId === t.assigneeId
+                    ? "border-code-green text-code-green"
+                    : "border-medium-gray/30 text-medium-gray hover:border-code-blue hover:text-code-blue"
+                }`}
+              >
+                {m.userName}
+              </button>
+            ))}
+        </div>
+      )}
+      {t.dueDate && (
+        <p className={`mb-1 text-xs ${new Date(t.dueDate) < new Date() && t.status !== "done" ? "text-red-400" : "text-medium-gray"}`}>
+          Due {new Date(t.dueDate).toLocaleDateString()}
+          {new Date(t.dueDate) < new Date() && t.status !== "done" && " (overdue)"}
+        </p>
+      )}
+      <button
+        onClick={() => onStatusChange(t.id, nextStatus[t.status])}
+        className="mt-1 text-xs text-code-blue hover:text-code-green"
+      >
+        {actionLabel[t.status]}
+      </button>
     </div>
   );
 }
@@ -1639,12 +1765,14 @@ function DiscussionMessage({
   isOwn,
   canDelete,
   onDelete,
+  onReply,
   onEdit,
 }: {
   msg: Discussion;
   isOwn: boolean;
   canDelete: boolean;
   onDelete: () => void;
+  onReply: () => void;
   onEdit: (content: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
@@ -1669,6 +1797,12 @@ function DiscussionMessage({
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={onReply}
+            className="text-xs text-medium-gray hover:text-code-blue"
+          >
+            reply
+          </button>
           {isOwn && !editing && (
             <button
               onClick={() => { setEditContent(msg.content); setEditing(true); }}

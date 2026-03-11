@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { endeavor, member, user, discussion, task, milestone, story, link, notification, payment, update } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { notifyEndeavorMembers } from "@/lib/notifications";
 
 export async function GET(
@@ -46,12 +46,37 @@ export async function GET(
 
   const approvedCount = members.filter((m) => m.status === "approved").length;
 
+  // Public activity stats
+  const [[milestoneStats], [storyCount], [updateCount]] = await Promise.all([
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        completed: sql<number>`count(*) filter (where ${milestone.completed} = true)::int`,
+      })
+      .from(milestone)
+      .where(eq(milestone.endeavorId, id)),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(story)
+      .where(sql`${story.endeavorId} = ${id} AND ${story.published} = true`),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(update)
+      .where(eq(update.endeavorId, id)),
+  ]);
+
   return NextResponse.json({
     ...result,
     creator,
     members: members.filter((m) => m.status === "approved"),
     pendingMembers: members.filter((m) => m.status === "pending"),
     memberCount: approvedCount,
+    stats: {
+      milestones: milestoneStats?.total || 0,
+      milestonesCompleted: milestoneStats?.completed || 0,
+      stories: storyCount?.count || 0,
+      updates: updateCount?.count || 0,
+    },
   });
 }
 

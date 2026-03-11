@@ -148,6 +148,7 @@ export const discussion = pgTable("discussion", {
     .notNull()
     .references(() => user.id),
   content: text("content").notNull(),
+  parentId: uuid("parent_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

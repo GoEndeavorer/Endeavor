@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -167,10 +168,22 @@ export default function SettingsPage() {
               </p>
               <div className="flex gap-2">
                 <button
-                  className="border border-red-500 bg-red-500 px-4 py-2 text-xs font-bold uppercase text-black"
-                  onClick={() => toast("Account deletion is not yet implemented", "error")}
+                  className="border border-red-500 bg-red-500 px-4 py-2 text-xs font-bold uppercase text-black disabled:opacity-50"
+                  disabled={deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    const res = await fetch("/api/account", { method: "DELETE" });
+                    if (res.ok) {
+                      await signOut();
+                      router.push("/");
+                    } else {
+                      const data = await res.json();
+                      toast(data.error || "Failed to delete account", "error");
+                      setDeleting(false);
+                    }
+                  }}
                 >
-                  I understand, delete my account
+                  {deleting ? "Deleting..." : "I understand, delete my account"}
                 </button>
                 <button
                   onClick={() => setDeleteConfirm(false)}

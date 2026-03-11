@@ -40,6 +40,12 @@ type EndeavorDetail = {
     userId: string;
     userName: string;
   }[];
+  stats: {
+    milestones: number;
+    milestonesCompleted: number;
+    stories: number;
+    updates: number;
+  };
 };
 
 export default function EndeavorDetailPage({
@@ -419,12 +425,41 @@ export default function EndeavorDetailPage({
               )}
             </div>
 
+            {/* Progress stats */}
+            {(endeavor.stats.milestones > 0 || endeavor.stats.updates > 0 || endeavor.stats.stories > 0) && (
+              <div className="border border-medium-gray/30 p-5">
+                <p className="mb-3 text-xs uppercase text-medium-gray">Activity</p>
+                <div className="space-y-2">
+                  {endeavor.stats.milestones > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-light-gray">Milestones</span>
+                      <span className="text-code-green font-semibold">
+                        {endeavor.stats.milestonesCompleted}/{endeavor.stats.milestones}
+                      </span>
+                    </div>
+                  )}
+                  {endeavor.stats.updates > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-light-gray">Updates</span>
+                      <span className="font-semibold">{endeavor.stats.updates}</span>
+                    </div>
+                  )}
+                  {endeavor.stats.stories > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-light-gray">Stories</span>
+                      <span className="text-code-blue font-semibold">{endeavor.stats.stories}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Stories link */}
             <Link
               href={`/endeavors/${endeavor.id}/stories`}
               className="block w-full border border-medium-gray/30 px-4 py-3 text-center text-sm text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
             >
-              View Stories
+              View Stories {endeavor.stats.stories > 0 && `(${endeavor.stats.stories})`}
             </Link>
 
             {/* Duplicate / Template */}

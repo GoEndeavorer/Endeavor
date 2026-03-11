@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { task } from "@/lib/db/schema";
+import { task, user } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
@@ -61,7 +61,18 @@ export async function PATCH(
     );
   }
 
-  return NextResponse.json(updated);
+  // Resolve assignee name for client
+  let assigneeName: string | null = null;
+  if (updated.assigneeId) {
+    const [assignee] = await db
+      .select({ name: user.name })
+      .from(user)
+      .where(eq(user.id, updated.assigneeId))
+      .limit(1);
+    assigneeName = assignee?.name || null;
+  }
+
+  return NextResponse.json({ ...updated, assigneeName });
 }
 
 export async function DELETE(

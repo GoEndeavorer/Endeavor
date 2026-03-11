@@ -26,6 +26,7 @@ export async function GET(
       id: discussion.id,
       content: discussion.content,
       createdAt: discussion.createdAt,
+      parentId: discussion.parentId,
       authorId: user.id,
       authorName: user.name,
       authorImage: user.image,
@@ -51,7 +52,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { content } = await request.json();
+  const { content, parentId } = await request.json();
   if (!content?.trim()) {
     return NextResponse.json(
       { error: "Content is required" },
@@ -65,15 +66,17 @@ export async function POST(
       endeavorId: id,
       authorId: session.user.id,
       content: content.trim(),
+      parentId: parentId || null,
     })
     .returning();
 
   // Notify other members
+  const prefix = parentId ? "Reply: " : "";
   const preview = content.trim().slice(0, 60);
   await notifyEndeavorMembers(
     id,
     "new_discussion",
-    `${session.user.name}: ${preview}${content.trim().length > 60 ? "..." : ""}`,
+    `${session.user.name}: ${prefix}${preview}${content.trim().length > 60 ? "..." : ""}`,
     session.user.id
   );
 
