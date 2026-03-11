@@ -140,6 +140,7 @@ export default function DashboardPage({
   const [inviteStatus, setInviteStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showMyTasks, setShowMyTasks] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -406,9 +407,12 @@ export default function DashboardPage({
   }
 
   const isCreator = session?.user?.id === endeavor.creatorId;
-  const todoTasks = tasks.filter((t) => t.status === "todo");
-  const inProgressTasks = tasks.filter((t) => t.status === "in-progress");
-  const doneTasks = tasks.filter((t) => t.status === "done");
+  const filteredTasks = showMyTasks
+    ? tasks.filter((t) => t.assigneeId === session?.user?.id)
+    : tasks;
+  const todoTasks = filteredTasks.filter((t) => t.status === "todo");
+  const inProgressTasks = filteredTasks.filter((t) => t.status === "in-progress");
+  const doneTasks = filteredTasks.filter((t) => t.status === "done");
   const pendingMilestones = milestones.filter((m) => !m.completed);
   const completedMilestones = milestones.filter((m) => m.completed);
 
@@ -449,6 +453,44 @@ export default function DashboardPage({
         {/* ── Overview ── */}
         {activeTab === "overview" && (
           <div className="grid gap-6 lg:grid-cols-3">
+            {/* Quick Actions */}
+            <div className="lg:col-span-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => setActiveTab("discussion")}
+                className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+              >
+                + Post Message
+              </button>
+              <button
+                onClick={() => setActiveTab("tasks")}
+                className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-blue hover:text-code-blue transition-colors"
+              >
+                + Add Task
+              </button>
+              <button
+                onClick={() => setActiveTab("milestones")}
+                className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-purple-400 hover:text-purple-400 transition-colors"
+              >
+                + Set Milestone
+              </button>
+              <Link
+                href={`/endeavors/${id}`}
+                className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-blue hover:text-code-blue transition-colors"
+              >
+                View Public Page
+              </Link>
+              {isCreator && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/endeavors/${id}`);
+                  }}
+                  className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+                >
+                  Copy Link
+                </button>
+              )}
+            </div>
+
             {/* Progress Stats */}
             <div className="lg:col-span-1 space-y-4">
               <div className="border border-medium-gray/30 p-4">
@@ -732,6 +774,22 @@ export default function DashboardPage({
                 />
               </div>
             </form>
+            <div className="mb-4 flex items-center gap-3">
+              <button
+                onClick={() => setShowMyTasks(!showMyTasks)}
+                className={`border px-3 py-1.5 text-xs transition-colors ${
+                  showMyTasks
+                    ? "border-code-blue bg-code-blue/10 text-code-blue"
+                    : "border-medium-gray/30 text-medium-gray hover:text-code-blue"
+                }`}
+              >
+                {showMyTasks ? "My Tasks" : "All Tasks"}
+              </button>
+              <span className="text-xs text-medium-gray">
+                {filteredTasks.length} task{filteredTasks.length !== 1 ? "s" : ""}
+                {showMyTasks && ` assigned to you`}
+              </span>
+            </div>
             <div className="grid gap-4 md:grid-cols-3">
               <TaskColumn title="To Do" tasks={todoTasks} color="medium-gray" onStatusChange={updateTaskStatus} onDelete={deleteTask} />
               <TaskColumn title="In Progress" tasks={inProgressTasks} color="code-blue" onStatusChange={updateTaskStatus} onDelete={deleteTask} />
