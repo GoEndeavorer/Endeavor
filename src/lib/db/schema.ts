@@ -107,6 +107,7 @@ export const endeavor = pgTable("endeavor", {
   fundingEnabled: boolean("funding_enabled").notNull().default(false),
   fundingGoal: integer("funding_goal"),
   fundingRaised: integer("funding_raised").notNull().default(0),
+  imageUrl: text("image_url"),
   joinType: text("join_type").notNull().default("open"), // "open" or "request"
   creatorId: text("creator_id")
     .notNull()

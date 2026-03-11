@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { analytics } from "@/lib/analytics";
 
 const categories = [
   "Adventure",
@@ -31,6 +32,7 @@ export default function CreateEndeavorPage() {
   const [capacity, setCapacity] = useState("");
   const [fundingEnabled, setFundingEnabled] = useState(false);
   const [fundingGoal, setFundingGoal] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [joinType, setJoinType] = useState("open");
 
   function addNeed() {
@@ -65,6 +67,7 @@ export default function CreateEndeavorPage() {
           capacity: capacity || null,
           fundingEnabled,
           fundingGoal: fundingEnabled ? fundingGoal || null : null,
+          imageUrl: imageUrl || null,
           joinType,
         }),
       });
@@ -76,6 +79,7 @@ export default function CreateEndeavorPage() {
       }
 
       const data = await res.json();
+      analytics.endeavorCreated(data.id, category);
       router.push(`/endeavors/${data.id}`);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -364,6 +368,32 @@ export default function CreateEndeavorPage() {
                   min="1"
                   className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
                   placeholder="How much do you need to raise?"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Cover Image */}
+          <div>
+            <label htmlFor="imageUrl" className="mb-1 block text-sm text-light-gray">
+              Cover Image URL
+            </label>
+            <input
+              id="imageUrl"
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+              placeholder="https://example.com/image.jpg"
+            />
+            {imageUrl && (
+              <div className="mt-2 overflow-hidden border border-medium-gray/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl}
+                  alt="Cover preview"
+                  className="h-40 w-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
             )}

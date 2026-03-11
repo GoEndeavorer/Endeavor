@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { NotificationBell } from "@/components/notification-bell";
+import { analytics } from "@/lib/analytics";
 
 type Endeavor = {
   id: string;
@@ -19,6 +20,7 @@ type Endeavor = {
   fundingEnabled: boolean;
   fundingGoal: number | null;
   fundingRaised: number;
+  imageUrl: string | null;
   memberCount: number;
   createdAt: string;
 };
@@ -53,8 +55,18 @@ function EndeavorCard({ endeavor }: { endeavor: Endeavor }) {
   return (
     <Link
       href={`/endeavors/${endeavor.id}`}
-      className="group flex flex-col border border-medium-gray/30 p-5 transition-colors hover:border-code-green/50"
+      className="group flex flex-col border border-medium-gray/30 transition-colors hover:border-code-green/50 overflow-hidden"
     >
+      {endeavor.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={endeavor.imageUrl}
+          alt=""
+          className="h-36 w-full object-cover"
+          loading="lazy"
+        />
+      )}
+      <div className="flex flex-col flex-1 p-5">
       <div className="mb-3 flex items-center gap-2">
         <span
           className={`border px-2 py-0.5 text-xs uppercase ${
@@ -155,6 +167,7 @@ function EndeavorCard({ endeavor }: { endeavor: Endeavor }) {
           View &rarr;
         </span>
       </div>
+      </div>
     </Link>
   );
 }
@@ -194,6 +207,9 @@ export default function FeedPage() {
     params.set("offset", String(offset));
 
     try {
+      if (debouncedSearch) {
+        analytics.searchPerformed(debouncedSearch, category !== "All" ? category : undefined);
+      }
       const res = await fetch(`/api/endeavors?${params}`);
       const data = await res.json();
       if (offset === 0) {

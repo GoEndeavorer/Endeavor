@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { ShareButton } from "@/components/share-button";
+import { analytics } from "@/lib/analytics";
 
 type EndeavorDetail = {
   id: string;
@@ -19,6 +20,7 @@ type EndeavorDetail = {
   fundingEnabled: boolean;
   fundingGoal: number | null;
   fundingRaised: number;
+  imageUrl: string | null;
   joinType: string;
   memberCount: number;
   creatorId: string;
@@ -55,7 +57,9 @@ export default function EndeavorDetailPage({
       try {
         const res = await fetch(`/api/endeavors/${id}`);
         if (res.ok) {
-          setEndeavor(await res.json());
+          const data = await res.json();
+          setEndeavor(data);
+          analytics.endeavorViewed(id, data.category);
         }
       } catch (err) {
         console.error("Failed to fetch endeavor:", err);
@@ -174,9 +178,21 @@ export default function EndeavorDetailPage({
       </header>
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
+        {/* Cover Image */}
+        {endeavor.imageUrl && (
+          <div className="mb-6 overflow-hidden border border-medium-gray/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={endeavor.imageUrl}
+              alt={endeavor.title}
+              className="h-64 w-full object-cover md:h-80"
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <span
               className={`border px-2 py-0.5 text-xs uppercase ${
                 categoryColors[endeavor.category] ||
@@ -195,6 +211,16 @@ export default function EndeavorDetailPage({
             <span className="text-xs text-medium-gray">
               {endeavor.joinType === "open" ? "Open join" : "Request to join"}
             </span>
+            <span className={`text-xs font-semibold ${
+              endeavor.status === "open" ? "text-code-green" :
+              endeavor.status === "in-progress" ? "text-code-blue" :
+              endeavor.status === "completed" ? "text-purple-400" :
+              endeavor.status === "cancelled" ? "text-red-400" :
+              "text-medium-gray"
+            }`}>
+              {endeavor.status === "in-progress" ? "In Progress" :
+               endeavor.status.charAt(0).toUpperCase() + endeavor.status.slice(1)}
+            </span>
           </div>
           <h1 className="mb-2 text-3xl font-bold md:text-4xl">
             {endeavor.title}
@@ -207,8 +233,16 @@ export default function EndeavorDetailPage({
           <div className="mb-2 flex items-center gap-3">
             <p className="text-sm text-medium-gray">
               Created by{" "}
-              <span className="text-code-blue">{endeavor.creator.name}</span>
+              <Link
+                href={`/users/${endeavor.creator.id}`}
+                className="text-code-blue hover:text-code-green"
+              >
+                {endeavor.creator.name}
+              </Link>
             </p>
+            <span className="text-xs text-medium-gray">
+              {new Date(endeavor.createdAt).toLocaleDateString()}
+            </span>
             <ShareButton
               title={endeavor.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
@@ -253,9 +287,10 @@ export default function EndeavorDetailPage({
               </h2>
               <div className="space-y-2">
                 {endeavor.members.map((m) => (
-                  <div
+                  <Link
                     key={m.id}
-                    className="flex items-center gap-3 border border-medium-gray/20 p-3"
+                    href={`/users/${m.userId}`}
+                    className="flex items-center gap-3 border border-medium-gray/20 p-3 transition-colors hover:border-code-green/30"
                   >
                     <div className="flex h-8 w-8 items-center justify-center bg-accent text-xs font-bold">
                       {m.userName.charAt(0).toUpperCase()}
@@ -264,7 +299,7 @@ export default function EndeavorDetailPage({
                       <p className="text-sm font-semibold">{m.userName}</p>
                       <p className="text-xs text-medium-gray">{m.role}</p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

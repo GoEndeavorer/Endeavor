@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
     capacity,
     fundingEnabled,
     fundingGoal,
+    imageUrl,
     joinType,
   } = body;
 
@@ -168,6 +169,7 @@ export async function POST(request: NextRequest) {
       capacity: capacity ? parseInt(capacity) : null,
       fundingEnabled: fundingEnabled || false,
       fundingGoal: fundingGoal ? parseInt(fundingGoal) : null,
+      imageUrl: imageUrl || null,
       joinType: joinType || "open",
       creatorId: session.user.id,
     })

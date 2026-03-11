@@ -72,6 +72,7 @@ type EndeavorInfo = {
   joinType: string;
   costPerPerson: number | null;
   capacity: number | null;
+  imageUrl: string | null;
   fundingEnabled: boolean;
   fundingGoal: number | null;
   creatorId: string;
@@ -79,7 +80,16 @@ type EndeavorInfo = {
   pendingMembers: Member[];
 };
 
-type TabId = "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "settings";
+type ActivityItem = {
+  id: string;
+  type: string;
+  title: string;
+  detail: string | null;
+  actorName: string;
+  createdAt: string;
+};
+
+type TabId = "overview" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "settings";
 
 export default function DashboardPage({
   params,
@@ -96,7 +106,8 @@ export default function DashboardPage({
   const [links, setLinks] = useState<SharedLink[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
-  const [activeTab, setActiveTab] = useState<TabId>("discussion");
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [newMessage, setNewMessage] = useState("");
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
@@ -114,13 +125,14 @@ export default function DashboardPage({
 
   const fetchData = useCallback(async () => {
     try {
-      const [endRes, discRes, taskRes, linkRes, msRes, storyRes] = await Promise.all([
+      const [endRes, discRes, taskRes, linkRes, msRes, storyRes, actRes] = await Promise.all([
         fetch(`/api/endeavors/${id}`),
         fetch(`/api/endeavors/${id}/discussions`),
         fetch(`/api/endeavors/${id}/tasks`),
         fetch(`/api/endeavors/${id}/links`),
         fetch(`/api/endeavors/${id}/milestones`),
         fetch(`/api/endeavors/${id}/stories`),
+        fetch(`/api/endeavors/${id}/activity`),
       ]);
 
       if (endRes.ok) setEndeavor(await endRes.json());
@@ -129,6 +141,7 @@ export default function DashboardPage({
       if (linkRes.ok) setLinks(await linkRes.json());
       if (msRes.ok) setMilestones(await msRes.json());
       if (storyRes.ok) setStories(await storyRes.json());
+      if (actRes.ok) setActivity(await actRes.json());
     } catch (err) {
       console.error("Failed to load dashboard:", err);
     } finally {
@@ -350,6 +363,7 @@ export default function DashboardPage({
   const completedMilestones = milestones.filter((m) => m.completed);
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
+    { id: "overview", label: "Overview" },
     { id: "discussion", label: "Discussion" },
     { id: "tasks", label: "Tasks", count: tasks.length },
     { id: "milestones", label: "Milestones", count: milestones.length },
@@ -390,6 +404,120 @@ export default function DashboardPage({
             </button>
           ))}
         </div>
+
+        {/* ── Overview ── */}
+        {activeTab === "overview" && (
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Progress Stats */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="border border-medium-gray/30 p-4">
+                <p className="mb-1 text-xs uppercase tracking-widest text-medium-gray">Status</p>
+                <p className={`text-lg font-bold ${
+                  endeavor.status === "open" ? "text-code-green" :
+                  endeavor.status === "in-progress" ? "text-code-blue" :
+                  endeavor.status === "completed" ? "text-purple-400" :
+                  "text-medium-gray"
+                }`}>
+                  {endeavor.status === "in-progress" ? "In Progress" :
+                   endeavor.status.charAt(0).toUpperCase() + endeavor.status.slice(1)}
+                </p>
+              </div>
+              <div className="border border-medium-gray/30 p-4">
+                <p className="mb-1 text-xs uppercase tracking-widest text-medium-gray">Crew</p>
+                <p className="text-2xl font-bold">{endeavor.members.length}</p>
+                <p className="text-xs text-medium-gray">
+                  {endeavor.pendingMembers?.length > 0 && `${endeavor.pendingMembers.length} pending`}
+                </p>
+              </div>
+              <div className="border border-medium-gray/30 p-4">
+                <p className="mb-1 text-xs uppercase tracking-widest text-medium-gray">Tasks</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-code-green">{doneTasks.length}</p>
+                  <p className="text-sm text-medium-gray">/ {tasks.length} complete</p>
+                </div>
+                {tasks.length > 0 && (
+                  <div className="mt-2 h-1.5 w-full bg-medium-gray/30">
+                    <div
+                      className="h-1.5 bg-code-green transition-all"
+                      style={{ width: `${(doneTasks.length / tasks.length) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="border border-medium-gray/30 p-4">
+                <p className="mb-1 text-xs uppercase tracking-widest text-medium-gray">Milestones</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-code-green">{completedMilestones.length}</p>
+                  <p className="text-sm text-medium-gray">/ {milestones.length} reached</p>
+                </div>
+                {milestones.length > 0 && (
+                  <div className="mt-2 h-1.5 w-full bg-medium-gray/30">
+                    <div
+                      className="h-1.5 bg-code-green transition-all"
+                      style={{ width: `${(completedMilestones.length / milestones.length) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Activity Timeline */}
+            <div className="lg:col-span-2">
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+                {"// recent activity"}
+              </h3>
+              {activity.length === 0 ? (
+                <div className="border border-medium-gray/20 p-8 text-center text-sm text-medium-gray">
+                  No activity yet. Start by posting a discussion or creating a task.
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {activity.map((item, idx) => {
+                    const typeIcon: Record<string, string> = {
+                      discussion: "D",
+                      task: "T",
+                      milestone: "M",
+                      story: "S",
+                      member: "+",
+                    };
+                    const typeColor: Record<string, string> = {
+                      discussion: "border-code-blue text-code-blue",
+                      task: "border-yellow-400 text-yellow-400",
+                      milestone: "border-purple-400 text-purple-400",
+                      story: "border-code-green text-code-green",
+                      member: "border-pink-400 text-pink-400",
+                    };
+                    return (
+                      <div key={`${item.type}-${item.id}`} className="flex gap-3 pb-4">
+                        <div className="flex flex-col items-center">
+                          <div className={`flex h-7 w-7 items-center justify-center border text-xs font-bold ${typeColor[item.type] || "border-medium-gray text-medium-gray"}`}>
+                            {typeIcon[item.type] || "?"}
+                          </div>
+                          {idx < activity.length - 1 && (
+                            <div className="mt-1 w-px flex-1 bg-medium-gray/20" />
+                          )}
+                        </div>
+                        <div className="flex-1 pb-2">
+                          <p className="text-sm">
+                            {item.actorName && <span className="font-semibold">{item.actorName} </span>}
+                            {item.title}
+                          </p>
+                          {item.detail && (
+                            <p className="mt-0.5 text-xs text-medium-gray">{item.detail}</p>
+                          )}
+                          <p className="mt-0.5 text-xs text-medium-gray">
+                            {new Date(item.createdAt).toLocaleDateString()} at{" "}
+                            {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── Discussion ── */}
         {activeTab === "discussion" && (
@@ -837,6 +965,7 @@ function SettingsTab({
 }) {
   const [status, setStatus] = useState(endeavor.status);
   const [description, setDescription] = useState(endeavor.description);
+  const [imageUrl, setImageUrl] = useState(endeavor.imageUrl || "");
   const [joinType, setJoinType] = useState(endeavor.joinType);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -848,7 +977,7 @@ function SettingsTab({
     const res = await fetch(`/api/endeavors/${endeavorId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, description, joinType }),
+      body: JSON.stringify({ status, description, imageUrl: imageUrl || null, joinType }),
     });
     if (res.ok) {
       setSaved(true);
@@ -886,6 +1015,27 @@ function SettingsTab({
             rows={6}
             className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-medium-gray">Cover Image URL</label>
+          <input
+            type="url"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+            placeholder="https://example.com/image.jpg"
+          />
+          {imageUrl && (
+            <div className="mt-2 overflow-hidden border border-medium-gray/30">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt="Cover preview"
+                className="h-32 w-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            </div>
+          )}
         </div>
         <div>
           <label className="mb-1 block text-xs text-medium-gray">Join Type</label>

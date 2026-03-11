@@ -53,9 +53,9 @@ export async function PATCH(
   if (body.completed === true) {
     await notifyEndeavorMembers(
       existing.endeavorId,
-      session.user.id,
       "milestone_completed",
       `Milestone completed: "${existing.title}"`,
+      session.user.id,
     );
   }
 

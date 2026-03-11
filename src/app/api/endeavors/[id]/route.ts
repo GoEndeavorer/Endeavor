@@ -94,6 +94,7 @@ export async function PATCH(
   if (body.capacity !== undefined) updates.capacity = body.capacity;
   if (body.fundingEnabled !== undefined) updates.fundingEnabled = body.fundingEnabled;
   if (body.fundingGoal !== undefined) updates.fundingGoal = body.fundingGoal;
+  if (body.imageUrl !== undefined) updates.imageUrl = body.imageUrl;
   if (body.joinType) updates.joinType = body.joinType;
   updates.updatedAt = new Date();
 
@@ -115,9 +116,9 @@ export async function PATCH(
     if (label) {
       await notifyEndeavorMembers(
         id,
-        session.user.id,
         "status_change",
         `"${existing.title}" ${label}`,
+        session.user.id,
       );
     }
   }
