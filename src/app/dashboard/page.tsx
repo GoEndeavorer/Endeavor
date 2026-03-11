@@ -11,6 +11,7 @@ import { formatTimeAgo } from "@/lib/time";
 import { ActivitySparkline } from "@/components/activity-sparkline";
 import { ActivityStreak } from "@/components/activity-streak";
 import { WeeklyGoals } from "@/components/weekly-goals";
+import { DashboardInsights } from "@/components/dashboard-insights";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -535,6 +536,11 @@ export default function DashboardPage() {
                 </div>
               </section>
             )}
+
+            {/* ── insights ─────────────────────────── */}
+            <section className="mb-10">
+              <DashboardInsights />
+            </section>
 
             {/* ── streak + goals ─────────────────────── */}
             <section className="mb-10 grid gap-4 sm:grid-cols-2">

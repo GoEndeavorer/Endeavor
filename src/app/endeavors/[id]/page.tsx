@@ -22,6 +22,7 @@ import { BookmarkButton } from "@/components/bookmark-button";
 import { MilestoneRoadmap } from "@/components/milestone-roadmap";
 import { EndeavorReviews } from "@/components/endeavor-reviews";
 import { MemberActivity } from "@/components/member-activity";
+import { EndeavorActivityHeatmap } from "@/components/endeavor-activity-heatmap";
 
 type EndeavorDetail = {
   id: string;
@@ -481,6 +482,9 @@ export default function EndeavorDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Activity heatmap */}
+            <EndeavorActivityHeatmap endeavorId={endeavor.id} />
 
             {/* Recent activity */}
             <MemberActivity endeavorId={endeavor.id} />
