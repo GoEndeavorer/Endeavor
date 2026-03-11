@@ -72,6 +72,8 @@ const sections: CommandSection[] = [
       { label: "Invitations", icon: "I", action: "/invitations" },
       { label: "Media Library", icon: "M", action: "/media-library" },
       { label: "Audit Log", icon: ".", action: "/audit-log" },
+      { label: "Automations", icon: "~", action: "/automations" },
+      { label: "Notes", icon: "N", action: "/notes" },
     ],
   },
 ];
