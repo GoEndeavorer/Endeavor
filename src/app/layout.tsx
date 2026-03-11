@@ -4,6 +4,7 @@ import { ToastProvider } from "@/components/toast";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { WhatsNewBanner } from "@/components/whats-new-banner";
+import { QuickActionsFAB } from "@/components/quick-actions-fab";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -45,6 +46,7 @@ export default function RootLayout({
           <ScrollToTop />
           <WhatsNewBanner />
           {children}
+          <QuickActionsFAB />
         </ToastProvider>
       </body>
     </html>
