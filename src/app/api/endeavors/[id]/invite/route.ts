@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { db } from "@/lib/db";
-import { endeavor } from "@/lib/db/schema";
+import { member } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
-import { isMemberOf } from "@/lib/membership";
-import { sendInviteEmail } from "@/lib/email";
+import { eq, and } from "drizzle-orm";
 
 export async function POST(
   request: NextRequest,
@@ -14,29 +13,37 @@ export async function POST(
   const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || !(await isMemberOf(id, session.user.id))) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { email } = await request.json();
-  if (!email?.trim()) {
-    return NextResponse.json(
-      { error: "Email is required" },
-      { status: 400 }
-    );
-  }
-
-  const [end] = await db
+  // Check membership: only creators/admins can generate invite links
+  const [membership] = await db
     .select()
-    .from(endeavor)
-    .where(eq(endeavor.id, id))
+    .from(member)
+    .where(
+      and(
+        eq(member.userId, session.user.id),
+        eq(member.endeavorId, id),
+        eq(member.status, "approved"),
+        eq(member.role, "creator")
+      )
+    )
     .limit(1);
 
-  if (!end) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!membership) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await sendInviteEmail(email.trim(), session.user.name, end.title, id);
+  // Generate a deterministic invite code from the endeavor ID
+  const code = crypto
+    .createHash("sha256")
+    .update(id + "endeavor-invite-salt")
+    .digest("hex")
+    .slice(0, 8);
 
-  return NextResponse.json({ message: "Invite sent!" });
+  return NextResponse.json({
+    code,
+    url: `/invite/${code}?eid=${id}`,
+  });
 }

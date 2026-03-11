@@ -8,6 +8,22 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.18.0",
+    date: "March 2026",
+    title: "Discovery & UX",
+    items: [
+      "For You feed — personalized endeavor recommendations based on interests and follows",
+      "Batch notification management — select, mark read, and delete multiple at once",
+      "Endeavor timeline — chronological view of all events, members, tasks, and milestones",
+      "Enhanced search — now includes stories and discussion results with tabbed navigation",
+      "Keyboard shortcuts upgraded — 'g' prefix navigation (g+f for feed, g+d for dashboard, etc.)",
+      "Timeline API — unified chronological event stream from all endeavor activity",
+      "Invite link system — shareable codes for team onboarding",
+      "Notification types expanded — DM notifications with @ icon",
+      "Skeleton loading states for notifications",
+    ],
+  },
+  {
     version: "0.17.0",
     date: "March 2026",
     title: "Communication & Insights",

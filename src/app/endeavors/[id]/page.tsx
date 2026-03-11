@@ -517,12 +517,20 @@ export default function EndeavorDetailPage({
               </button>
             )}
             {(isMember || isCreator) && (
-              <Link
-                href={`/endeavors/${endeavor.id}/dashboard`}
-                className="block w-full border border-code-blue bg-code-blue px-4 py-3 text-center text-sm font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-blue"
-              >
-                Open Dashboard
-              </Link>
+              <div className="space-y-2">
+                <Link
+                  href={`/endeavors/${endeavor.id}/dashboard`}
+                  className="block w-full border border-code-blue bg-code-blue px-4 py-3 text-center text-sm font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-blue"
+                >
+                  Open Dashboard
+                </Link>
+                <Link
+                  href={`/endeavors/${endeavor.id}/timeline`}
+                  className="block w-full border border-medium-gray/30 px-4 py-2 text-center text-xs text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
+                >
+                  View Timeline
+                </Link>
+              </div>
             )}
             {isMember && !isCreator && (
               <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { endeavor, member, user } from "@/lib/db/schema";
+import { endeavor, member, user, story, discussion } from "@/lib/db/schema";
 import { sql, or, eq, and, desc, ilike, SQL } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
@@ -102,5 +102,55 @@ export async function GET(request: NextRequest) {
       .limit(5);
   }
 
-  return NextResponse.json({ endeavors, users });
+  // ── Search stories ────────────────────────────────────────────────────────
+
+  let stories: { id: string; title: string; endeavorId: string; authorName: string; createdAt: Date }[] = [];
+
+  if (q && q.length >= 2) {
+    const searchPattern = `%${q}%`;
+    stories = await db
+      .select({
+        id: story.id,
+        title: story.title,
+        endeavorId: story.endeavorId,
+        authorName: user.name,
+        createdAt: story.createdAt,
+      })
+      .from(story)
+      .innerJoin(user, eq(story.authorId, user.id))
+      .where(
+        and(
+          eq(story.published, true),
+          or(
+            ilike(story.title, searchPattern),
+            ilike(story.content, searchPattern)
+          )
+        )
+      )
+      .orderBy(desc(story.createdAt))
+      .limit(5);
+  }
+
+  // ── Search discussions ──────────────────────────────────────────────────────
+
+  let discussions: { id: string; content: string; endeavorId: string; authorName: string; createdAt: Date }[] = [];
+
+  if (q && q.length >= 2) {
+    const searchPattern = `%${q}%`;
+    discussions = await db
+      .select({
+        id: discussion.id,
+        content: discussion.content,
+        endeavorId: discussion.endeavorId,
+        authorName: user.name,
+        createdAt: discussion.createdAt,
+      })
+      .from(discussion)
+      .innerJoin(user, eq(discussion.authorId, user.id))
+      .where(ilike(discussion.content, searchPattern))
+      .orderBy(desc(discussion.createdAt))
+      .limit(5);
+  }
+
+  return NextResponse.json({ endeavors, users, stories, discussions });
 }

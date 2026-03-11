@@ -182,6 +182,8 @@ export default function FeedPage() {
   const [endeavors, setEndeavors] = useState<Endeavor[]>([]);
   const [recommended, setRecommended] = useState<Endeavor[]>([]);
   const [trending, setTrending] = useState<Endeavor[]>([]);
+  const [forYou, setForYou] = useState<Endeavor[]>([]);
+  const [forYouLoading, setForYouLoading] = useState(false);
   const [trendingNeeds, setTrendingNeeds] = useState<{ need: string; count: string }[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<{ id: string; title: string; category: string; imageUrl: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -193,6 +195,7 @@ export default function FeedPage() {
   const [locationType, setLocationType] = useState("");
   const [sort, setSort] = useState("newest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [feedTab, setFeedTab] = useState<"explore" | "for-you">("explore");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const PAGE_SIZE = 20;
 
@@ -268,6 +271,20 @@ export default function FeedPage() {
     }
   }, [session]);
 
+  // Fetch "For You" personalized feed
+  useEffect(() => {
+    if (session && feedTab === "for-you" && forYou.length === 0) {
+      setForYouLoading(true);
+      fetch("/api/feed/for-you")
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setForYou(data);
+        })
+        .catch(() => {})
+        .finally(() => setForYouLoading(false));
+    }
+  }, [session, feedTab, forYou.length]);
+
   return (
     <div className="min-h-screen">
       <AppHeader breadcrumb={{ label: "Explore", href: "/feed" }} />
@@ -283,6 +300,60 @@ export default function FeedPage() {
           </Link>
         </div>
 
+        {/* Feed tabs */}
+        {session && (
+          <div className="mb-8 flex gap-1 border-b border-medium-gray/20">
+            <button
+              onClick={() => setFeedTab("explore")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                feedTab === "explore"
+                  ? "border-b-2 border-code-green text-code-green"
+                  : "text-medium-gray hover:text-white"
+              }`}
+            >
+              Explore
+            </button>
+            <button
+              onClick={() => setFeedTab("for-you")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                feedTab === "for-you"
+                  ? "border-b-2 border-code-green text-code-green"
+                  : "text-medium-gray hover:text-white"
+              }`}
+            >
+              For You
+            </button>
+          </div>
+        )}
+
+        {/* For You tab */}
+        {feedTab === "for-you" && session && (
+          <div>
+            {forYouLoading ? (
+              <CardSkeletonGrid count={6} />
+            ) : forYou.length === 0 ? (
+              <div className="border border-medium-gray/20 p-12 text-center">
+                <p className="mb-2 text-lg text-medium-gray">No personalized suggestions yet.</p>
+                <p className="mb-6 text-sm text-medium-gray">Add interests and skills to your profile to get matched with relevant endeavors.</p>
+                <Link
+                  href="/profile"
+                  className="border border-code-green px-6 py-3 text-sm font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black"
+                >
+                  Complete Profile
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {forYou.map((e) => (
+                  <EndeavorCard key={e.id} endeavor={e as Endeavor} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Explore tab content */}
+        {feedTab === "explore" && <>
         {/* Profile completion prompt */}
         {session && recommended.length === 0 && (
           <div className="mb-8 border border-code-blue/30 p-4">
@@ -523,6 +594,7 @@ export default function FeedPage() {
             )}
           </>
         )}
+        </>}
       </main>
       <Footer />
     </div>
