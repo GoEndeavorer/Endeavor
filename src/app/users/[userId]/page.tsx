@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { UserBadges } from "@/components/user-badges";
 import { ContributionHeatmap } from "@/components/contribution-heatmap";
 import { PinnedEndeavors } from "@/components/pinned-endeavors";
+import { ContributionStats } from "@/components/contribution-stats";
 
 type UserProfile = {
   id: string;
@@ -231,6 +232,11 @@ export default function PublicProfilePage({
             </Link>
           </div>
         )}
+
+        {/* Contribution stats */}
+        <div className="mb-8">
+          <ContributionStats userId={userId} />
+        </div>
 
         {/* Contribution heatmap */}
         <div className="mb-8">
