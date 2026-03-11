@@ -8,7 +8,7 @@ import { Footer } from "@/components/footer";
 
 type CalendarEvent = {
   id: string;
-  type: "task" | "milestone";
+  type: "task" | "milestone" | "event";
   title: string;
   date: string;
   status: string;
@@ -183,17 +183,19 @@ export default function CalendarPage() {
                           key={ev.id}
                           href={`/endeavors/${ev.endeavorId}/dashboard`}
                           className={`block truncate px-1 py-0.5 text-[10px] leading-tight transition-opacity hover:opacity-80 ${
-                            ev.type === "task"
-                              ? ev.status === "done"
-                                ? "bg-code-green/10 text-code-green line-through"
-                                : "bg-code-blue/10 text-code-blue"
-                              : ev.status === "done"
-                                ? "bg-purple-400/10 text-purple-400 line-through"
-                                : "bg-purple-400/10 text-purple-400"
+                            ev.type === "event"
+                              ? "bg-yellow-400/10 text-yellow-400"
+                              : ev.type === "task"
+                                ? ev.status === "done"
+                                  ? "bg-code-green/10 text-code-green line-through"
+                                  : "bg-code-blue/10 text-code-blue"
+                                : ev.status === "done"
+                                  ? "bg-purple-400/10 text-purple-400 line-through"
+                                  : "bg-purple-400/10 text-purple-400"
                           }`}
                           title={`${ev.type}: ${ev.title} (${ev.endeavorTitle})`}
                         >
-                          {ev.type === "task" ? "T" : "M"} {ev.title}
+                          {ev.type === "task" ? "T" : ev.type === "event" ? "E" : "M"} {ev.title}
                         </Link>
                       ))}
                       {dayEvents.length > 3 && (
@@ -216,6 +218,10 @@ export default function CalendarPage() {
               <div className="flex items-center gap-1">
                 <span className="inline-block h-2 w-2 bg-purple-400" />
                 <span>Milestone</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="inline-block h-2 w-2 bg-yellow-400" />
+                <span>Event</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="inline-block h-2 w-2 bg-code-green" />
@@ -241,12 +247,14 @@ export default function CalendarPage() {
                       >
                         <span
                           className={`flex h-8 w-8 shrink-0 items-center justify-center border text-xs font-bold ${
-                            ev.type === "task"
-                              ? "border-code-blue/30 text-code-blue"
-                              : "border-purple-400/30 text-purple-400"
+                            ev.type === "event"
+                              ? "border-yellow-400/30 text-yellow-400"
+                              : ev.type === "task"
+                                ? "border-code-blue/30 text-code-blue"
+                                : "border-purple-400/30 text-purple-400"
                           }`}
                         >
-                          {ev.type === "task" ? "T" : "M"}
+                          {ev.type === "event" ? "E" : ev.type === "task" ? "T" : "M"}
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm group-hover:text-code-green transition-colors">

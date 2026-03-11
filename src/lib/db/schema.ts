@@ -382,6 +382,24 @@ export const report = pgTable("report", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Events / Schedule ──────────────────────────────────────────────────────
+
+export const event = pgTable("event", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  createdById: text("created_by_id")
+    .notNull()
+    .references(() => user.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  location: text("location"),
+  startsAt: timestamp("starts_at").notNull(),
+  endsAt: timestamp("ends_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Story Comments ─────────────────────────────────────────────────────────
 
 export const comment = pgTable("comment", {

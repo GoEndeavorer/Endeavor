@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { task, milestone, member, endeavor } from "@/lib/db/schema";
+import { task, milestone, member, endeavor, event } from "@/lib/db/schema";
 import { eq, and, isNotNull, gte, lte } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +75,24 @@ export async function GET(request: Request) {
       )
     );
 
+  // Get scheduled events
+  const scheduledEvents = await db
+    .select({
+      id: event.id,
+      title: event.title,
+      startsAt: event.startsAt,
+      endeavorId: event.endeavorId,
+      endeavorTitle: endeavor.title,
+    })
+    .from(event)
+    .innerJoin(endeavor, eq(event.endeavorId, endeavor.id))
+    .where(
+      and(
+        gte(event.startsAt, start),
+        lte(event.startsAt, end)
+      )
+    );
+
   // Filter to user's endeavors and format
   const events = [
     ...tasks
@@ -98,6 +116,17 @@ export async function GET(request: Request) {
         status: m.completed ? "done" : "pending",
         endeavorId: m.endeavorId,
         endeavorTitle: m.endeavorTitle,
+      })),
+    ...scheduledEvents
+      .filter((e) => endeavorIds.includes(e.endeavorId))
+      .map((e) => ({
+        id: e.id,
+        type: "event" as const,
+        title: e.title,
+        date: e.startsAt.toISOString(),
+        status: "scheduled",
+        endeavorId: e.endeavorId,
+        endeavorTitle: e.endeavorTitle,
       })),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 

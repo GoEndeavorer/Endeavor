@@ -9,6 +9,7 @@ import { MarkdownText } from "@/components/markdown-text";
 import { formatTimeAgo } from "@/lib/time";
 import { useToast } from "@/components/toast";
 import { Polls } from "@/components/polls";
+import { Schedule } from "@/components/schedule";
 
 type Discussion = {
   id: string;
@@ -684,6 +685,11 @@ export default function DashboardPage({
                 </div>
               </div>
             )}
+
+            {/* Schedule */}
+            <div className="lg:col-span-1">
+              <Schedule endeavorId={id} />
+            </div>
 
             {/* Polls */}
             <div className="lg:col-span-1">
