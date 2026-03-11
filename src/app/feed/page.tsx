@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { CardSkeletonGrid } from "@/components/skeleton";
 import { analytics } from "@/lib/analytics";
 
 type Endeavor = {
@@ -377,9 +378,7 @@ export default function FeedPage() {
 
         {/* Results */}
         {loading ? (
-          <div className="py-20 text-center text-medium-gray">
-            Loading endeavors...
-          </div>
+          <CardSkeletonGrid count={6} />
         ) : endeavors.length === 0 ? (
           <div className="py-20 text-center">
             <p className="mb-4 text-lg text-medium-gray">

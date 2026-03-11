@@ -11,7 +11,12 @@ export async function generateMetadata({
   const { id } = await params;
 
   const [end] = await db
-    .select({ title: endeavor.title, description: endeavor.description, category: endeavor.category })
+    .select({
+      title: endeavor.title,
+      description: endeavor.description,
+      category: endeavor.category,
+      imageUrl: endeavor.imageUrl,
+    })
     .from(endeavor)
     .where(eq(endeavor.id, id))
     .limit(1);
@@ -30,7 +35,14 @@ export async function generateMetadata({
     openGraph: {
       title: end.title,
       description: desc,
-      type: "website",
+      type: "article",
+      ...(end.imageUrl && { images: [{ url: end.imageUrl }] }),
+    },
+    twitter: {
+      card: end.imageUrl ? "summary_large_image" : "summary",
+      title: end.title,
+      description: desc,
+      ...(end.imageUrl && { images: [end.imageUrl] }),
     },
   };
 }
