@@ -20,21 +20,19 @@ type Template = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Scientific: "border-code-blue text-code-blue",
-  Tech: "border-purple-400 text-purple-400",
-  Creative: "border-yellow-400 text-yellow-400",
+  "Community Events": "border-pink-400 text-pink-400",
+  "Creative Projects": "border-yellow-400 text-yellow-400",
+  "Tech Projects": "border-purple-400 text-purple-400",
   Adventure: "border-code-green text-code-green",
-  Cultural: "border-orange-400 text-orange-400",
-  Community: "border-pink-400 text-pink-400",
+  Education: "border-code-blue text-code-blue",
 };
 
 const CATEGORY_BG: Record<string, string> = {
-  Scientific: "bg-code-blue/10",
-  Tech: "bg-purple-400/10",
-  Creative: "bg-yellow-400/10",
+  "Community Events": "bg-pink-400/10",
+  "Creative Projects": "bg-yellow-400/10",
+  "Tech Projects": "bg-purple-400/10",
   Adventure: "bg-code-green/10",
-  Cultural: "bg-orange-400/10",
-  Community: "bg-pink-400/10",
+  Education: "bg-code-blue/10",
 };
 
 const LOCATION_LABELS: Record<string, string> = {
@@ -58,6 +56,15 @@ const ICON_MAP: Record<string, string> = {
   heart: "\u2665",
 };
 
+/* Ordered categories for the filter bar */
+const CATEGORY_ORDER = [
+  "Community Events",
+  "Creative Projects",
+  "Tech Projects",
+  "Adventure",
+  "Education",
+];
+
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,10 +82,10 @@ export default function TemplatesPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  const categories = useMemo(
-    () => Array.from(new Set(templates.map((t) => t.category))),
-    [templates]
-  );
+  const categories = useMemo(() => {
+    const present = new Set(templates.map((t) => t.category));
+    return CATEGORY_ORDER.filter((c) => present.has(c));
+  }, [templates]);
 
   const filtered = useMemo(() => {
     return templates.filter((t) => {
@@ -93,6 +100,20 @@ export default function TemplatesPage() {
       return matchesCategory && matchesSearch;
     });
   }, [templates, activeCategory, search]);
+
+  /* Group filtered templates by category for sectioned display */
+  const grouped = useMemo(() => {
+    const map = new Map<string, Template[]>();
+    for (const t of filtered) {
+      const list = map.get(t.category) || [];
+      list.push(t);
+      map.set(t.category, list);
+    }
+    return CATEGORY_ORDER.filter((c) => map.has(c)).map((c) => ({
+      category: c,
+      items: map.get(c)!,
+    }));
+  }, [filtered]);
 
   return (
     <>
@@ -169,7 +190,7 @@ export default function TemplatesPage() {
 
           {/* Results count */}
           {!loading && (
-            <p className="mb-4 font-mono text-xs text-medium-gray">
+            <p className="mb-6 font-mono text-xs text-medium-gray">
               {filtered.length} template{filtered.length !== 1 ? "s" : ""}{" "}
               {search || activeCategory ? "matched" : "available"}
             </p>
@@ -215,106 +236,124 @@ export default function TemplatesPage() {
             </div>
           )}
 
-          {/* Template grid */}
-          {!loading && filtered.length > 0 && (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((template) => {
-                const colorClass =
-                  CATEGORY_COLORS[template.category] ||
-                  "border-medium-gray text-medium-gray";
-                const bgClass =
-                  CATEGORY_BG[template.category] || "bg-medium-gray/10";
+          {/* Template grid — grouped by category */}
+          {!loading &&
+            grouped.map(({ category, items }) => {
+              const colorClass =
+                CATEGORY_COLORS[category] ||
+                "border-medium-gray text-medium-gray";
+              const categoryColor = colorClass.split(" ").pop() || "";
 
-                return (
-                  <div
-                    key={template.id}
-                    className="group flex flex-col border border-medium-gray/20 bg-white/[0.02] transition-all hover:border-code-green/40 hover:bg-white/[0.04]"
+              return (
+                <section key={category} className="mb-12">
+                  <h2
+                    className={`mb-5 font-mono text-xs font-semibold uppercase tracking-widest ${categoryColor}`}
                   >
-                    {/* Icon + Category header */}
-                    <div className="flex items-start gap-3 p-6 pb-0">
-                      <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center font-mono text-sm font-bold ${bgClass} ${colorClass} border`}
-                      >
-                        {ICON_MAP[template.icon] || "?"}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="mb-1 flex items-center gap-2">
-                          <span
-                            className={`border px-2 py-0.5 text-[10px] uppercase tracking-widest ${colorClass}`}
-                          >
-                            {template.category}
-                          </span>
-                          <span className="text-[10px] text-medium-gray">
-                            {LOCATION_LABELS[template.locationType] ||
-                              template.locationType}
-                          </span>
+                    {"// " + category}
+                  </h2>
+
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((template) => {
+                      const tColor =
+                        CATEGORY_COLORS[template.category] ||
+                        "border-medium-gray text-medium-gray";
+                      const tBg =
+                        CATEGORY_BG[template.category] || "bg-medium-gray/10";
+
+                      return (
+                        <div
+                          key={template.id}
+                          className="group flex flex-col border border-medium-gray/20 bg-white/[0.02] transition-all hover:border-code-green/40 hover:bg-white/[0.04]"
+                        >
+                          {/* Icon + Category header */}
+                          <div className="flex items-start gap-3 p-6 pb-0">
+                            <div
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center font-mono text-sm font-bold ${tBg} ${tColor} border`}
+                            >
+                              {ICON_MAP[template.icon] || "?"}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="mb-1 flex items-center gap-2">
+                                <span
+                                  className={`border px-2 py-0.5 text-[10px] uppercase tracking-widest ${tColor}`}
+                                >
+                                  {template.category}
+                                </span>
+                                <span className="text-[10px] text-medium-gray">
+                                  {LOCATION_LABELS[template.locationType] ||
+                                    template.locationType}
+                                </span>
+                              </div>
+                              <h3 className="text-lg font-bold leading-tight text-white">
+                                {template.name}
+                              </h3>
+                            </div>
+                          </div>
+
+                          {/* Body */}
+                          <div className="flex flex-1 flex-col p-6 pt-3">
+                            <p className="mb-4 line-clamp-3 text-sm leading-relaxed text-medium-gray">
+                              {template.description}
+                            </p>
+
+                            {/* Needs preview */}
+                            <div className="mb-4 flex flex-wrap gap-1.5">
+                              {template.suggestedNeeds
+                                .slice(0, 3)
+                                .map((need) => (
+                                  <span
+                                    key={need}
+                                    className="bg-white/5 px-2 py-0.5 text-xs text-neutral-400"
+                                  >
+                                    {need}
+                                  </span>
+                                ))}
+                              {template.suggestedNeeds.length > 3 && (
+                                <span className="px-1 py-0.5 text-xs text-medium-gray">
+                                  +{template.suggestedNeeds.length - 3} more
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Meta */}
+                            <div className="mb-5 mt-auto flex items-center gap-4 text-xs text-medium-gray">
+                              <span>
+                                <span className="font-semibold text-code-green">
+                                  {template.suggestedCapacity}
+                                </span>{" "}
+                                spots
+                              </span>
+                              <span>
+                                <span className="font-semibold text-code-blue">
+                                  {template.suggestedMilestones.length}
+                                </span>{" "}
+                                milestones
+                              </span>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                              <Link
+                                href={`/endeavors/create?template=${template.id}`}
+                                className="inline-block border border-code-green bg-code-green px-4 py-2 text-xs font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-green"
+                              >
+                                Use Template
+                              </Link>
+                              <button
+                                onClick={() => setPreviewTemplate(template)}
+                                className="border border-medium-gray/40 px-4 py-2 text-xs font-bold uppercase text-medium-gray transition-colors hover:border-white hover:text-white"
+                              >
+                                Preview
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <h2 className="text-lg font-bold leading-tight text-white">
-                          {template.name}
-                        </h2>
-                      </div>
-                    </div>
-
-                    {/* Body */}
-                    <div className="flex flex-1 flex-col p-6 pt-3">
-                      <p className="mb-4 line-clamp-3 text-sm leading-relaxed text-medium-gray">
-                        {template.description}
-                      </p>
-
-                      {/* Needs preview */}
-                      <div className="mb-4 flex flex-wrap gap-1.5">
-                        {template.suggestedNeeds.slice(0, 3).map((need) => (
-                          <span
-                            key={need}
-                            className="bg-white/5 px-2 py-0.5 text-xs text-neutral-400"
-                          >
-                            {need}
-                          </span>
-                        ))}
-                        {template.suggestedNeeds.length > 3 && (
-                          <span className="px-1 py-0.5 text-xs text-medium-gray">
-                            +{template.suggestedNeeds.length - 3} more
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Meta */}
-                      <div className="mb-5 mt-auto flex items-center gap-4 text-xs text-medium-gray">
-                        <span>
-                          <span className="font-semibold text-code-green">
-                            {template.suggestedCapacity}
-                          </span>{" "}
-                          spots
-                        </span>
-                        <span>
-                          <span className="font-semibold text-code-blue">
-                            {template.suggestedMilestones.length}
-                          </span>{" "}
-                          milestones
-                        </span>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/endeavors/create?template=${template.id}`}
-                          className="inline-block border border-code-green bg-code-green px-4 py-2 text-xs font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-green"
-                        >
-                          Use Template
-                        </Link>
-                        <button
-                          onClick={() => setPreviewTemplate(template)}
-                          className="border border-medium-gray/40 px-4 py-2 text-xs font-bold uppercase text-medium-gray transition-colors hover:border-white hover:text-white"
-                        >
-                          Preview
-                        </button>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </section>
+              );
+            })}
         </div>
       </main>
 
@@ -377,7 +416,7 @@ export default function TemplatesPage() {
               {/* Description */}
               <div>
                 <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-code-green">
-                  // Description
+                  {"// Description"}
                 </h3>
                 <p className="text-sm leading-relaxed text-neutral-300">
                   {previewTemplate.description}
@@ -387,7 +426,7 @@ export default function TemplatesPage() {
               {/* Suggested Needs */}
               <div>
                 <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-code-green">
-                  // Suggested Needs
+                  {"// Suggested Needs"}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {previewTemplate.suggestedNeeds.map((need) => (
@@ -404,7 +443,7 @@ export default function TemplatesPage() {
               {/* Suggested Milestones */}
               <div>
                 <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-code-green">
-                  // Milestones
+                  {"// Milestones"}
                 </h3>
                 <ol className="space-y-2">
                   {previewTemplate.suggestedMilestones.map(
