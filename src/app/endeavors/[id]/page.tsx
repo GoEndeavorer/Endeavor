@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { ShareButton } from "@/components/share-button";
+import { AppHeader } from "@/components/app-header";
 import { analytics } from "@/lib/analytics";
 
 type EndeavorDetail = {
@@ -163,19 +164,7 @@ export default function EndeavorDetailPage({
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-xl font-bold">
-            Endeavor
-          </Link>
-          <Link
-            href="/feed"
-            className="text-sm text-code-blue hover:text-code-green"
-          >
-            Back to Feed
-          </Link>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: endeavor.title, href: `/endeavors/${endeavor.id}` }} />
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
         {/* Cover Image */}
@@ -391,6 +380,22 @@ export default function EndeavorDetailPage({
               View Stories
             </Link>
 
+            {/* Duplicate / Template */}
+            {session && (
+              <button
+                onClick={async () => {
+                  const res = await fetch(`/api/endeavors/${id}/duplicate`, { method: "POST" });
+                  if (res.ok) {
+                    const data = await res.json();
+                    window.location.href = `/endeavors/${data.id}/dashboard`;
+                  }
+                }}
+                className="w-full border border-medium-gray/30 px-4 py-3 text-center text-sm text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
+              >
+                Use as Template
+              </button>
+            )}
+
             {/* Join button */}
             {joinMessage && (
               <div className="border border-code-green/30 bg-code-green/10 px-4 py-3 text-sm text-code-green">
@@ -504,10 +509,10 @@ function ReportButton({ endeavorId }: { endeavorId: string }) {
 
   async function handleReport() {
     if (!reason.trim()) return;
-    const res = await fetch("/api/reports", {
+    const res = await fetch(`/api/endeavors/${endeavorId}/report`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endeavorId, reason }),
+      body: JSON.stringify({ reason }),
     });
     if (res.ok) setSubmitted(true);
   }

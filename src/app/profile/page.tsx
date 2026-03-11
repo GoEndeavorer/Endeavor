@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
+import { AppHeader } from "@/components/app-header";
 
 type Profile = {
   id: string;
@@ -123,27 +124,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-xl font-bold">
-            Endeavor
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/feed"
-              className="text-sm text-code-blue hover:text-code-green"
-            >
-              Feed
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-medium-gray hover:text-red-400"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: "Profile", href: "/profile" }} />
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
         {loading ? (
@@ -169,12 +150,26 @@ export default function ProfilePage() {
                   <p className="mt-2 text-sm text-light-gray">{profile.bio}</p>
                 )}
               </div>
-              <button
-                onClick={() => setEditing(!editing)}
-                className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
-              >
-                {editing ? "Cancel" : "Edit"}
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/users/${session.user.id}`}
+                  className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-code-blue hover:text-code-blue"
+                >
+                  Public Profile
+                </Link>
+                <button
+                  onClick={() => setEditing(!editing)}
+                  className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
+                >
+                  {editing ? "Cancel" : "Edit"}
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-red-400 hover:text-red-400"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
 
             {/* Skills & Interests display */}

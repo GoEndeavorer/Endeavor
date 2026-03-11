@@ -94,6 +94,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
               <Link href="/my-endeavors" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
                 My Endeavors
               </Link>
+              <Link href="/notifications" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+                Notifications
+              </Link>
               <Link href="/profile" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
                 Profile
               </Link>

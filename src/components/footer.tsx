@@ -19,6 +19,9 @@ export function Footer() {
               <Link href="/endeavors/create" className="text-sm text-medium-gray hover:text-code-green">
                 Start an Endeavor
               </Link>
+              <Link href="/categories" className="text-sm text-medium-gray hover:text-code-green">
+                Browse Categories
+              </Link>
             </nav>
           </div>
           <div>
