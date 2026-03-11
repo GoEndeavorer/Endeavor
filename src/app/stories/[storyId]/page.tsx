@@ -7,6 +7,7 @@ import { MarkdownText } from "@/components/markdown-text";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { StoryComments } from "@/components/story-comments";
+import { estimateReadingTime } from "@/lib/reading-time";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -98,6 +99,8 @@ export default async function StoryPage({ params }: Props) {
                 month: "long",
                 day: "numeric",
               })}</time>
+              <span>&middot;</span>
+              <span>{estimateReadingTime(s.content)} min read</span>
               <span>&middot;</span>
               <Link
                 href={`/endeavors/${s.endeavorId}`}
