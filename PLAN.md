@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.8.0
+> **Version**: 0.9.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.9.0   | 2026-03-11 | Bookmarks, follows, finances, following feed, similar endeavors, platform stats, dashboard widgets |
 | 0.8.0   | 2026-03-11 | Notifications page, onboarding flow, member management, discussion editing, SEO, skeletons |
 | 0.7.0   | 2026-03-11 | Cover images, activity timeline, categories, admin panel, leave endeavor, feed sorting, email notifications, markdown stories |
 | 0.6.0   | 2026-03-11 | Public profiles, settings tab, checkout pages, accessibility, task notifications |
@@ -154,6 +155,29 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Create endeavor redirects to dashboard for immediate setup
 - [x] Robots.txt blocks notifications page
 
+## Phase 9: Social & Engagement — DONE
+
+- [x] Bookmark/save endeavors (toggle, API, saved page)
+- [x] User follow/unfollow system with follower/following counts
+- [x] Follow button on user profiles
+- [x] Following feed page (activity from people you follow)
+- [x] Feed API aggregating endeavors, updates, and stories from followed users
+- [x] Finances tab in dashboard (revenue summary, transaction list, funding progress)
+- [x] Payments API for creator finance visibility
+- [x] Similar endeavors section on detail page (same category recommendations)
+- [x] Live platform stats component on homepage
+- [x] Follower/following list API endpoint
+- [x] Saved/Following links in desktop and mobile navigation
+- [x] Bookmark toggle on endeavor detail page
+- [x] Dashboard overview: upcoming milestones widget
+- [x] Dashboard overview: pinned updates section
+- [x] Categories page refactored to use AppHeader
+- [x] SEO metadata layouts for saved and following pages
+- [x] Robots.txt updated for new private pages
+- [x] Global search with Cmd+K command palette (from Phase 8.5)
+- [x] Task filter toggle (my tasks vs all tasks)
+- [x] Quick actions bar in dashboard overview
+
 ---
 
 ## Design Principles
@@ -197,6 +221,10 @@ src/
 │   │   ├── tasks/[taskId]       # Task CRUD
 │   │   ├── links/[linkId]       # Link CRUD
 │   │   ├── discussions/[id]     # Discussion CRUD
+│   │   ├── bookmarks/           # Bookmark toggle + list
+│   │   ├── follow/              # Follow toggle + list
+│   │   ├── feed/                # Following feed API
+│   │   ├── search/              # Global search API
 │   │   └── webhooks/stripe      # Payment webhooks
 │   ├── admin/                   # Admin dashboard
 │   ├── categories/              # Category browser
@@ -204,12 +232,14 @@ src/
 │   ├── endeavors/create/        # Create form
 │   ├── endeavors/completed/     # Completed endeavors showcase
 │   ├── feed/                    # Discovery feed with search, filters, sort
+│   ├── following/               # Activity from followed users
 │   ├── my-endeavors/            # User's endeavors (created + joined)
 │   ├── notifications/           # Full notifications page
+│   ├── saved/                   # Bookmarked endeavors
 │   ├── welcome/                 # Post-signup onboarding flow
-│   ├── users/[userId]/          # Public user profiles with stats
+│   ├── users/[userId]/          # Public user profiles with stats + follows
 │   └── profile/                 # User profile editing
-├── components/                  # Shared UI (AppHeader, NotificationBell, ShareButton, MarkdownText, Skeleton, etc.)
+├── components/                  # Shared UI (AppHeader, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, etc.)
 ├── lib/
 │   ├── auth.ts, auth-client.ts  # Auth config
 │   ├── db/schema.ts, index.ts   # Database schema + connection
@@ -255,3 +285,5 @@ src/
 - **story** — id, endeavorId, authorId, title, content, published
 - **update** — id, endeavorId, authorId, title, content, pinned
 - **report** — id, reporterId, endeavorId, reason, details, status
+- **bookmark** — id, userId, endeavorId, createdAt
+- **follow** — id, followerId, followingId, createdAt
