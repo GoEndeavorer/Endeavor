@@ -20,6 +20,8 @@ import { MemberDirectory } from "@/components/member-directory";
 import { Announcements } from "@/components/announcements";
 import { WikiViewer } from "@/components/wiki-viewer";
 import { DailyStandup } from "@/components/daily-standup";
+import { TimeTracker } from "@/components/time-tracker";
+import { Retrospective } from "@/components/retrospective";
 
 type Discussion = {
   id: string;
@@ -754,6 +756,11 @@ export default function DashboardPage({
               <Polls endeavorId={id} />
             </div>
 
+            {/* Time Tracker */}
+            <div className="lg:col-span-1">
+              <TimeTracker endeavorId={id} />
+            </div>
+
             {/* Resources */}
             <div className="lg:col-span-1">
               <ResourceList endeavorId={id} canAdd={true} />
@@ -812,6 +819,10 @@ export default function DashboardPage({
                   })}
                 </div>
               )}
+            </div>
+            {/* Retrospective */}
+            <div className="lg:col-span-3 mt-4">
+              <Retrospective endeavorId={id} />
             </div>
           </div>
         )}
