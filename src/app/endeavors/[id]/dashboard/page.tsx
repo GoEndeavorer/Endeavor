@@ -13,6 +13,7 @@ import { Schedule } from "@/components/schedule";
 import { ActivityFeed } from "@/components/activity-feed";
 import { MediaGallery } from "@/components/media-gallery";
 import { CreatorChecklist } from "@/components/creator-checklist";
+import { TaskDependencyGraph } from "@/components/task-dependency-graph";
 
 type Discussion = {
   id: string;
@@ -156,6 +157,7 @@ export default function DashboardPage({
   const [newMilestoneDescription, setNewMilestoneDescription] = useState("");
   const [newMilestoneDate, setNewMilestoneDate] = useState("");
   const [discussionSearch, setDiscussionSearch] = useState("");
+  const [taskView, setTaskView] = useState<"columns" | "dependencies">("columns");
   const [newUpdateTitle, setNewUpdateTitle] = useState("");
   const [newUpdateContent, setNewUpdateContent] = useState("");
   const [newUpdatePinned, setNewUpdatePinned] = useState(false);
@@ -1073,12 +1075,46 @@ export default function DashboardPage({
                 {filteredTasks.length} task{filteredTasks.length !== 1 ? "s" : ""}
                 {showMyTasks && ` assigned to you`}
               </span>
+              <div className="ml-auto flex gap-1">
+                <button
+                  onClick={() => setTaskView("columns")}
+                  className={`border px-3 py-1.5 text-xs transition-colors ${
+                    taskView === "columns"
+                      ? "border-code-green text-code-green"
+                      : "border-medium-gray/30 text-medium-gray hover:text-code-green"
+                  }`}
+                >
+                  Columns
+                </button>
+                <button
+                  onClick={() => setTaskView("dependencies")}
+                  className={`border px-3 py-1.5 text-xs transition-colors ${
+                    taskView === "dependencies"
+                      ? "border-code-green text-code-green"
+                      : "border-medium-gray/30 text-medium-gray hover:text-code-green"
+                  }`}
+                >
+                  Dependencies
+                </button>
+              </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <TaskColumn title="To Do" tasks={todoTasks} color="medium-gray" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
-              <TaskColumn title="In Progress" tasks={inProgressTasks} color="code-blue" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
-              <TaskColumn title="Done" tasks={doneTasks} color="code-green" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
-            </div>
+            {taskView === "columns" ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                <TaskColumn title="To Do" tasks={todoTasks} color="medium-gray" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
+                <TaskColumn title="In Progress" tasks={inProgressTasks} color="code-blue" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
+                <TaskColumn title="Done" tasks={doneTasks} color="code-green" onStatusChange={updateTaskStatus} onDelete={deleteTask} members={endeavor?.members || []} onReassign={reassignTask} />
+              </div>
+            ) : (
+              <TaskDependencyGraph
+                tasks={filteredTasks.map((t) => ({
+                  id: t.id,
+                  title: t.title,
+                  status: t.status,
+                  priority: t.priority,
+                }))}
+                endeavorId={id}
+              />
+            )}
           </div>
         )}
 
