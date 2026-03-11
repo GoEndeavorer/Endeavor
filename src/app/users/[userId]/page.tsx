@@ -150,17 +150,25 @@ export default function PublicProfilePage({
                 <span className="font-bold text-white">{followData.following}</span> following
               </span>
               {session && session.user.id !== userId && (
-                <button
-                  onClick={toggleFollow}
-                  disabled={followLoading}
-                  className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                    followData.isFollowing
-                      ? "border border-code-green/30 text-code-green hover:border-red-400/30 hover:text-red-400"
-                      : "border border-code-blue bg-code-blue text-black hover:bg-transparent hover:text-code-blue"
-                  } disabled:opacity-50`}
-                >
-                  {followData.isFollowing ? "Following" : "Follow"}
-                </button>
+                <>
+                  <button
+                    onClick={toggleFollow}
+                    disabled={followLoading}
+                    className={`px-3 py-1 text-xs font-semibold transition-colors ${
+                      followData.isFollowing
+                        ? "border border-code-green/30 text-code-green hover:border-red-400/30 hover:text-red-400"
+                        : "border border-code-blue bg-code-blue text-black hover:bg-transparent hover:text-code-blue"
+                    } disabled:opacity-50`}
+                  >
+                    {followData.isFollowing ? "Following" : "Follow"}
+                  </button>
+                  <Link
+                    href={`/messages?to=${userId}`}
+                    className="px-3 py-1 text-xs font-semibold border border-medium-gray/30 text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+                  >
+                    Message
+                  </Link>
+                </>
               )}
             </div>
             {profile.bio && (

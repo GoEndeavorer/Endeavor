@@ -382,6 +382,21 @@ export const report = pgTable("report", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Direct Messages ────────────────────────────────────────────────────────
+
+export const directMessage = pgTable("direct_message", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  senderId: text("sender_id")
+    .notNull()
+    .references(() => user.id),
+  recipientId: text("recipient_id")
+    .notNull()
+    .references(() => user.id),
+  content: text("content").notNull(),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Events / Schedule ──────────────────────────────────────────────────────
 
 export const event = pgTable("event", {
