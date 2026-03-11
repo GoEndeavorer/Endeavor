@@ -8,6 +8,26 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.16.0",
+    date: "March 2026",
+    title: "Collaboration & Discovery",
+    items: [
+      "Team chat — real-time messaging within endeavor groups",
+      "Polls — create and vote on decisions with your team",
+      "Calendar view — see upcoming tasks and milestones across all your endeavors",
+      "Location map — explore endeavors grouped by location",
+      "Personal dashboard with analytics and quick actions",
+      "Shareable invite links for seamless team onboarding",
+      "Project templates — 8 pre-built templates for common endeavor types",
+      "Discussion reactions — like, heart, fire, celebrate on posts",
+      "Social links — website, GitHub, Twitter, LinkedIn on profiles",
+      "Spotlight section on landing page featuring most active endeavor",
+      "Discover page aggregating recommendations, trending, and new projects",
+      "Tags browser with tag cloud visualization",
+      "Missing SEO layouts and loading skeletons for all pages",
+    ],
+  },
+  {
     version: "0.15.0",
     date: "March 2026",
     title: "Achievements & Polish",

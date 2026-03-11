@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.15.0
+> **Version**: 0.16.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.16.0  | 2026-03-11 | Team chat, polls, calendar, map view, personal dashboard, invite links, templates, reactions, social links, spotlight, discover page, tags browser |
 | 0.15.0  | 2026-03-11 | User badges/achievements, about/FAQ page, changelog, featured stories on landing, notification bell improvements (polling, icons, timestamps), nav additions |
 | 0.14.0  | 2026-03-11 | Explore/trending page, keyboard shortcuts, scroll-to-top, endeavor templates, change password, privacy/terms, story loading |
 | 0.13.0  | 2026-03-11 | Search page, people directory, password reset, stories hub, RSS feed, JSON-LD, PWA manifest, enhanced OG metadata |
@@ -304,6 +305,39 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] System status page (/status) with health checks and latency monitoring
 - [x] Reusable EmptyState component
 - [x] Stats, contact, guides, status links in footer
+
+## Phase 16: Collaboration & Discovery — DONE
+
+- [x] Team chat system — real-time group messaging within endeavors (/endeavors/[id]/chat)
+- [x] Messages API with cursor pagination and membership verification
+- [x] Polls system for team decision-making with voting and results visualization
+- [x] Polls API with create/vote/results endpoints
+- [x] Calendar view (/calendar) with monthly grid showing tasks and milestones
+- [x] Calendar API aggregating scheduled items across user's endeavors
+- [x] Location map (/map) exploring endeavors grouped by location with category filtering
+- [x] Map API returning location-tagged endeavors
+- [x] Personal dashboard (/dashboard) with user analytics and quick actions
+- [x] Dashboard API with personalized stats and activity summary
+- [x] Shareable invite links (/invite/[code]) bypassing join request flow
+- [x] Invite link generation API with expiration and use limits
+- [x] Project templates — 8 pre-built templates (Hackathon, Book Club, Sports League, etc.)
+- [x] Templates page (/templates) with grid layout and "Use Template" buttons
+- [x] Discussion reactions API (like, heart, fire, thumbsup, thumbsdown, celebrate)
+- [x] User social links (website, GitHub, Twitter, LinkedIn) in profile schema and UI
+- [x] Social links displayed on public and private profile pages
+- [x] Spotlight section on landing page featuring most active endeavor
+- [x] Discover page (/discover) aggregating recommendations, trending, new endeavors, active people
+- [x] Tags browser (/tags) with tag cloud visualization and list view
+- [x] Tags API aggregating endeavor needs as searchable tags
+- [x] Mentions utility for @username parsing in text content
+- [x] Chat link in dashboard tab bar
+- [x] Map, Calendar, Dashboard links in app header and footer
+- [x] Templates link in footer navigation
+- [x] Missing SEO layouts for 9 pages (about, discover, tags, privacy, terms, stories, etc.)
+- [x] Missing loading skeletons for 8 pages (discover, tags, compare, contact, etc.)
+- [x] Updated sitemap with all new public pages
+- [x] New DB tables: message, poll, poll_vote, invite, reaction
+- [x] Version bumped to v0.16.0
 
 ---
 
