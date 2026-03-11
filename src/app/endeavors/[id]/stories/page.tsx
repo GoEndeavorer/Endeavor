@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MarkdownText } from "@/components/markdown-text";
 import { db } from "@/lib/db";
 import { story, user, endeavor } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
@@ -93,9 +94,7 @@ export default async function StoriesPage({
                   <span>&middot;</span>
                   <time>{new Date(s.createdAt).toLocaleDateString()}</time>
                 </div>
-                <div className="whitespace-pre-wrap text-sm leading-relaxed text-light-gray">
-                  {s.content}
-                </div>
+                <MarkdownText content={s.content} />
               </article>
             ))}
           </div>

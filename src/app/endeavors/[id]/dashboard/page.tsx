@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { MarkdownText } from "@/components/markdown-text";
 
 type Discussion = {
   id: string;
@@ -823,7 +824,7 @@ export default function DashboardPage({
                         </button>
                       </div>
                     </div>
-                    <p className="whitespace-pre-wrap text-sm text-light-gray">{s.content}</p>
+                    <MarkdownText content={s.content} />
                     <div className="mt-2 flex items-center gap-2 text-xs text-medium-gray">
                       {s.authorName && <span>by {s.authorName}</span>}
                       <span>&middot;</span>

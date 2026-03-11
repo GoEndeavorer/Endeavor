@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { NotificationBell } from "@/components/notification-bell";
+import { AppHeader } from "@/components/app-header";
 
 type Endeavor = {
   id: string;
@@ -66,34 +66,7 @@ export default function MyEndeavorsPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-xl font-bold">
-            Endeavor
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/feed"
-              className="text-sm text-code-blue hover:text-code-green"
-            >
-              Explore
-            </Link>
-            <Link
-              href="/endeavors/create"
-              className="border border-code-green bg-code-green px-4 py-2 text-xs font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-green"
-            >
-              + New
-            </Link>
-            <NotificationBell />
-            <Link
-              href="/profile"
-              className="text-sm text-code-blue hover:text-code-green"
-            >
-              Profile
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
         <h1 className="mb-6 text-3xl font-bold">My Endeavors</h1>
