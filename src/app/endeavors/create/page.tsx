@@ -161,6 +161,9 @@ export default function CreateEndeavorPage() {
               className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
               placeholder="What is this endeavor about? What will participants experience?"
             />
+            <p className="mt-1 text-right text-xs text-medium-gray">
+              {description.length} characters
+            </p>
           </div>
 
           {/* Category */}
