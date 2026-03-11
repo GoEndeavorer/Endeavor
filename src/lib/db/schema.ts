@@ -559,4 +559,27 @@ export const onboardingStep = pgTable("onboarding_step", {
   completedAt: timestamp("completed_at").notNull().defaultNow(),
 });
 
+// ── Achievements ─────────────────────────────────────────────────────────────
 
+export const userAchievement = pgTable("user_achievement", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  achievementKey: text("achievement_key").notNull(), // e.g. "first_endeavor", "ten_tasks"
+  unlockedAt: timestamp("unlocked_at").notNull().defaultNow(),
+});
+
+// ── Pinned Profile Endeavors ─────────────────────────────────────────────────
+
+export const pinnedEndeavor = pgTable("pinned_endeavor", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

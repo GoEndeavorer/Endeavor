@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { UserBadges } from "@/components/user-badges";
 import { ContributionHeatmap } from "@/components/contribution-heatmap";
+import { PinnedEndeavors } from "@/components/pinned-endeavors";
 
 type UserProfile = {
   id: string;
@@ -214,6 +215,22 @@ export default function PublicProfilePage({
         <div className="mb-8">
           <UserBadges userId={userId} />
         </div>
+
+        {/* Pinned Endeavors */}
+        <PinnedEndeavors userId={userId} />
+
+        {/* Achievements link */}
+        {session && session.user.id === userId && (
+          <div className="mb-8">
+            <Link
+              href="/achievements"
+              className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
+            >
+              <span>View Achievements</span>
+              <span className="text-xs text-medium-gray">&rarr;</span>
+            </Link>
+          </div>
+        )}
 
         {/* Contribution heatmap */}
         <div className="mb-8">

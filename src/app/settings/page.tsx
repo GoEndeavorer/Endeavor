@@ -270,6 +270,20 @@ export default function SettingsPage() {
               <span className="text-xs text-medium-gray">&rarr;</span>
             </Link>
             <Link
+              href="/achievements"
+              className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
+            >
+              <span>Achievements</span>
+              <span className="text-xs text-medium-gray">&rarr;</span>
+            </Link>
+            <Link
+              href="/collections"
+              className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
+            >
+              <span>Collections</span>
+              <span className="text-xs text-medium-gray">&rarr;</span>
+            </Link>
+            <Link
               href="/messages"
               className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
             >
