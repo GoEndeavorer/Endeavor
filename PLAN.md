@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.10.0
+> **Version**: 0.11.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.11.0  | 2026-03-11 | Platform activity feed, admin users tab, notification preferences, CSV export, Footer standardization, needs tag fix |
 | 0.10.0  | 2026-03-11 | Discussion threading, account deletion, task reassignment, activity stats, share links, loading skeletons, relative timestamps, markdown descriptions |
 | 0.9.0   | 2026-03-11 | Bookmarks, follows, finances, following feed, similar endeavors, platform stats, dashboard widgets |
 | 0.8.0   | 2026-03-11 | Notifications page, onboarding flow, member management, discussion editing, SEO, skeletons |
@@ -34,7 +35,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - **Collaborators** — People who join an endeavor to help make it happen.
 - **Cost to Join** — For planned endeavors, the creator sets a per-person cost to participate (e.g., "$450/person for the Patagonia trek"). Covers travel, lodging, gear, or whatever the endeavor requires. Shown prominently on the detail page so people know what they're signing up for.
 - **Funding** — Optional, separate from cost to join. Creators can toggle on crowdfunding (Kickstarter-style) to raise money for the endeavor itself — equipment, permits, venue, production costs, etc.
-- **Needs** — Each endeavor can list what it needs: skills ("need: videographer"), resources ("need: camera gear"), or funding. This turns passive browsing into active matching.
+- **Needs** — Each endeavor can list what it needs: skills ("videographer"), resources ("camera gear"), or funding. This turns passive browsing into active matching.
 
 ---
 
@@ -196,6 +197,28 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Leave endeavor button in dashboard members tab
 - [x] Dashboard status bar with status badge, member count, capacity
 - [x] Task API returns assigneeName for client display
+- [x] Needs editor in dashboard settings tab
+
+## Phase 11: Platform Maturity — DONE
+
+- [x] Platform activity feed (/activity) with global activity across all endeavors
+- [x] Activity API endpoint (new endeavors, milestones, stories, updates, joins)
+- [x] Activity filtering by type (endeavors, milestones, stories, updates)
+- [x] Admin dashboard enhanced with tabs (overview, reports, users)
+- [x] Admin users API with endeavor counts per user
+- [x] Admin users table with registration time and engagement stats
+- [x] Notification preferences in settings (localStorage-based)
+- [x] CSV export alongside JSON export in dashboard
+- [x] Footer standardized across all pages (saved, following, my-endeavors, notifications, profile, settings, endeavor detail, stories, user profiles)
+- [x] Fixed inconsistent "need:" prefix on needs tags across feed and create pages
+- [x] Stories page header standardized to AppHeader
+- [x] Markdown hint on create and settings description fields
+- [x] Profile page quick stats (total, active, completed endeavors)
+- [x] Relative timestamps on profile endeavor list
+- [x] Error boundary enhanced with Home link
+- [x] Activity link in mobile navigation and footer
+- [x] Activity page in sitemap for SEO
+- [x] Activity page SEO metadata layout
 
 ---
 
@@ -230,8 +253,10 @@ src/
 │   ├── api/
 │   │   ├── auth/[...all]        # Better Auth handler
 │   │   ├── admin/reports         # Admin moderation
-│   │   ├── endeavors/           # CRUD, detail, join, leave, checkout, discussions, tasks, links, members, members/[id], milestones, stories, invite, activity, duplicate, report, updates
-│   │   ├── endeavors/recommended, trending, stats  # Discovery + analytics
+│   │   ├── admin/users           # Admin user management
+│   │   ├── activity/             # Global platform activity feed
+│   │   ├── endeavors/           # CRUD, detail, join, leave, checkout, discussions, tasks, links, members, members/[id], milestones, stories, invite, activity, duplicate, report, updates, export
+│   │   ├── endeavors/recommended, trending, trending-needs, stats  # Discovery + analytics
 │   │   ├── milestones/[id]      # Milestone CRUD
 │   │   ├── notifications/       # In-app notifications
 │   │   ├── account/              # Account deletion
@@ -246,7 +271,8 @@ src/
 │   │   ├── feed/                # Following feed API
 │   │   ├── search/              # Global search API
 │   │   └── webhooks/stripe      # Payment webhooks
-│   ├── admin/                   # Admin dashboard
+│   ├── activity/                # Platform-wide activity feed
+│   ├── admin/                   # Admin dashboard (overview, reports, users)
 │   ├── categories/              # Category browser
 │   ├── endeavors/[id]/          # Detail + dashboard + stories + checkout
 │   ├── endeavors/create/        # Create form
@@ -256,10 +282,11 @@ src/
 │   ├── my-endeavors/            # User's endeavors (created + joined)
 │   ├── notifications/           # Full notifications page
 │   ├── saved/                   # Bookmarked endeavors
+│   ├── settings/                # Account settings + notification preferences
 │   ├── welcome/                 # Post-signup onboarding flow
 │   ├── users/[userId]/          # Public user profiles with stats + follows
 │   └── profile/                 # User profile editing
-├── components/                  # Shared UI (AppHeader, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, etc.)
+├── components/                  # Shared UI (AppHeader, Footer, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, Toast, etc.)
 ├── lib/
 │   ├── auth.ts, auth-client.ts  # Auth config
 │   ├── db/schema.ts, index.ts   # Database schema + connection
