@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fira_Code } from "next/font/google";
+import { ToastProvider } from "@/components/toast";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -31,7 +32,9 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

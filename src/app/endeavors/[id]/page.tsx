@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { ShareButton } from "@/components/share-button";
 import { AppHeader } from "@/components/app-header";
+import { useToast } from "@/components/toast";
 import { analytics } from "@/lib/analytics";
 
 type EndeavorDetail = {
@@ -48,6 +49,7 @@ export default function EndeavorDetailPage({
 }) {
   const { id } = use(params);
   const { data: session } = useSession();
+  const { toast } = useToast();
   const [endeavor, setEndeavor] = useState<EndeavorDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -103,6 +105,7 @@ export default function EndeavorDetailPage({
     if (res.ok) {
       const data = await res.json();
       setBookmarked(data.bookmarked);
+      toast(data.bookmarked ? "Saved to bookmarks" : "Removed from bookmarks");
     }
   }
 
