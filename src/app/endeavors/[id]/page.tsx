@@ -26,6 +26,7 @@ import { EndeavorActivityHeatmap } from "@/components/endeavor-activity-heatmap"
 import { WatchButton } from "@/components/watch-button";
 import { CompletionMeter } from "@/components/completion-meter";
 import { MilestoneProgress } from "@/components/milestone-progress";
+import { EndeavorChangelog } from "@/components/endeavor-changelog";
 
 type EndeavorDetail = {
   id: string;
@@ -486,6 +487,9 @@ export default function EndeavorDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Changelog */}
+            <EndeavorChangelog endeavorId={endeavor.id} />
 
             {/* Activity heatmap */}
             <EndeavorActivityHeatmap endeavorId={endeavor.id} />

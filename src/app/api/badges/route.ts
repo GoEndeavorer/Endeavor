@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { endeavor, member, task, story, discussion } from "@/lib/db/schema";
+import {
+  endeavor,
+  member,
+  task,
+  story,
+  discussion,
+  user,
+  endorsement,
+  follow,
+  payment,
+} from "@/lib/db/schema";
 import { eq, and, sql, count } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +23,12 @@ type Badge = {
   color: string;
   earned: boolean;
 };
+
+// Platform launch date — users who joined within 30 days are "Early Adopters"
+const PLATFORM_LAUNCH = new Date("2025-06-01T00:00:00Z");
+const EARLY_ADOPTER_CUTOFF = new Date(
+  PLATFORM_LAUNCH.getTime() + 30 * 24 * 60 * 60 * 1000,
+);
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -46,13 +62,54 @@ export async function GET(request: NextRequest) {
     .from(discussion)
     .where(eq(discussion.authorId, userId));
 
+  // User join date for Early Adopter badge
+  const [userData] = await db
+    .select({ createdAt: user.createdAt })
+    .from(user)
+    .where(eq(user.id, userId));
+
+  // Endorsements given by this user
+  const [endorsementsGiven] = await db
+    .select({ count: count() })
+    .from(endorsement)
+    .where(eq(endorsement.authorId, userId));
+
+  // Follows initiated by this user
+  const [followsCount] = await db
+    .select({ count: count() })
+    .from(follow)
+    .where(eq(follow.followerId, userId));
+
+  // Funding received: donations to endeavors created by this user
+  const [fundingReceived] = await db
+    .select({ count: count() })
+    .from(payment)
+    .where(
+      and(
+        eq(payment.status, "completed"),
+        sql`${payment.endeavorId} IN (SELECT id FROM endeavor WHERE creator_id = ${userId})`,
+      ),
+    );
+
   const c = createdCount.count;
   const j = joinedCount.count;
   const t = tasksDone.count;
   const s = storiesWritten.count;
   const m = messagesPosted.count;
+  const e = endorsementsGiven.count;
+  const f = followsCount.count;
+  const fr = fundingReceived.count;
+  const joinDate = userData?.createdAt;
 
   const badges: Badge[] = [
+    {
+      id: "early-adopter",
+      name: "Early Adopter",
+      description: "Joined the platform in its first month",
+      icon: "<<",
+      color: "text-cyan-400",
+      earned: !!joinDate && new Date(joinDate) <= EARLY_ADOPTER_CUTOFF,
+    },
     {
       id: "first-endeavor",
       name: "Trailblazer",
@@ -80,7 +137,7 @@ export async function GET(request: NextRequest) {
     {
       id: "five-joins",
       name: "Collaborator",
-      description: "Joined 5 endeavors",
+      description: "Joined 5+ endeavors",
       icon: "++",
       color: "text-code-blue",
       earned: j >= 5,
@@ -108,6 +165,38 @@ export async function GET(request: NextRequest) {
       icon: "#",
       color: "text-purple-400",
       earned: s >= 1,
+    },
+    {
+      id: "prolific-writer",
+      name: "Prolific Writer",
+      description: "Published 10+ stories",
+      icon: "##",
+      color: "text-purple-400",
+      earned: s >= 10,
+    },
+    {
+      id: "mentor",
+      name: "Mentor",
+      description: "Given 10+ endorsements to others",
+      icon: "=>",
+      color: "text-emerald-400",
+      earned: e >= 10,
+    },
+    {
+      id: "connector",
+      name: "Connector",
+      description: "Following 10+ people",
+      icon: "@",
+      color: "text-sky-400",
+      earned: f >= 10,
+    },
+    {
+      id: "funded",
+      name: "Funded",
+      description: "Received your first funding",
+      icon: "$",
+      color: "text-amber-400",
+      earned: fr >= 1,
     },
     {
       id: "active-voice",

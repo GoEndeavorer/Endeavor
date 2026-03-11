@@ -126,6 +126,7 @@ export default function NotificationsPage() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [primaryTab, setPrimaryTab] = useState<PrimaryTab>("all");
   const [readFilter, setReadFilter] = useState<"all" | "unread">("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -149,7 +150,17 @@ export default function NotificationsPage() {
   const displayed = useMemo(() => {
     let result = notifications;
 
-    if (readFilter === "unread") {
+    // Primary tab filtering
+    if (primaryTab === "unread") {
+      result = result.filter((n) => !n.read);
+    } else if (primaryTab === "mentions") {
+      result = result.filter((n) => mentionTypes.includes(n.type));
+    } else if (primaryTab === "system") {
+      result = result.filter((n) => systemTypes.includes(n.type));
+    }
+
+    // Secondary read filter (only applies when primary tab is "all")
+    if (primaryTab === "all" && readFilter === "unread") {
       result = result.filter((n) => !n.read);
     }
 
@@ -159,7 +170,7 @@ export default function NotificationsPage() {
     }
 
     return result;
-  }, [notifications, readFilter, typeFilter]);
+  }, [notifications, primaryTab, readFilter, typeFilter]);
 
   const groupedNotifications = useMemo(() => {
     const groups: Record<DateGroup, Notification[]> = {
@@ -197,6 +208,18 @@ export default function NotificationsPage() {
     });
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     toast("All notifications marked as read");
+  }
+
+  async function clearAll() {
+    const ids = displayed.map((n) => n.id);
+    if (ids.length === 0) return;
+    await fetch("/api/notifications/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", ids }),
+    });
+    setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+    toast(`${ids.length} notification${ids.length > 1 ? "s" : ""} cleared`);
   }
 
   async function markRead(id: string) {
@@ -263,6 +286,15 @@ export default function NotificationsPage() {
   }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const mentionsCount = notifications.filter((n) => mentionTypes.includes(n.type) && !n.read).length;
+  const systemCount = notifications.filter((n) => systemTypes.includes(n.type) && !n.read).length;
+
+  const tabBadgeCounts: Record<PrimaryTab, number> = {
+    all: unreadCount,
+    unread: unreadCount,
+    mentions: mentionsCount,
+    system: systemCount,
+  };
 
   function renderNotification(n: Notification) {
     const icon = typeIcons[n.type] || ">";
@@ -353,7 +385,7 @@ export default function NotificationsPage() {
 
       <main className="mx-auto max-w-2xl px-4 pt-24 pb-16">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">Notifications</h1>
             {unreadCount > 0 && (
@@ -363,28 +395,12 @@ export default function NotificationsPage() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex gap-1">
-              <button
-                onClick={() => setReadFilter("all")}
-                className={`px-3 py-1 text-xs transition-colors ${
-                  readFilter === "all"
-                    ? "bg-code-green/10 text-code-green border border-code-green/30"
-                    : "text-medium-gray hover:text-white"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setReadFilter("unread")}
-                className={`px-3 py-1 text-xs transition-colors ${
-                  readFilter === "unread"
-                    ? "bg-code-green/10 text-code-green border border-code-green/30"
-                    : "text-medium-gray hover:text-white"
-                }`}
-              >
-                Unread
-              </button>
-            </div>
+            <Link
+              href="/notifications/settings"
+              className="text-xs text-medium-gray hover:text-code-blue transition-colors"
+            >
+              Settings
+            </Link>
             <button
               onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
               className={`text-xs transition-colors ${
@@ -393,6 +409,39 @@ export default function NotificationsPage() {
             >
               {selectMode ? "Cancel" : "Select"}
             </button>
+          </div>
+        </div>
+
+        {/* Primary tabs */}
+        <div className="mb-4 flex items-center justify-between border-b border-medium-gray/20">
+          <div className="flex">
+            {(Object.keys(primaryTabLabels) as PrimaryTab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setPrimaryTab(tab);
+                  setTypeFilter("all");
+                  if (tab !== "all") setReadFilter("all");
+                }}
+                className={`relative px-4 py-2.5 text-sm transition-colors ${
+                  primaryTab === tab
+                    ? "text-code-green"
+                    : "text-medium-gray hover:text-white"
+                }`}
+              >
+                {primaryTabLabels[tab]}
+                {tabBadgeCounts[tab] > 0 && tab !== "unread" && (
+                  <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-code-green/15 text-code-green rounded-full">
+                    {tabBadgeCounts[tab]}
+                  </span>
+                )}
+                {primaryTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-px bg-code-green" />
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 pb-1">
             {unreadCount > 0 && !selectMode && (
               <button
                 onClick={markAllRead}
@@ -401,8 +450,42 @@ export default function NotificationsPage() {
                 Mark all read
               </button>
             )}
+            {displayed.length > 0 && !selectMode && (
+              <button
+                onClick={clearAll}
+                className="text-xs text-medium-gray hover:text-red-400 transition-colors"
+              >
+                Clear all
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Secondary read filter (only on All tab) */}
+        {primaryTab === "all" && (
+          <div className="mb-4 flex gap-1">
+            <button
+              onClick={() => setReadFilter("all")}
+              className={`px-3 py-1 text-xs transition-colors ${
+                readFilter === "all"
+                  ? "bg-code-green/10 text-code-green border border-code-green/30"
+                  : "text-medium-gray hover:text-white"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setReadFilter("unread")}
+              className={`px-3 py-1 text-xs transition-colors ${
+                readFilter === "unread"
+                  ? "bg-code-green/10 text-code-green border border-code-green/30"
+                  : "text-medium-gray hover:text-white"
+              }`}
+            >
+              Unread
+            </button>
+          </div>
+        )}
 
         {/* Type filter tabs */}
         {availableTypeFilters.length > 2 && (
@@ -455,21 +538,37 @@ export default function NotificationsPage() {
 
         {loading ? (
           <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="border border-medium-gray/10 p-3 animate-pulse">
-                <div className="h-4 w-3/4 bg-medium-gray/20 mb-2" />
-                <div className="h-3 w-1/4 bg-medium-gray/10" />
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3 border border-medium-gray/10 p-3 animate-pulse">
+                <div className="mt-0.5 h-5 w-5 bg-medium-gray/20 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-medium-gray/20" style={{ width: `${60 + (i % 3) * 15}%` }} />
+                  <div className="flex gap-3">
+                    <div className="h-3 w-16 bg-medium-gray/10" />
+                    <div className="h-3 w-24 bg-medium-gray/10" />
+                  </div>
+                </div>
+                <div className="h-3 w-3 bg-medium-gray/10 shrink-0 mt-1" />
               </div>
             ))}
           </div>
         ) : !hasGroups ? (
           <div className="border border-medium-gray/20 p-12 text-center">
+            <p className="text-2xl text-medium-gray/30 mb-3 font-mono">
+              {primaryTab === "mentions" ? "@" : primaryTab === "system" ? "~" : primaryTab === "unread" ? "0" : ">"}
+            </p>
             <p className="text-medium-gray text-sm">
-              {readFilter === "unread"
-                ? "No unread notifications."
-                : typeFilter !== "all"
-                  ? `No ${typeFilterLabels[typeFilter].toLowerCase()} notifications.`
-                  : "No notifications yet."}
+              {primaryTab === "unread"
+                ? "You're all caught up. No unread notifications."
+                : primaryTab === "mentions"
+                  ? "No mentions yet. You'll see messages and discussions directed at you here."
+                  : primaryTab === "system"
+                    ? "No system notifications. Status changes and milestones will appear here."
+                    : readFilter === "unread"
+                      ? "No unread notifications."
+                      : typeFilter !== "all"
+                        ? `No ${typeFilterLabels[typeFilter].toLowerCase()} notifications.`
+                        : "No notifications yet. Activity from your endeavors will appear here."}
             </p>
           </div>
         ) : (

@@ -12,6 +12,7 @@ import { ContributionStats } from "@/components/contribution-stats";
 import { ContributionGraph } from "@/components/contribution-graph";
 import { UserTimeline } from "@/components/user-timeline";
 import { SimilarUsers } from "@/components/similar-users";
+import { UserLevel } from "@/components/user-level";
 
 type UserProfile = {
   id: string;
@@ -225,8 +226,9 @@ export default function PublicProfilePage({
           </div>
         </div>
 
-        {/* Badges */}
-        <div className="mb-8">
+        {/* Rank & Badges */}
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UserLevel userId={userId} />
           <UserBadges userId={userId} />
         </div>
 
