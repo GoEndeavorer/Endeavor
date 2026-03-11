@@ -15,6 +15,7 @@ import { MediaGallery } from "@/components/media-gallery";
 import { CreatorChecklist } from "@/components/creator-checklist";
 import { TaskDependencyGraph } from "@/components/task-dependency-graph";
 import { GanttChart } from "@/components/gantt-chart";
+import { ResourceList } from "@/components/resource-list";
 
 type Discussion = {
   id: string;
@@ -736,6 +737,11 @@ export default function DashboardPage({
             {/* Polls */}
             <div className="lg:col-span-1">
               <Polls endeavorId={id} />
+            </div>
+
+            {/* Resources */}
+            <div className="lg:col-span-1">
+              <ResourceList endeavorId={id} canAdd={true} />
             </div>
 
             {/* Activity Timeline */}

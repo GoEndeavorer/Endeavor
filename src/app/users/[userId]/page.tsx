@@ -13,6 +13,7 @@ import { ContributionGraph } from "@/components/contribution-graph";
 import { UserTimeline } from "@/components/user-timeline";
 import { SimilarUsers } from "@/components/similar-users";
 import { UserLevel } from "@/components/user-level";
+import { ActivitySummaryCard } from "@/components/activity-summary-card";
 
 type UserProfile = {
   id: string;
@@ -247,6 +248,11 @@ export default function PublicProfilePage({
             </Link>
           </div>
         )}
+
+        {/* Activity summary */}
+        <div className="mb-8">
+          <ActivitySummaryCard userId={userId} />
+        </div>
 
         {/* Contribution stats */}
         <div className="mb-8">

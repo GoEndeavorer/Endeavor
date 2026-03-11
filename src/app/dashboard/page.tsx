@@ -14,6 +14,7 @@ import { WeeklyGoals } from "@/components/weekly-goals";
 import { DashboardInsights } from "@/components/dashboard-insights";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { UpcomingDeadlines } from "@/components/upcoming-deadlines";
+import { NotificationDigest } from "@/components/notification-digest";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -538,6 +539,11 @@ export default function DashboardPage() {
                 </div>
               </section>
             )}
+
+            {/* ── notification digest ──────────────── */}
+            <section className="mb-10">
+              <NotificationDigest />
+            </section>
 
             {/* ── onboarding checklist ──────────────── */}
             <section className="mb-10">
