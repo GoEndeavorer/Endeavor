@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { endeavor, member } from "@/lib/db/schema";
-import { eq, ne, and, or, sql } from "drizzle-orm";
+import { endeavor } from "@/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: NextRequest,
@@ -9,12 +11,8 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  // Get the current endeavor's category and needs
   const [current] = await db
-    .select({
-      category: endeavor.category,
-      needs: endeavor.needs,
-    })
+    .select()
     .from(endeavor)
     .where(eq(endeavor.id, id))
     .limit(1);
@@ -23,29 +21,30 @@ export async function GET(
     return NextResponse.json([]);
   }
 
-  // Find similar endeavors by category, excluding the current one and cancelled/draft ones
-  const similar = await db
-    .select({
-      id: endeavor.id,
-      title: endeavor.title,
-      category: endeavor.category,
-      status: endeavor.status,
-      imageUrl: endeavor.imageUrl,
-      memberCount: sql<number>`(SELECT COUNT(*) FROM member WHERE member.endeavor_id = ${endeavor.id} AND member.status = 'approved')::int`,
-    })
-    .from(endeavor)
-    .where(
-      and(
-        ne(endeavor.id, id),
-        eq(endeavor.category, current.category),
-        or(
-          eq(endeavor.status, "open"),
-          eq(endeavor.status, "in-progress")
-        )
-      )
-    )
-    .orderBy(sql`RANDOM()`)
-    .limit(3);
+  // Find similar endeavors by category + needs overlap, excluding cancelled/draft
+  const similar = await db.execute(sql`
+    SELECT
+      e.id,
+      e.title,
+      e.category,
+      e.status,
+      e.image_url,
+      e.location_type,
+      (SELECT COUNT(*)::int FROM member m WHERE m.endeavor_id = e.id AND m.status = 'approved') as member_count,
+      CASE WHEN e.category = ${current.category} THEN 3 ELSE 0 END +
+      CASE
+        WHEN e.needs IS NOT NULL AND ${current.needs}::text[] IS NOT NULL
+          THEN COALESCE(array_length(ARRAY(
+            SELECT unnest(e.needs) INTERSECT SELECT unnest(${current.needs}::text[])
+          ), 1), 0)
+        ELSE 0
+      END as relevance_score
+    FROM endeavor e
+    WHERE e.id != ${id}
+      AND e.status IN ('open', 'in-progress')
+    ORDER BY relevance_score DESC, e.created_at DESC
+    LIMIT 6
+  `);
 
-  return NextResponse.json(similar);
+  return NextResponse.json(similar.rows);
 }

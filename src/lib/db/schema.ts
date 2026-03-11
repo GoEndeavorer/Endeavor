@@ -441,3 +441,18 @@ export const reaction = pgTable("reaction", {
   emoji: text("emoji").notNull(), // like, heart, fire, thumbsup, thumbsdown, celebrate
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── Endorsements / Testimonials ─────────────────────────────────────────────
+
+export const endorsement = pgTable("endorsement", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  content: text("content").notNull(),
+  rating: integer("rating").notNull(), // 1-5
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

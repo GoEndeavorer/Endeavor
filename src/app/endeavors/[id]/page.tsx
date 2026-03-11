@@ -12,6 +12,7 @@ import { Footer } from "@/components/footer";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { analytics } from "@/lib/analytics";
 import { ProgressTracker } from "@/components/progress-tracker";
+import { Endorsements } from "@/components/endorsements";
 
 type EndeavorDetail = {
   id: string;
@@ -551,6 +552,11 @@ export default function EndeavorDetailPage({
               <ReportButton endeavorId={endeavor.id} />
             )}
           </div>
+        </div>
+
+        {/* Endorsements */}
+        <div className="mt-12">
+          <Endorsements endeavorId={endeavor.id} isMember={isMember || isCreator} />
         </div>
 
         {/* Similar endeavors */}
