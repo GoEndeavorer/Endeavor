@@ -1674,15 +1674,47 @@ function SettingsTab({
           {"// data"}
         </h3>
         <p className="mb-3 text-xs text-medium-gray">
-          Export all endeavor data as JSON (members, tasks, milestones, discussions, payments).
+          Export all endeavor data (members, tasks, milestones, discussions, payments).
         </p>
-        <a
-          href={`/api/endeavors/${endeavorId}/export`}
-          download
-          className="inline-block border border-code-blue px-4 py-2 text-xs font-bold uppercase text-code-blue transition-colors hover:bg-code-blue hover:text-black"
-        >
-          Export Data
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={`/api/endeavors/${endeavorId}/export`}
+            download
+            className="inline-block border border-code-blue px-4 py-2 text-xs font-bold uppercase text-code-blue transition-colors hover:bg-code-blue hover:text-black"
+          >
+            Export JSON
+          </a>
+          <button
+            type="button"
+            onClick={async () => {
+              const res = await fetch(`/api/endeavors/${endeavorId}/export`);
+              if (!res.ok) return;
+              const data = await res.json();
+              // Convert tasks to CSV
+              const rows = [["Type", "Title", "Status", "Date", "Detail"]];
+              data.tasks?.forEach((t: { title: string; status: string; createdAt: string; description?: string }) => {
+                rows.push(["Task", t.title, t.status, t.createdAt || "", t.description || ""]);
+              });
+              data.milestones?.forEach((m: { title: string; completed: boolean; targetDate?: string; description?: string }) => {
+                rows.push(["Milestone", m.title, m.completed ? "completed" : "pending", m.targetDate || "", m.description || ""]);
+              });
+              data.members?.forEach((m: { name: string; role: string; joinedAt: string; email: string }) => {
+                rows.push(["Member", m.name, m.role, m.joinedAt || "", m.email]);
+              });
+              const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `${data.endeavor?.title || "export"}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="border border-medium-gray/50 px-4 py-2 text-xs font-bold uppercase text-medium-gray transition-colors hover:border-code-blue hover:text-code-blue"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="mt-8 border-t border-medium-gray/20 pt-6">

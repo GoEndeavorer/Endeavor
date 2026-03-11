@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 
 type SavedEndeavor = {
   id: string;
@@ -138,6 +139,7 @@ export default function SavedPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
