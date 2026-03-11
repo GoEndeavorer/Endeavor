@@ -8,6 +8,25 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.19.0",
+    date: "March 2026",
+    title: "Collections & Growth",
+    items: [
+      "Bookmark collections — organize saved endeavors into named, shareable lists",
+      "Endeavor analytics — creator dashboard with member growth, discussion activity, task breakdown, and top contributors",
+      "Enhanced invite links — trackable links with expiry, max uses, and view counts",
+      "Report system — flag endeavors, users, discussions, or stories with categorized reasons",
+      "Weekly digest emails — automated summaries of activity across your endeavors via Resend",
+      "User onboarding flow — step-by-step guide for new users",
+      "Feed sidebar — most active endeavors, skills in demand, and quick links",
+      "MiniStats widget on landing page",
+      "Compare API now uses parameterized SQL for safety",
+      "Activity heatmap component for user profiles",
+      "Collections page with create, edit, and public/private toggle",
+      "Admin reports dashboard updated with new moderation schema",
+    ],
+  },
+  {
     version: "0.18.0",
     date: "March 2026",
     title: "Discovery & UX",

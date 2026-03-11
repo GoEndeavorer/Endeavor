@@ -1,33 +1,27 @@
-import crypto from "crypto";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { endeavor, member } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { endeavor, member, inviteLink } from "@/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 
 export const dynamic = "force-dynamic";
 
-function generateInviteCode(endeavorId: string): string {
-  return crypto
-    .createHash("sha256")
-    .update(endeavorId + "endeavor-invite-salt")
-    .digest("hex")
-    .slice(0, 8);
-}
-
 export default async function InvitePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ code: string }>;
-  searchParams: Promise<{ eid?: string }>;
 }) {
   const { code } = await params;
-  const { eid } = await searchParams;
 
-  // Validate that we have an endeavor ID
-  if (!eid) {
+  // Look up the invite link by code
+  const [link] = await db
+    .select()
+    .from(inviteLink)
+    .where(eq(inviteLink.code, code))
+    .limit(1);
+
+  if (!link) {
     return (
       <div className="min-h-screen">
         <AppHeader breadcrumb={{ label: "Invite", href: `/invite/${code}` }} />
@@ -37,10 +31,7 @@ export default async function InvitePage({
             <p className="text-sm text-medium-gray mb-4">
               This invite link is invalid or has expired.
             </p>
-            <Link
-              href="/feed"
-              className="text-xs text-code-green hover:underline"
-            >
+            <Link href="/feed" className="text-xs text-code-green hover:underline">
               Browse endeavors instead
             </Link>
           </div>
@@ -50,22 +41,18 @@ export default async function InvitePage({
     );
   }
 
-  // Verify the code matches what would be generated for this endeavor ID
-  const expectedCode = generateInviteCode(eid);
-  if (code !== expectedCode) {
+  // Check expiry
+  if (link.expiresAt && new Date(link.expiresAt) < new Date()) {
     return (
       <div className="min-h-screen">
         <AppHeader breadcrumb={{ label: "Invite", href: `/invite/${code}` }} />
         <main className="mx-auto max-w-lg px-4 pt-24 pb-16">
-          <div className="border border-red-400/30 p-8 text-center">
-            <p className="text-2xl mb-3 text-red-400">Invalid Invite</p>
+          <div className="border border-yellow-400/30 p-8 text-center">
+            <p className="text-2xl mb-3 text-yellow-400">Invite Expired</p>
             <p className="text-sm text-medium-gray mb-4">
-              This invite link is invalid or has expired.
+              This invite link has expired. Ask the organizer for a new one.
             </p>
-            <Link
-              href="/feed"
-              className="text-xs text-code-green hover:underline"
-            >
+            <Link href="/feed" className="text-xs text-code-green hover:underline">
               Browse endeavors instead
             </Link>
           </div>
@@ -75,11 +62,32 @@ export default async function InvitePage({
     );
   }
 
-  // Fetch the endeavor details
+  // Check max uses
+  if (link.maxUses && link.useCount >= link.maxUses) {
+    return (
+      <div className="min-h-screen">
+        <AppHeader breadcrumb={{ label: "Invite", href: `/invite/${code}` }} />
+        <main className="mx-auto max-w-lg px-4 pt-24 pb-16">
+          <div className="border border-yellow-400/30 p-8 text-center">
+            <p className="text-2xl mb-3 text-yellow-400">Invite Full</p>
+            <p className="text-sm text-medium-gray mb-4">
+              This invite link has reached its maximum number of uses.
+            </p>
+            <Link href="/feed" className="text-xs text-code-green hover:underline">
+              Browse endeavors instead
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Fetch the endeavor
   const [end] = await db
     .select()
     .from(endeavor)
-    .where(eq(endeavor.id, eid))
+    .where(eq(endeavor.id, link.endeavorId))
     .limit(1);
 
   if (!end) {
@@ -89,13 +97,8 @@ export default async function InvitePage({
         <main className="mx-auto max-w-lg px-4 pt-24 pb-16">
           <div className="border border-red-400/30 p-8 text-center">
             <p className="text-2xl mb-3 text-red-400">Not Found</p>
-            <p className="text-sm text-medium-gray mb-4">
-              This endeavor no longer exists.
-            </p>
-            <Link
-              href="/feed"
-              className="text-xs text-code-green hover:underline"
-            >
+            <p className="text-sm text-medium-gray mb-4">This endeavor no longer exists.</p>
+            <Link href="/feed" className="text-xs text-code-green hover:underline">
               Browse endeavors instead
             </Link>
           </div>
@@ -109,8 +112,14 @@ export default async function InvitePage({
   const members = await db
     .select()
     .from(member)
-    .where(eq(member.endeavorId, eid));
+    .where(eq(member.endeavorId, link.endeavorId));
   const memberCount = members.filter((m) => m.status === "approved").length;
+
+  // Increment use count
+  await db
+    .update(inviteLink)
+    .set({ useCount: sql`${inviteLink.useCount} + 1` })
+    .where(eq(inviteLink.id, link.id));
 
   return (
     <div className="min-h-screen">
@@ -119,18 +128,14 @@ export default async function InvitePage({
         <div className="border border-medium-gray/20 overflow-hidden">
           {end.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={end.imageUrl}
-              alt=""
-              className="h-48 w-full object-cover"
-            />
+            <img src={end.imageUrl} alt="" className="h-48 w-full object-cover" />
           ) : (
             <div className="flex h-48 items-center justify-center bg-code-green/5 text-6xl font-bold text-code-green/20">
               {end.title.charAt(0)}
             </div>
           )}
           <div className="p-6">
-            <p className="mb-1 text-xs text-medium-gray">
+            <p className="mb-1 text-xs text-code-green uppercase tracking-wider">
               You&apos;ve been invited to join
             </p>
             <h1 className="mb-2 text-2xl font-bold">{end.title}</h1>
@@ -143,16 +148,28 @@ export default async function InvitePage({
               <span className="border border-code-green/30 px-2 py-0.5 text-code-green">
                 {end.category}
               </span>
-              <span>
-                {memberCount} {memberCount === 1 ? "member" : "members"}
-              </span>
+              <span>{memberCount} {memberCount === 1 ? "member" : "members"}</span>
+              {end.location && <span>{end.location}</span>}
             </div>
 
+            {end.needs && end.needs.length > 0 && (
+              <div className="mb-6">
+                <p className="mb-2 text-xs text-medium-gray">Looking for:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {end.needs.map((need) => (
+                    <span key={need} className="bg-white/5 px-2 py-0.5 text-xs text-light-gray">
+                      {need}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Link
-              href={`/endeavors/${eid}`}
+              href={`/endeavors/${end.id}`}
               className="block w-full border border-code-green bg-code-green py-3 text-center text-sm font-bold text-black transition-opacity hover:opacity-90"
             >
-              Join this Endeavor
+              View &amp; Join this Endeavor
             </Link>
 
             <p className="mt-3 text-center text-xs text-medium-gray">

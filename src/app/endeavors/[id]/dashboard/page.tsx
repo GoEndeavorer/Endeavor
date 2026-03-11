@@ -598,15 +598,23 @@ export default function DashboardPage({
                 Invite Link
               </button>
               {isCreator && (
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/endeavors/${id}`);
-                    toast("Link copied to clipboard");
-                  }}
-                  className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
-                >
-                  Copy Link
-                </button>
+                <>
+                  <Link
+                    href={`/endeavors/${id}/analytics`}
+                    className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-purple-400 hover:text-purple-400 transition-colors"
+                  >
+                    Analytics
+                  </Link>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/endeavors/${id}`);
+                      toast("Link copied to clipboard");
+                    }}
+                    className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+                  >
+                    Copy Link
+                  </button>
+                </>
               )}
             </div>
 

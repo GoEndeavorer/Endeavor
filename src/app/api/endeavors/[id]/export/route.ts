@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { endeavor, member, user, task, milestone, discussion, link, payment, story, update } from "@/lib/db/schema";
+import { endeavor, member, task, milestone, discussion, story, user } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq, sql } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export async function GET(
   _request: NextRequest,
@@ -16,37 +16,86 @@ export async function GET(
 
   const { id } = await params;
 
-  // Only creator can export
+  // Fetch endeavor details
   const [end] = await db
     .select()
     .from(endeavor)
     .where(eq(endeavor.id, id))
     .limit(1);
 
-  if (!end || end.creatorId !== session.user.id) {
-    return NextResponse.json({ error: "Only creator can export" }, { status: 403 });
+  if (!end) {
+    return NextResponse.json({ error: "Endeavor not found" }, { status: 404 });
   }
 
-  const [members, tasks, milestones, discussions, links, payments, stories, updates] = await Promise.all([
+  // Only approved members can export
+  const [membership] = await db
+    .select()
+    .from(member)
+    .where(
+      and(
+        eq(member.endeavorId, id),
+        eq(member.userId, session.user.id),
+        eq(member.status, "approved")
+      )
+    )
+    .limit(1);
+
+  if (!membership) {
+    return NextResponse.json(
+      { error: "Only approved members can export" },
+      { status: 403 }
+    );
+  }
+
+  // Fetch all sections in parallel
+  const [members, tasks, milestones, discussions, stories] = await Promise.all([
     db
-      .select({ name: user.name, email: user.email, role: member.role, joinedAt: member.joinedAt })
+      .select({
+        name: user.name,
+        email: user.email,
+        role: member.role,
+        status: member.status,
+        joinedAt: member.joinedAt,
+      })
       .from(member)
       .innerJoin(user, eq(member.userId, user.id))
-      .where(eq(member.endeavorId, id)),
-    db.select().from(task).where(eq(task.endeavorId, id)),
-    db.select().from(milestone).where(eq(milestone.endeavorId, id)),
+      .where(eq(member.endeavorId, id))
+      .orderBy(member.joinedAt),
     db
-      .select({ content: discussion.content, authorName: user.name, createdAt: discussion.createdAt })
+      .select()
+      .from(task)
+      .where(eq(task.endeavorId, id))
+      .orderBy(desc(task.createdAt)),
+    db
+      .select()
+      .from(milestone)
+      .where(eq(milestone.endeavorId, id))
+      .orderBy(milestone.createdAt),
+    db
+      .select({
+        id: discussion.id,
+        author: user.name,
+        content: discussion.content,
+        pinned: discussion.pinned,
+        createdAt: discussion.createdAt,
+      })
       .from(discussion)
       .innerJoin(user, eq(discussion.authorId, user.id))
-      .where(eq(discussion.endeavorId, id)),
-    db.select().from(link).where(eq(link.endeavorId, id)),
+      .where(eq(discussion.endeavorId, id))
+      .orderBy(desc(discussion.createdAt)),
     db
-      .select({ type: payment.type, amount: payment.amount, status: payment.status, createdAt: payment.createdAt })
-      .from(payment)
-      .where(eq(payment.endeavorId, id)),
-    db.select().from(story).where(eq(story.endeavorId, id)),
-    db.select().from(update).where(eq(update.endeavorId, id)),
+      .select({
+        id: story.id,
+        title: story.title,
+        content: story.content,
+        author: user.name,
+        published: story.published,
+        createdAt: story.createdAt,
+      })
+      .from(story)
+      .innerJoin(user, eq(story.authorId, user.id))
+      .where(eq(story.endeavorId, id))
+      .orderBy(desc(story.createdAt)),
   ]);
 
   const exportData = {
@@ -55,21 +104,34 @@ export async function GET(
       description: end.description,
       category: end.category,
       location: end.location,
+      locationType: end.locationType,
       status: end.status,
+      needs: end.needs,
+      capacity: end.capacity,
+      costPerPerson: end.costPerPerson,
+      fundingEnabled: end.fundingEnabled,
+      fundingGoal: end.fundingGoal,
+      fundingRaised: end.fundingRaised,
+      joinType: end.joinType,
+      imageUrl: end.imageUrl,
       createdAt: end.createdAt,
+      updatedAt: end.updatedAt,
     },
     members: members.map((m) => ({
       name: m.name,
       email: m.email,
       role: m.role,
+      status: m.status,
       joinedAt: m.joinedAt,
     })),
     tasks: tasks.map((t) => ({
       title: t.title,
       description: t.description,
       status: t.status,
+      priority: t.priority,
       dueDate: t.dueDate,
       createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
     })),
     milestones: milestones.map((m) => ({
       title: m.title,
@@ -77,85 +139,35 @@ export async function GET(
       targetDate: m.targetDate,
       completed: m.completed,
       completedAt: m.completedAt,
+      createdAt: m.createdAt,
     })),
     discussions: discussions.map((d) => ({
-      author: d.authorName,
+      id: d.id,
+      author: d.author,
       content: d.content,
+      pinned: d.pinned,
       createdAt: d.createdAt,
     })),
-    links: links.map((l) => ({
-      title: l.title,
-      url: l.url,
-      description: l.description,
-    })),
-    payments: payments.map((p) => ({
-      type: p.type,
-      amount: p.amount / 100,
-      status: p.status,
-      createdAt: p.createdAt,
-    })),
     stories: stories.map((s) => ({
+      id: s.id,
       title: s.title,
       content: s.content,
+      author: s.author,
       published: s.published,
       createdAt: s.createdAt,
-    })),
-    updates: updates.map((u) => ({
-      title: u.title,
-      content: u.content,
-      pinned: u.pinned,
-      createdAt: u.createdAt,
     })),
     exportedAt: new Date().toISOString(),
   };
 
-  const format = _request.nextUrl.searchParams.get("format") || "json";
-  const safeName = end.title.replace(/[^a-z0-9]/gi, "_");
-
-  if (format === "csv") {
-    const lines: string[] = [];
-    lines.push("Section,Field,Value");
-
-    // Endeavor info
-    lines.push(`Endeavor,Title,"${end.title}"`);
-    lines.push(`Endeavor,Category,"${end.category}"`);
-    lines.push(`Endeavor,Status,"${end.status}"`);
-    lines.push(`Endeavor,Location,"${end.location || "N/A"}"`);
-    lines.push(`Endeavor,Created,"${end.createdAt}"`);
-    lines.push("");
-
-    // Members
-    lines.push("Members,Name,Email,Role,Joined");
-    members.forEach((m) => {
-      lines.push(`,"${m.name}","${m.email}","${m.role}","${m.joinedAt}"`);
-    });
-    lines.push("");
-
-    // Tasks
-    lines.push("Tasks,Title,Status,Due Date");
-    tasks.forEach((t) => {
-      lines.push(`,"${t.title}","${t.status}","${t.dueDate || "N/A"}"`);
-    });
-    lines.push("");
-
-    // Milestones
-    lines.push("Milestones,Title,Completed,Target Date");
-    milestones.forEach((m) => {
-      lines.push(`,"${m.title}","${m.completed}","${m.targetDate || "N/A"}"`);
-    });
-
-    return new NextResponse(lines.join("\n"), {
-      headers: {
-        "Content-Type": "text/csv",
-        "Content-Disposition": `attachment; filename="${safeName}_export.csv"`,
-      },
-    });
-  }
+  const safeName = end.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   return new NextResponse(JSON.stringify(exportData, null, 2), {
     headers: {
       "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="${safeName}_export.json"`,
+      "Content-Disposition": `attachment; filename="endeavor-${safeName}.json"`,
     },
   });
 }

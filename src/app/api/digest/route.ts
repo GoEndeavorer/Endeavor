@@ -1,233 +1,187 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sql } from "drizzle-orm";
+import { Resend } from "resend";
 import {
-  endeavor,
-  member,
-  user,
-  milestone,
-  discussion,
-  task,
-  update,
-} from "@/lib/db/schema";
-import { eq, and, gte, desc, sql, inArray } from "drizzle-orm";
+  weeklyDigestHtml,
+  type DigestStats,
+  type EndeavorHighlight,
+} from "@/lib/email-templates/weekly-digest";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
+const FROM = process.env.EMAIL_FROM || "Endeavor <digest@endeavor.app>";
+
+export async function POST(request: NextRequest) {
+  // Verify cron secret
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || authHeader !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = session.user.id;
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  // Fetch the current user's interests
-  const [currentUser] = await db
-    .select({ interests: user.interests })
-    .from(user)
-    .where(eq(user.id, userId));
+  // Get all users who have at least one approved membership
+  const usersResult = await db.execute(sql`
+    SELECT DISTINCT u.id, u.name, u.email
+    FROM "user" u
+    INNER JOIN member m ON m.user_id = u.id AND m.status = 'approved'
+  `);
 
-  const interests = currentUser?.interests ?? [];
-
-  // Get endeavor IDs the user is a member of (approved)
-  const userMemberships = await db
-    .select({ endeavorId: member.endeavorId })
-    .from(member)
-    .where(and(eq(member.userId, userId), eq(member.status, "approved")));
-
-  const memberEndeavorIds = userMemberships.map((m) => m.endeavorId);
-
-  // Also include endeavors the user created
-  const createdEndeavors = await db
-    .select({ id: endeavor.id })
-    .from(endeavor)
-    .where(eq(endeavor.creatorId, userId));
-
-  const createdEndeavorIds = createdEndeavors.map((e) => e.id);
-  const allMyEndeavorIds = [
-    ...new Set([...memberEndeavorIds, ...createdEndeavorIds]),
-  ];
-
-  // ── 1. New endeavors in categories the user is interested in ───────────
-  let newEndeavors: {
+  const users = usersResult.rows as {
     id: string;
-    title: string;
-    category: string;
-    creatorId: string;
-    createdAt: Date;
-    imageUrl: string | null;
-  }[] = [];
+    name: string;
+    email: string;
+  }[];
 
-  if (interests.length > 0) {
-    newEndeavors = await db
-      .select({
-        id: endeavor.id,
-        title: endeavor.title,
-        category: endeavor.category,
-        creatorId: endeavor.creatorId,
-        createdAt: endeavor.createdAt,
-        imageUrl: endeavor.imageUrl,
-      })
-      .from(endeavor)
-      .where(
-        and(
-          inArray(endeavor.category, interests),
-          gte(endeavor.createdAt, sevenDaysAgo),
-          sql`${endeavor.creatorId} != ${userId}`
-        )
-      )
-      .orderBy(desc(endeavor.createdAt))
-      .limit(10);
-  }
+  let sent = 0;
+  let skipped = 0;
 
-  // ── 2. Updates from endeavors the user is a member of ──────────────────
-  let memberUpdates: {
-    id: string;
-    title: string;
-    content: string;
-    endeavorId: string;
-    endeavorTitle: string;
-    authorId: string;
-    createdAt: Date;
-  }[] = [];
+  for (const u of users) {
+    // Get endeavor IDs this user belongs to (as member or creator)
+    const endeavorIdsResult = await db.execute(sql`
+      SELECT DISTINCT eid FROM (
+        SELECT m.endeavor_id AS eid
+        FROM member m
+        WHERE m.user_id = ${u.id} AND m.status = 'approved'
+        UNION
+        SELECT e.id AS eid
+        FROM endeavor e
+        WHERE e.creator_id = ${u.id}
+      ) sub
+    `);
 
-  if (allMyEndeavorIds.length > 0) {
-    memberUpdates = await db
-      .select({
-        id: update.id,
-        title: update.title,
-        content: update.content,
-        endeavorId: update.endeavorId,
-        endeavorTitle: endeavor.title,
-        authorId: update.authorId,
-        createdAt: update.createdAt,
-      })
-      .from(update)
-      .innerJoin(endeavor, eq(update.endeavorId, endeavor.id))
-      .where(
-        and(
-          inArray(update.endeavorId, allMyEndeavorIds),
-          gte(update.createdAt, sevenDaysAgo)
-        )
-      )
-      .orderBy(desc(update.createdAt))
-      .limit(20);
-  }
+    const endeavorIds = (endeavorIdsResult.rows as { eid: string }[]).map(
+      (r) => r.eid
+    );
 
-  // ── 3. New members who joined the user's endeavors ─────────────────────
-  let newMembers: {
-    memberId: string;
-    userName: string;
-    userImage: string | null;
-    endeavorId: string;
-    endeavorTitle: string;
-    joinedAt: Date;
-  }[] = [];
+    if (endeavorIds.length === 0) {
+      skipped++;
+      continue;
+    }
 
-  if (allMyEndeavorIds.length > 0) {
-    newMembers = await db
-      .select({
-        memberId: member.id,
-        userName: user.name,
-        userImage: user.image,
-        endeavorId: member.endeavorId,
-        endeavorTitle: endeavor.title,
-        joinedAt: member.joinedAt,
-      })
-      .from(member)
-      .innerJoin(user, eq(member.userId, user.id))
-      .innerJoin(endeavor, eq(member.endeavorId, endeavor.id))
-      .where(
-        and(
-          inArray(member.endeavorId, allMyEndeavorIds),
-          eq(member.status, "approved"),
-          gte(member.joinedAt, sevenDaysAgo),
-          sql`${member.userId} != ${userId}`
-        )
-      )
-      .orderBy(desc(member.joinedAt))
-      .limit(20);
-  }
-
-  // ── 4. Completed milestones in the user's endeavors ────────────────────
-  let milestoneUpdates: {
-    id: string;
-    title: string;
-    description: string | null;
-    endeavorId: string;
-    endeavorTitle: string;
-    completedAt: Date | null;
-  }[] = [];
-
-  if (allMyEndeavorIds.length > 0) {
-    milestoneUpdates = await db
-      .select({
-        id: milestone.id,
-        title: milestone.title,
-        description: milestone.description,
-        endeavorId: milestone.endeavorId,
-        endeavorTitle: endeavor.title,
-        completedAt: milestone.completedAt,
-      })
-      .from(milestone)
-      .innerJoin(endeavor, eq(milestone.endeavorId, endeavor.id))
-      .where(
-        and(
-          inArray(milestone.endeavorId, allMyEndeavorIds),
-          eq(milestone.completed, true),
-          gte(milestone.completedAt, sevenDaysAgo)
-        )
-      )
-      .orderBy(desc(milestone.completedAt))
-      .limit(20);
-  }
-
-  // ── 5. Weekly stats ────────────────────────────────────────────────────
-  let discussionsThisWeek = 0;
-  let tasksCompletedThisWeek = 0;
-
-  if (allMyEndeavorIds.length > 0) {
-    const [discussionStat, taskStat] = await Promise.all([
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(discussion)
-        .where(
-          and(
-            inArray(discussion.endeavorId, allMyEndeavorIds),
-            gte(discussion.createdAt, sevenDaysAgo)
-          )
-        ),
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(task)
-        .where(
-          and(
-            inArray(task.endeavorId, allMyEndeavorIds),
-            eq(task.status, "done"),
-            gte(task.updatedAt, sevenDaysAgo)
-          )
-        ),
+    // Fetch all stats in parallel
+    const [
+      discussionsResult,
+      newMembersResult,
+      tasksCompletedResult,
+      storiesResult,
+      unreadResult,
+      highlightsResult,
+    ] = await Promise.all([
+      // New discussions count
+      db.execute(sql`
+        SELECT COUNT(*)::int AS count
+        FROM discussion
+        WHERE endeavor_id = ANY(${endeavorIds})
+          AND created_at >= ${sevenDaysAgo.toISOString()}::timestamp
+      `),
+      // New members count
+      db.execute(sql`
+        SELECT COUNT(*)::int AS count
+        FROM member
+        WHERE endeavor_id = ANY(${endeavorIds})
+          AND status = 'approved'
+          AND joined_at >= ${sevenDaysAgo.toISOString()}::timestamp
+          AND user_id != ${u.id}
+      `),
+      // Tasks completed count
+      db.execute(sql`
+        SELECT COUNT(*)::int AS count
+        FROM task
+        WHERE endeavor_id = ANY(${endeavorIds})
+          AND task_status = 'done'
+          AND updated_at >= ${sevenDaysAgo.toISOString()}::timestamp
+      `),
+      // Stories published count
+      db.execute(sql`
+        SELECT COUNT(*)::int AS count
+        FROM story
+        WHERE endeavor_id = ANY(${endeavorIds})
+          AND published = true
+          AND created_at >= ${sevenDaysAgo.toISOString()}::timestamp
+      `),
+      // Unread notifications count
+      db.execute(sql`
+        SELECT COUNT(*)::int AS count
+        FROM notification
+        WHERE user_id = ${u.id}
+          AND read = false
+      `),
+      // Per-endeavor activity highlights
+      db.execute(sql`
+        SELECT
+          e.id,
+          e.title,
+          (
+            (SELECT COUNT(*) FROM discussion d WHERE d.endeavor_id = e.id AND d.created_at >= ${sevenDaysAgo.toISOString()}::timestamp) +
+            (SELECT COUNT(*) FROM member m2 WHERE m2.endeavor_id = e.id AND m2.status = 'approved' AND m2.joined_at >= ${sevenDaysAgo.toISOString()}::timestamp AND m2.user_id != ${u.id}) +
+            (SELECT COUNT(*) FROM task t WHERE t.endeavor_id = e.id AND t.task_status = 'done' AND t.updated_at >= ${sevenDaysAgo.toISOString()}::timestamp) +
+            (SELECT COUNT(*) FROM story s WHERE s.endeavor_id = e.id AND s.published = true AND s.created_at >= ${sevenDaysAgo.toISOString()}::timestamp)
+          )::int AS new_activity
+        FROM endeavor e
+        WHERE e.id = ANY(${endeavorIds})
+        HAVING (
+          (SELECT COUNT(*) FROM discussion d WHERE d.endeavor_id = e.id AND d.created_at >= ${sevenDaysAgo.toISOString()}::timestamp) +
+          (SELECT COUNT(*) FROM member m2 WHERE m2.endeavor_id = e.id AND m2.status = 'approved' AND m2.joined_at >= ${sevenDaysAgo.toISOString()}::timestamp AND m2.user_id != ${u.id}) +
+          (SELECT COUNT(*) FROM task t WHERE t.endeavor_id = e.id AND t.task_status = 'done' AND t.updated_at >= ${sevenDaysAgo.toISOString()}::timestamp) +
+          (SELECT COUNT(*) FROM story s WHERE s.endeavor_id = e.id AND s.published = true AND s.created_at >= ${sevenDaysAgo.toISOString()}::timestamp)
+        ) > 0
+        ORDER BY new_activity DESC
+        LIMIT 5
+      `),
     ]);
 
-    discussionsThisWeek = discussionStat[0]?.count ?? 0;
-    tasksCompletedThisWeek = taskStat[0]?.count ?? 0;
+    const stats: DigestStats = {
+      discussions: (discussionsResult.rows[0] as { count: number })?.count ?? 0,
+      newMembers: (newMembersResult.rows[0] as { count: number })?.count ?? 0,
+      tasksCompleted:
+        (tasksCompletedResult.rows[0] as { count: number })?.count ?? 0,
+      stories: (storiesResult.rows[0] as { count: number })?.count ?? 0,
+      unreadNotifications:
+        (unreadResult.rows[0] as { count: number })?.count ?? 0,
+    };
+
+    const totalActivity =
+      stats.discussions +
+      stats.newMembers +
+      stats.tasksCompleted +
+      stats.stories;
+
+    // Skip users with zero activity across all categories
+    if (totalActivity === 0 && stats.unreadNotifications === 0) {
+      skipped++;
+      continue;
+    }
+
+    const endeavorHighlights: EndeavorHighlight[] = (
+      highlightsResult.rows as { id: string; title: string; new_activity: number }[]
+    ).map((row) => ({
+      title: row.title,
+      id: row.id,
+      newActivity: row.new_activity,
+    }));
+
+    const html = weeklyDigestHtml({
+      userName: u.name,
+      stats,
+      endeavorHighlights,
+    });
+
+    try {
+      await resend.emails.send({
+        from: FROM,
+        to: u.email,
+        subject: `Your weekly digest — ${totalActivity} new activities`,
+        html,
+      });
+      sent++;
+    } catch (err) {
+      console.error(`Failed to send digest to ${u.email}:`, err);
+      skipped++;
+    }
   }
 
-  return NextResponse.json({
-    period: {
-      start: sevenDaysAgo.toISOString(),
-      end: new Date().toISOString(),
-    },
-    newEndeavors,
-    memberUpdates,
-    newMembers,
-    milestoneUpdates,
-    weeklyStats: {
-      totalDiscussions: discussionsThisWeek,
-      tasksCompleted: tasksCompletedThisWeek,
-    },
-  });
+  return NextResponse.json({ sent, skipped });
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { report, user, endeavor } from "@/lib/db/schema";
+import { report, user } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
-// Simple admin check — in production, add a proper admin role
+export const dynamic = "force-dynamic";
+
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").filter(Boolean);
 
 async function isAdmin(email: string) {
@@ -21,18 +22,18 @@ export async function GET() {
   const reports = await db
     .select({
       id: report.id,
+      targetType: report.targetType,
+      targetId: report.targetId,
       reason: report.reason,
-      details: report.details,
+      description: report.description,
       status: report.status,
       createdAt: report.createdAt,
+      resolvedAt: report.resolvedAt,
       reporterName: user.name,
       reporterEmail: user.email,
-      endeavorId: report.endeavorId,
-      endeavorTitle: endeavor.title,
     })
     .from(report)
     .innerJoin(user, eq(report.reporterId, user.id))
-    .leftJoin(endeavor, eq(report.endeavorId, endeavor.id))
     .orderBy(desc(report.createdAt));
 
   return NextResponse.json(reports);
@@ -45,13 +46,17 @@ export async function PATCH(request: NextRequest) {
   }
 
   const { reportId, status } = await request.json();
-  if (!reportId || !["reviewed", "dismissed"].includes(status)) {
+  if (!reportId || !["reviewed", "resolved", "dismissed"].includes(status)) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   const [updated] = await db
     .update(report)
-    .set({ status })
+    .set({
+      status,
+      reviewedById: session.user.id,
+      resolvedAt: status === "resolved" || status === "dismissed" ? new Date() : null,
+    })
     .where(eq(report.id, reportId))
     .returning();
 

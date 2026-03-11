@@ -11,6 +11,7 @@ import { PlatformStats } from "@/components/platform-stats";
 import { FeaturedStories } from "@/components/featured-stories";
 import { Spotlight } from "@/components/spotlight";
 import { TrendingCreators } from "@/components/trending-creators";
+import { MiniStats } from "@/components/mini-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,9 @@ export default function Home() {
         <Suspense fallback={null}>
           <TrendingCreators />
         </Suspense>
+        <section className="flex justify-center py-8">
+          <MiniStats />
+        </section>
         <About />
         <CTA />
       </main>

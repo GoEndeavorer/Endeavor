@@ -390,11 +390,14 @@ export const report = pgTable("report", {
   reporterId: text("reporter_id")
     .notNull()
     .references(() => user.id),
-  endeavorId: uuid("endeavor_id").references(() => endeavor.id),
-  reason: text("reason").notNull(),
-  details: text("details"),
-  status: text("status").notNull().default("pending"), // pending, reviewed, dismissed
+  targetType: text("target_type").notNull().default("endeavor"), // "endeavor", "user", "discussion", "story"
+  targetId: text("target_id").notNull(),
+  reason: text("reason").notNull(), // "spam", "harassment", "inappropriate", "scam", "other"
+  description: text("description"),
+  status: text("status").notNull().default("pending"), // "pending", "reviewed", "resolved", "dismissed"
+  reviewedById: text("reviewed_by_id").references(() => user.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
 });
 
 // ── Direct Messages ────────────────────────────────────────────────────────
@@ -502,4 +505,58 @@ export const faq = pgTable("faq", {
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── Bookmark Collections ────────────────────────────────────────────────────
+
+export const bookmarkCollection = pgTable("bookmark_collection", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const bookmarkItem = pgTable("bookmark_item", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  collectionId: uuid("collection_id")
+    .notNull()
+    .references(() => bookmarkCollection.id, { onDelete: "cascade" }),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  note: text("note"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Invite Links ─────────────────────────────────────────────────────────────
+
+export const inviteLink = pgTable("invite_link", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  code: text("code").notNull().unique(),
+  createdById: text("created_by_id")
+    .notNull()
+    .references(() => user.id),
+  maxUses: integer("max_uses"),
+  useCount: integer("use_count").notNull().default(0),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── User Onboarding ──────────────────────────────────────────────────────────
+
+export const onboardingStep = pgTable("onboarding_step", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  step: text("step").notNull(), // "profile", "explore", "join", "create", "discuss"
+  completedAt: timestamp("completed_at").notNull().defaultNow(),
+});
+
 

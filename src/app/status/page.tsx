@@ -4,6 +4,13 @@ import { useState, useEffect } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 
+const PLATFORM_VERSION = "0.18.0";
+const PLATFORM_METRICS = {
+  totalPages: 57,
+  totalApiRoutes: 102,
+  totalComponents: 45,
+};
+
 type HealthCheck = {
   status: "ok" | "error";
   database: "connected" | "disconnected";
@@ -19,6 +26,7 @@ type Service = {
 
 export default function StatusPage() {
   const [health, setHealth] = useState<HealthCheck | null>(null);
+  const [apiResponseTime, setApiResponseTime] = useState<number | null>(null);
   const [services, setServices] = useState<Service[]>([
     { name: "API", status: "checking" },
     { name: "Database", status: "checking" },
@@ -32,6 +40,7 @@ export default function StatusPage() {
     fetch("/api/health")
       .then((r) => {
         const latency = Math.round(performance.now() - start);
+        setApiResponseTime(latency);
         if (r.ok) {
           return r.json().then((data: HealthCheck) => {
             setHealth(data);
@@ -143,6 +152,118 @@ export default function StatusPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* System Health Checks */}
+        <h2 className="mt-12 mb-4 text-xl font-bold">System Health Checks</h2>
+        <div className="space-y-2">
+          {/* Database Connectivity */}
+          <div className="flex items-center justify-between border border-medium-gray/20 p-4">
+            <div className="flex items-center gap-3">
+              <span
+                className={`h-3 w-3 rounded-full ${
+                  health?.database === "connected"
+                    ? "bg-code-green"
+                    : health === null
+                    ? "bg-medium-gray animate-pulse"
+                    : "bg-red-400"
+                }`}
+              />
+              <span className="text-sm font-medium">Database Connectivity</span>
+            </div>
+            <span
+              className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
+                health?.database === "connected"
+                  ? "bg-code-green/10 text-code-green"
+                  : health === null
+                  ? "bg-medium-gray/10 text-medium-gray"
+                  : "bg-red-400/10 text-red-400"
+              }`}
+            >
+              {health?.database === "connected"
+                ? "Connected"
+                : health === null
+                ? "Checking..."
+                : "Error"}
+            </span>
+          </div>
+
+          {/* API Response Time */}
+          <div className="flex items-center justify-between border border-medium-gray/20 p-4">
+            <div className="flex items-center gap-3">
+              <span
+                className={`h-3 w-3 rounded-full ${
+                  apiResponseTime !== null && apiResponseTime < 1000
+                    ? "bg-code-green"
+                    : apiResponseTime === null
+                    ? "bg-medium-gray animate-pulse"
+                    : "bg-red-400"
+                }`}
+              />
+              <span className="text-sm font-medium">API Response Time</span>
+            </div>
+            <span
+              className={`rounded-full px-3 py-0.5 text-xs font-semibold font-mono ${
+                apiResponseTime !== null && apiResponseTime < 1000
+                  ? "bg-code-green/10 text-code-green"
+                  : apiResponseTime === null
+                  ? "bg-medium-gray/10 text-medium-gray"
+                  : "bg-red-400/10 text-red-400"
+              }`}
+            >
+              {apiResponseTime !== null ? `${apiResponseTime}ms` : "Measuring..."}
+            </span>
+          </div>
+
+          {/* Total Uptime */}
+          <div className="flex items-center justify-between border border-medium-gray/20 p-4">
+            <div className="flex items-center gap-3">
+              <span
+                className={`h-3 w-3 rounded-full ${
+                  allOperational ? "bg-code-green" : "bg-medium-gray animate-pulse"
+                }`}
+              />
+              <span className="text-sm font-medium">Total Uptime</span>
+            </div>
+            <span
+              className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
+                allOperational
+                  ? "bg-code-green/10 text-code-green"
+                  : "bg-medium-gray/10 text-medium-gray"
+              }`}
+            >
+              {allOperational ? "Online" : "Checking..."}
+            </span>
+          </div>
+        </div>
+
+        {/* Platform Metrics */}
+        <h2 className="mt-12 mb-4 text-xl font-bold">Platform Metrics</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="border border-medium-gray/20 p-4">
+            <p className="text-xs text-medium-gray uppercase tracking-wider">Version</p>
+            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
+              v{PLATFORM_VERSION}
+            </p>
+          </div>
+          <div className="border border-medium-gray/20 p-4">
+            <p className="text-xs text-medium-gray uppercase tracking-wider">Total Pages</p>
+            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
+              {PLATFORM_METRICS.totalPages}
+            </p>
+          </div>
+          <div className="border border-medium-gray/20 p-4">
+            <p className="text-xs text-medium-gray uppercase tracking-wider">API Routes</p>
+            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
+              {PLATFORM_METRICS.totalApiRoutes}
+            </p>
+          </div>
+          <div className="border border-medium-gray/20 p-4">
+            <p className="text-xs text-medium-gray uppercase tracking-wider">Components</p>
+            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
+              {PLATFORM_METRICS.totalComponents}
+            </p>
+          </div>
         </div>
       </main>
       <Footer />

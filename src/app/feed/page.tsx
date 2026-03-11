@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer";
 import { CardSkeletonGrid } from "@/components/skeleton";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { analytics } from "@/lib/analytics";
+import { MostActiveSidebar } from "@/components/most-active-sidebar";
 
 type Endeavor = {
   id: string;
@@ -289,7 +290,9 @@ export default function FeedPage() {
     <div className="min-h-screen">
       <AppHeader breadcrumb={{ label: "Explore", href: "/feed" }} />
 
-      <main id="main-content" className="mx-auto max-w-6xl px-4 pt-24 pb-16">
+      <main id="main-content" className="mx-auto max-w-7xl px-4 pt-24 pb-16">
+        <div className="flex gap-8">
+        <div className="min-w-0 flex-1">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold">Explore Endeavors</h1>
           <Link
@@ -595,6 +598,44 @@ export default function FeedPage() {
           </>
         )}
         </>}
+        </div>
+        {/* Sidebar */}
+        <aside className="hidden w-64 shrink-0 lg:block">
+          <div className="sticky top-24 space-y-8">
+            <MostActiveSidebar />
+            {trendingNeeds.length > 0 && (
+              <div>
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-yellow-400">
+                  {"// skills in demand"}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {trendingNeeds.slice(0, 8).map((n) => (
+                    <button
+                      key={n.need}
+                      onClick={() => { setFeedTab("explore"); setSearch(n.need); }}
+                      className="border border-yellow-400/20 bg-yellow-400/5 px-2 py-1 text-xs text-yellow-400 transition-colors hover:bg-yellow-400/10"
+                    >
+                      {n.need}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-medium-gray">
+                {"// quick links"}
+              </h3>
+              <div className="space-y-1.5">
+                <Link href="/discover" className="block text-sm text-medium-gray hover:text-code-green transition-colors">Discovery Hub</Link>
+                <Link href="/leaderboard" className="block text-sm text-medium-gray hover:text-code-green transition-colors">Leaderboard</Link>
+                <Link href="/hiring" className="block text-sm text-medium-gray hover:text-code-green transition-colors">Who&apos;s Hiring</Link>
+                <Link href="/tags" className="block text-sm text-medium-gray hover:text-code-green transition-colors">Browse Tags</Link>
+                <Link href="/categories" className="block text-sm text-medium-gray hover:text-code-green transition-colors">Categories</Link>
+              </div>
+            </div>
+          </div>
+        </aside>
+        </div>
       </main>
       <Footer />
     </div>

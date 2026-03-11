@@ -4,6 +4,8 @@ import { report } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -24,9 +26,10 @@ export async function POST(
     .insert(report)
     .values({
       reporterId: session.user.id,
-      endeavorId: id,
+      targetType: "endeavor",
+      targetId: id,
       reason: reason.trim(),
-      details: details?.trim() || null,
+      description: details?.trim() || null,
     })
     .returning();
 

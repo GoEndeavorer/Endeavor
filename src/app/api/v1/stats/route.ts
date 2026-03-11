@@ -26,7 +26,7 @@ export async function GET() {
 
   return NextResponse.json({
     platform: "Endeavor",
-    version: "0.18.0",
+    version: "0.19.0",
     stats: data,
     generated_at: new Date().toISOString(),
   }, {
