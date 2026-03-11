@@ -1074,18 +1074,37 @@ export default function DashboardPage({
             )}
 
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-code-green">
-              {"// crew"}
+              {"// crew"} ({endeavor.members.length})
             </h3>
             <div className="space-y-2">
               {endeavor.members.map((m) => (
-                <div key={m.id} className="flex items-center gap-3 border border-medium-gray/20 p-3">
-                  <div className="flex h-8 w-8 items-center justify-center bg-accent text-xs font-bold">
-                    {m.userName.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{m.userName}</p>
-                    <p className="text-xs text-medium-gray">{m.role}</p>
-                  </div>
+                <div key={m.id} className="flex items-center justify-between border border-medium-gray/20 p-3">
+                  <Link
+                    href={`/users/${m.userId}`}
+                    className="flex items-center gap-3 hover:text-code-green transition-colors"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center bg-accent text-xs font-bold">
+                      {m.userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{m.userName}</p>
+                      <p className="text-xs text-medium-gray">{m.role}</p>
+                    </div>
+                  </Link>
+                  {isCreator && m.role !== "creator" && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm(`Remove ${m.userName} from this endeavor?`)) return;
+                        const res = await fetch(`/api/endeavors/${id}/members/${m.id}`, {
+                          method: "DELETE",
+                        });
+                        if (res.ok) fetchData();
+                      }}
+                      className="text-xs text-medium-gray hover:text-red-400"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -1109,10 +1128,15 @@ function SettingsTab({
   endeavorId: string;
   onUpdate: () => void;
 }) {
+  const [title, setTitle] = useState(endeavor.title);
   const [status, setStatus] = useState(endeavor.status);
   const [description, setDescription] = useState(endeavor.description);
   const [imageUrl, setImageUrl] = useState(endeavor.imageUrl || "");
   const [joinType, setJoinType] = useState(endeavor.joinType);
+  const [costPerPerson, setCostPerPerson] = useState(String(endeavor.costPerPerson ?? ""));
+  const [capacity, setCapacity] = useState(String(endeavor.capacity ?? ""));
+  const [fundingEnabled, setFundingEnabled] = useState(endeavor.fundingEnabled);
+  const [fundingGoal, setFundingGoal] = useState(String(endeavor.fundingGoal ?? ""));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -1123,7 +1147,17 @@ function SettingsTab({
     const res = await fetch(`/api/endeavors/${endeavorId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, description, imageUrl: imageUrl || null, joinType }),
+      body: JSON.stringify({
+        title,
+        status,
+        description,
+        imageUrl: imageUrl || null,
+        joinType,
+        costPerPerson: costPerPerson ? Number(costPerPerson) : null,
+        capacity: capacity ? Number(capacity) : null,
+        fundingEnabled,
+        fundingGoal: fundingEnabled && fundingGoal ? Number(fundingGoal) : null,
+      }),
     });
     if (res.ok) {
       setSaved(true);
@@ -1139,6 +1173,15 @@ function SettingsTab({
         {"// endeavor settings"}
       </h3>
       <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label className="mb-1 block text-xs text-medium-gray">Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+          />
+        </div>
         <div>
           <label className="mb-1 block text-xs text-medium-gray">Status</label>
           <select
@@ -1193,6 +1236,54 @@ function SettingsTab({
             <option value="open">Open (anyone can join)</option>
             <option value="request">Request (approval required)</option>
           </select>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs text-medium-gray">Cost per Person ($)</label>
+            <input
+              type="number"
+              value={costPerPerson}
+              onChange={(e) => setCostPerPerson(e.target.value)}
+              min="0"
+              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+              placeholder="0 for free"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-medium-gray">Max Participants</label>
+            <input
+              type="number"
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              min="1"
+              className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+              placeholder="Unlimited"
+            />
+          </div>
+        </div>
+        <div className="border border-medium-gray/30 p-4">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={fundingEnabled}
+              onChange={(e) => setFundingEnabled(e.target.checked)}
+              className="h-4 w-4 accent-code-green"
+            />
+            <span className="text-sm">Enable crowdfunding</span>
+          </label>
+          {fundingEnabled && (
+            <div className="mt-3">
+              <label className="mb-1 block text-xs text-medium-gray">Funding Goal ($)</label>
+              <input
+                type="number"
+                value={fundingGoal}
+                onChange={(e) => setFundingGoal(e.target.value)}
+                min="1"
+                className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                placeholder="How much do you need?"
+              />
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button
