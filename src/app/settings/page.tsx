@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { useToast } from "@/components/toast";
 import { EmailPreferences } from "@/components/email-preferences";
+import { SettingsExportImport } from "@/components/settings-export-import";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -400,6 +401,11 @@ export default function SettingsPage() {
               <span className="text-xs text-medium-gray">&darr;</span>
             </button>
           </div>
+        </section>
+
+        {/* Settings Export/Import */}
+        <section className="mb-8">
+          <SettingsExportImport />
         </section>
 
         {/* Session */}

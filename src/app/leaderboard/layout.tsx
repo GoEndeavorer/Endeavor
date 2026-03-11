@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Leaderboard | Endeavor",
-  description:
-    "See the top creators, contributors, and most active members of the Endeavor community.",
+  description: "Top contributors on Endeavor",
 };
 
 export default function LeaderboardLayout({

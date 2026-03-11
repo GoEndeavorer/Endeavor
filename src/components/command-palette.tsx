@@ -59,6 +59,9 @@ const sections: CommandSection[] = [
       { label: "Analytics", icon: "%", action: "/analytics" },
       { label: "Achievements", icon: "*", action: "/achievements" },
       { label: "Collections", icon: "C", action: "/collections" },
+      { label: "Mentorship", icon: "M", action: "/mentorship" },
+      { label: "Events", icon: "E", action: "/events" },
+      { label: "Goals", icon: "G", action: "/goals" },
     ],
   },
 ];

@@ -8,6 +8,26 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.23.0",
+    date: "March 2026",
+    title: "Community & Growth",
+    items: [
+      "Mentorship matching — find mentors based on shared skills and XP levels",
+      "Mentorship connections — request, accept, decline, and manage mentorships",
+      "Events system — create events with RSVP, capacity limits, and meeting links",
+      "Events page — upcoming/past view with date blocks and inline RSVP",
+      "Personal goals — set, track, and complete goals with deadlines",
+      "User rank & leveling — XP-based progression from Newcomer to Icon",
+      "Endeavor changelog — aggregated timeline of milestones, stories, and members",
+      "Settings export/import — backup and restore your preferences",
+      "Poll voting API — create polls with expiration and multi-vote options",
+      "Notification preferences API — per-event-type notification controls",
+      "Enhanced command palette — added mentorship, events, and goals shortcuts",
+      "Integrated UserLevel into profile page alongside badges",
+      "Integrated EndeavorChangelog into endeavor detail sidebar",
+    ],
+  },
+  {
     version: "0.22.0",
     date: "March 2026",
     title: "Management & Moderation",
