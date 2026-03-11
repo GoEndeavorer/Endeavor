@@ -18,6 +18,7 @@ import { EndeavorFaq } from "@/components/endeavor-faq";
 import { MemberContributions } from "@/components/member-contributions";
 import { EndeavorProgress } from "@/components/endeavor-progress";
 import { ReportModal } from "@/components/report-modal";
+import { BookmarkButton } from "@/components/bookmark-button";
 
 type EndeavorDetail = {
   id: string;
@@ -298,17 +299,20 @@ export default function EndeavorDetailPage({
               url={typeof window !== "undefined" ? window.location.href : ""}
             />
             {session && (
-              <button
-                onClick={toggleBookmark}
-                className={`text-xs transition-colors ${
-                  bookmarked
-                    ? "text-yellow-400 hover:text-yellow-300"
-                    : "text-medium-gray hover:text-yellow-400"
-                }`}
-                title={bookmarked ? "Remove bookmark" : "Bookmark"}
-              >
-                {bookmarked ? "[saved]" : "[save]"}
-              </button>
+              <>
+                <button
+                  onClick={toggleBookmark}
+                  className={`text-xs transition-colors ${
+                    bookmarked
+                      ? "text-yellow-400 hover:text-yellow-300"
+                      : "text-medium-gray hover:text-yellow-400"
+                  }`}
+                  title={bookmarked ? "Remove bookmark" : "Bookmark"}
+                >
+                  {bookmarked ? "[saved]" : "[save]"}
+                </button>
+                <BookmarkButton endeavorId={endeavor.id} />
+              </>
             )}
           </div>
         </div>

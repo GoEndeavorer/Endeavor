@@ -70,6 +70,9 @@ export function Footer() {
               <Link href="/achievements" className="text-sm text-medium-gray hover:text-code-green">
                 Achievements
               </Link>
+              <Link href="/endorsements" className="text-sm text-medium-gray hover:text-code-green">
+                Endorsement Wall
+              </Link>
               <Link href="/collections" className="text-sm text-medium-gray hover:text-code-green">
                 Collections
               </Link>

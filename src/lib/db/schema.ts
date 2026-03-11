@@ -583,3 +583,18 @@ export const pinnedEndeavor = pgTable("pinned_endeavor", {
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── User Goals ──────────────────────────────────────────────────────────────
+
+export const userGoal = pgTable("user_goal", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  title: text("title").notNull(),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  targetDate: timestamp("target_date"),
+  endeavorId: uuid("endeavor_id").references(() => endeavor.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

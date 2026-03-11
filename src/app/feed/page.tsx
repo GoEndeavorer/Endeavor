@@ -202,6 +202,10 @@ export default function FeedPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const PAGE_SIZE = 20;
 
+  const scrollStateRef = useRef({ hasMore, loadingMore, loading, length: endeavors.length });
+  scrollStateRef.current = { hasMore, loadingMore, loading, length: endeavors.length };
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
   // Debounce search input
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
@@ -241,6 +245,27 @@ export default function FeedPage() {
       setLoadingMore(false);
     }
   }, [category, locationType, sort, debouncedSearch]);
+
+  const fetchRef = useRef(fetchEndeavors);
+  fetchRef.current = fetchEndeavors;
+
+  const loadMoreCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (!node) return;
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const s = scrollStateRef.current;
+        if (entries[0].isIntersecting && s.hasMore && !s.loadingMore && !s.loading) {
+          fetchRef.current(s.length);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observerRef.current.observe(node);
+  }, []);
 
   useEffect(() => {
     fetchEndeavors();
@@ -587,14 +612,10 @@ export default function FeedPage() {
               )}
             </div>
             {hasMore && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={() => fetchEndeavors(endeavors.length)}
-                  disabled={loadingMore}
-                  className="border border-medium-gray/50 px-8 py-3 text-xs font-bold uppercase text-medium-gray transition-colors hover:border-code-green hover:text-code-green disabled:opacity-50"
-                >
-                  {loadingMore ? "Loading..." : "Load More"}
-                </button>
+              <div ref={loadMoreCallbackRef} className="mt-8 flex justify-center py-4">
+                {loadingMore && (
+                  <span className="text-xs text-medium-gray animate-pulse">Loading more...</span>
+                )}
               </div>
             )}
           </>

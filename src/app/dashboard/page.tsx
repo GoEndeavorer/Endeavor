@@ -9,6 +9,8 @@ import { useSession } from "@/lib/auth-client";
 import { useToast } from "@/components/toast";
 import { formatTimeAgo } from "@/lib/time";
 import { ActivitySparkline } from "@/components/activity-sparkline";
+import { ActivityStreak } from "@/components/activity-streak";
+import { WeeklyGoals } from "@/components/weekly-goals";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -533,6 +535,12 @@ export default function DashboardPage() {
                 </div>
               </section>
             )}
+
+            {/* ── streak + goals ─────────────────────── */}
+            <section className="mb-10 grid gap-4 sm:grid-cols-2">
+              <ActivityStreak />
+              <WeeklyGoals />
+            </section>
 
             {/* ── recent activity summary ──────────────── */}
             <section className="mb-10">
