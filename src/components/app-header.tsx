@@ -97,9 +97,13 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === "Enter" && selectedIndex >= 0 && selectedIndex < allItems.length) {
+    } else if (e.key === "Enter") {
       e.preventDefault();
-      navigateTo(allItems[selectedIndex]);
+      if (selectedIndex >= 0 && selectedIndex < allItems.length) {
+        navigateTo(allItems[selectedIndex]);
+      } else if (query.length >= 2) {
+        navigateTo(`/search?q=${encodeURIComponent(query)}`);
+      }
     }
   }
 
@@ -138,6 +142,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             </Link>
             <Link href="/hiring" className="text-sm text-medium-gray hover:text-code-green">
               Hiring
+            </Link>
+            <Link href="/people" className="text-sm text-medium-gray hover:text-code-green">
+              People
             </Link>
             {session && (
               <Link href="/following" className="text-sm text-medium-gray hover:text-code-green">
@@ -204,6 +211,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             </Link>
             <Link href="/hiring" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
               Who&apos;s Hiring
+            </Link>
+            <Link href="/people" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+              People
             </Link>
             {session ? (
               <>
@@ -323,6 +333,17 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 {results.endeavors.length === 0 && results.users.length === 0 && query.length >= 2 && (
                   <div className="px-4 py-6 text-center text-sm text-medium-gray">
                     No results for &quot;{query}&quot;
+                  </div>
+                )}
+
+                {(results.endeavors.length > 0 || results.users.length > 0) && (
+                  <div className="border-t border-medium-gray/10 px-4 py-3">
+                    <button
+                      onClick={() => navigateTo(`/search?q=${encodeURIComponent(query)}`)}
+                      className="w-full text-center text-xs text-medium-gray hover:text-code-green transition-colors"
+                    >
+                      View all results &rarr;
+                    </button>
                   </div>
                 )}
               </div>
