@@ -22,6 +22,7 @@ type Discussion = {
   authorId: string;
   authorName: string;
   authorImage: string | null;
+  pinned?: boolean;
 };
 
 type Task = {
@@ -897,6 +898,12 @@ export default function DashboardPage({
               <div className="space-y-4">
                 {discussions
                   .filter((msg) => !msg.parentId)
+                  .sort((a, b) => {
+                    // Pinned messages first
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                  })
                   .map((msg) => {
                     const replies = discussions
                       .filter((r) => r.parentId === msg.id)
@@ -909,6 +916,19 @@ export default function DashboardPage({
                           canDelete={msg.authorId === session?.user?.id || isCreator}
                           onDelete={() => deleteDiscussion(msg.id)}
                           onReply={() => setReplyTo(msg)}
+                          isCreator={isCreator}
+                          onPin={async (pinned) => {
+                            const res = await fetch(`/api/discussions/${msg.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ pinned }),
+                            });
+                            if (res.ok) {
+                              setDiscussions((prev) =>
+                                prev.map((d) => d.id === msg.id ? { ...d, pinned } : d)
+                              );
+                            }
+                          }}
                           onEdit={async (content) => {
                             const res = await fetch(`/api/discussions/${msg.id}`, {
                               method: "PATCH",
@@ -2049,6 +2069,8 @@ function DiscussionMessage({
   onDelete,
   onReply,
   onEdit,
+  onPin,
+  isCreator: isCreatorProp,
 }: {
   msg: Discussion;
   isOwn: boolean;
@@ -2056,6 +2078,8 @@ function DiscussionMessage({
   onDelete: () => void;
   onReply: () => void;
   onEdit: (content: string) => Promise<void>;
+  onPin?: (pinned: boolean) => void;
+  isCreator?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(msg.content);
@@ -2067,7 +2091,10 @@ function DiscussionMessage({
   }
 
   return (
-    <div className="border border-medium-gray/20 p-4">
+    <div className={`border p-4 ${msg.pinned ? "border-yellow-400/30 bg-yellow-400/5" : "border-medium-gray/20"}`}>
+      {msg.pinned && (
+        <p className="mb-1 text-[10px] font-semibold uppercase text-yellow-400">Pinned</p>
+      )}
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center bg-accent text-xs font-bold">
@@ -2085,6 +2112,14 @@ function DiscussionMessage({
           >
             reply
           </button>
+          {isCreatorProp && onPin && !msg.parentId && (
+            <button
+              onClick={() => onPin(!msg.pinned)}
+              className="text-xs text-medium-gray hover:text-yellow-400"
+            >
+              {msg.pinned ? "unpin" : "pin"}
+            </button>
+          )}
           {isOwn && !editing && (
             <button
               onClick={() => { setEditContent(msg.content); setEditing(true); }}

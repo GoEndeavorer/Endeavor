@@ -153,6 +153,7 @@ export const discussion = pgTable("discussion", {
     .references(() => user.id),
   content: text("content").notNull(),
   parentId: uuid("parent_id"),
+  pinned: boolean("pinned").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

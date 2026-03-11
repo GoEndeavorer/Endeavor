@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 
-// Edit a discussion message (author only)
+// Edit a discussion message (author only) or toggle pin (creator only)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ discussionId: string }> }
@@ -16,11 +16,7 @@ export async function PATCH(
   }
 
   const { discussionId } = await params;
-  const { content } = await request.json();
-
-  if (!content?.trim()) {
-    return NextResponse.json({ error: "Content is required" }, { status: 400 });
-  }
+  const body = await request.json();
 
   const [existing] = await db
     .select()
@@ -30,6 +26,34 @@ export async function PATCH(
 
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Handle pin toggle (creator only)
+  if (typeof body.pinned === "boolean") {
+    const [end] = await db
+      .select({ creatorId: endeavor.creatorId })
+      .from(endeavor)
+      .where(eq(endeavor.id, existing.endeavorId))
+      .limit(1);
+
+    if (end?.creatorId !== session.user.id) {
+      return NextResponse.json({ error: "Only the creator can pin" }, { status: 403 });
+    }
+
+    const [updated] = await db
+      .update(discussion)
+      .set({ pinned: body.pinned })
+      .where(eq(discussion.id, discussionId))
+      .returning();
+
+    return NextResponse.json(updated);
+  }
+
+  // Handle content edit (author only)
+  const { content } = body;
+
+  if (!content?.trim()) {
+    return NextResponse.json({ error: "Content is required" }, { status: 400 });
   }
 
   if (existing.authorId !== session.user.id) {
