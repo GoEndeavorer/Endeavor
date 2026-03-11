@@ -43,6 +43,9 @@ export function Footer() {
               <Link href="/discover" className="text-sm text-medium-gray hover:text-code-green">
                 Discover
               </Link>
+              <Link href="/trending" className="text-sm text-medium-gray hover:text-code-green">
+                Trending Topics
+              </Link>
               <Link href="/tags" className="text-sm text-medium-gray hover:text-code-green">
                 Tags
               </Link>
@@ -63,6 +66,15 @@ export function Footer() {
               </Link>
               <Link href="/stats" className="text-sm text-medium-gray hover:text-code-green">
                 Platform Stats
+              </Link>
+              <Link href="/achievements" className="text-sm text-medium-gray hover:text-code-green">
+                Achievements
+              </Link>
+              <Link href="/collections" className="text-sm text-medium-gray hover:text-code-green">
+                Collections
+              </Link>
+              <Link href="/activity-log" className="text-sm text-medium-gray hover:text-code-green">
+                Activity Log
               </Link>
             </nav>
           </div>
@@ -125,6 +137,9 @@ export function Footer() {
               </Link>
               <Link href="/compare" className="text-sm text-medium-gray hover:text-code-green">
                 Compare Endeavors
+              </Link>
+              <Link href="/api-docs" className="text-sm text-medium-gray hover:text-code-green">
+                API Docs
               </Link>
               <Link href="/contact" className="text-sm text-medium-gray hover:text-code-green">
                 Contact

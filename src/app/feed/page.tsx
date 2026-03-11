@@ -10,6 +10,8 @@ import { CardSkeletonGrid } from "@/components/skeleton";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { analytics } from "@/lib/analytics";
 import { MostActiveSidebar } from "@/components/most-active-sidebar";
+import { Recommendations } from "@/components/recommendations";
+import { RecentlyViewed } from "@/components/recently-viewed";
 
 type Endeavor = {
   id: string;
@@ -603,6 +605,8 @@ export default function FeedPage() {
         <aside className="hidden w-64 shrink-0 lg:block">
           <div className="sticky top-24 space-y-8">
             <MostActiveSidebar />
+            <Recommendations />
+            <RecentlyViewed />
             {trendingNeeds.length > 0 && (
               <div>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-yellow-400">
