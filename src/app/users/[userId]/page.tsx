@@ -10,6 +10,7 @@ import { ContributionHeatmap } from "@/components/contribution-heatmap";
 import { PinnedEndeavors } from "@/components/pinned-endeavors";
 import { ContributionStats } from "@/components/contribution-stats";
 import { UserTimeline } from "@/components/user-timeline";
+import { SimilarUsers } from "@/components/similar-users";
 
 type UserProfile = {
   id: string;
@@ -375,6 +376,11 @@ export default function PublicProfilePage({
         {/* Activity timeline */}
         <div className="mt-8">
           <UserTimeline userId={userId} />
+        </div>
+
+        {/* Similar users */}
+        <div className="mt-8">
+          <SimilarUsers userId={userId} />
         </div>
       </main>
       <Footer />

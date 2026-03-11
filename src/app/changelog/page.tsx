@@ -8,6 +8,30 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.21.0",
+    date: "March 2026",
+    title: "Intelligence & Integration",
+    items: [
+      "Skill-based matching — endeavors that need your skills surface automatically",
+      "Dashboard insights — smart tips, overdue alerts, and engagement suggestions",
+      "Endeavor activity heatmaps — 12-week contribution density visualization",
+      "User activity timelines — chronological feed of all user contributions",
+      "Following feed — activity from users and endeavors you follow",
+      "System status page — real-time health monitoring with auto-refresh",
+      "Compare endeavors — side-by-side comparison of two endeavors",
+      "API documentation — comprehensive endpoint reference with examples",
+      "Weekly digest page — platform activity highlights over the last 7 days",
+      "Notification preferences — server-side email notification settings",
+      "Related endeavors API — discover similar content",
+      "Trending feed API — ranks endeavors by recent activity",
+      "Mark all notifications read — batch clear unread notifications",
+      "Quick task via command palette — create tasks from anywhere with Cmd+P",
+      "Enhanced command palette — discover, analytics, achievements, and more",
+      "Confetti on achievement unlock — celebration animations",
+      "Search input component — reusable autocomplete search dropdown",
+    ],
+  },
+  {
     version: "0.20.0",
     date: "March 2026",
     title: "Engagement & Discovery",
