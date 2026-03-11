@@ -1,13 +1,14 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.6.0
+> **Version**: 0.7.0
 > **Last Updated**: 2026-03-11
-> **Status**: Built — Ready for deployment
+> **Status**: Built — Production ready
 
 ## Changelog
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.7.0   | 2026-03-11 | Cover images, activity timeline, categories, admin panel, leave endeavor, feed sorting, email notifications, markdown stories |
 | 0.6.0   | 2026-03-11 | Public profiles, settings tab, checkout pages, accessibility, task notifications |
 | 0.5.0   | 2026-03-11 | Milestones, stories, invite system, email integration, dashboard UI |
 | 0.4.0   | 2026-03-10 | All phases built: notifications, links, moderation, rate limiting |
@@ -87,7 +88,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Invite system (email invitations via Resend)
 - [x] Post-endeavor stories with draft/publish workflow
 
-## Phase 6: Scale & Polish — MOSTLY DONE
+## Phase 6: Scale & Polish — DONE
 
 - [x] Rate limiting middleware (per-IP, per-minute)
 - [x] Report/flag system (users can report endeavors)
@@ -97,12 +98,37 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Public user profiles (/users/[id])
 - [x] Public stories page (/endeavors/[id]/stories)
 - [x] Endeavor editing (creator settings tab in dashboard)
-- [x] Task assignment notifications
+- [x] Task assignment notifications + email
 - [x] Endeavor status display in feed cards
+- [x] Analytics integration (typed event tracking)
 - [ ] Performance optimization (image CDN, lazy loading)
-- [ ] Analytics integration
 - [ ] Error monitoring (Sentry)
 - [ ] Automated testing (unit + E2E)
+
+## Phase 7: Full Feature Build-Out — DONE
+
+- [x] Cover images for endeavors (URL-based, on create/edit/detail/feed)
+- [x] Activity timeline API + Overview tab on dashboard
+- [x] Dashboard progress stats (tasks, milestones, crew count)
+- [x] My Endeavors page with created/joined tabs
+- [x] Leave endeavor (with notification)
+- [x] Feed sorting (newest, popular, oldest)
+- [x] Categories browse page with descriptions and counts
+- [x] Platform stats API (users, endeavors, memberships)
+- [x] Admin moderation panel for report management
+- [x] Email notifications: join, task assignment, welcome, invite
+- [x] Needs-based search (search by skills/resources needed)
+- [x] Markdown rendering for stories (bold, italic, code, links, headings)
+- [x] AppHeader component (reusable, auth-aware, mobile responsive)
+- [x] Task creation with description and due dates
+- [x] Milestone creation with descriptions
+- [x] Overdue task indicators
+- [x] Mobile-friendly dashboard tabs (horizontal scroll)
+- [x] Profile completion prompt on feed
+- [x] Bug fix: notifyEndeavorMembers argument order
+- [x] Creator profile links on detail page
+- [x] Member profile links on detail page
+- [x] In-progress endeavors accept new members
 
 ---
 
@@ -136,25 +162,35 @@ src/
 │   ├── (auth)/login, signup     # Auth pages
 │   ├── api/
 │   │   ├── auth/[...all]        # Better Auth handler
-│   │   ├── endeavors/           # CRUD, detail, join, checkout, discussions, tasks, links, members, milestones, stories, invite
-│   │   ├── endeavors/recommended, trending  # Discovery
+│   │   ├── admin/reports         # Admin moderation
+│   │   ├── endeavors/           # CRUD, detail, join, leave, checkout, discussions, tasks, links, members, milestones, stories, invite, activity
+│   │   ├── endeavors/recommended, trending, stats  # Discovery + analytics
 │   │   ├── milestones/[id]      # Milestone CRUD
 │   │   ├── notifications/       # In-app notifications
 │   │   ├── profile/             # User profile CRUD
-│   │   ├── reports/             # Moderation
+│   │   ├── reports/             # User reports
+│   │   ├── stories/[storyId]    # Story CRUD
 │   │   ├── tasks/[taskId]       # Task CRUD
+│   │   ├── links/[linkId]       # Link CRUD
+│   │   ├── discussions/[id]     # Discussion CRUD
 │   │   └── webhooks/stripe      # Payment webhooks
-│   ├── endeavors/[id]/          # Detail + dashboard
+│   ├── admin/                   # Admin dashboard
+│   ├── categories/              # Category browser
+│   ├── endeavors/[id]/          # Detail + dashboard + stories + checkout
 │   ├── endeavors/create/        # Create form
-│   ├── feed/                    # Discovery feed
-│   └── profile/                 # User profile
-├── components/                  # Shared UI components
+│   ├── endeavors/completed/     # Completed endeavors showcase
+│   ├── feed/                    # Discovery feed with search, filters, sort
+│   ├── my-endeavors/            # User's endeavors (created + joined)
+│   ├── users/[userId]/          # Public user profiles
+│   └── profile/                 # User profile editing
+├── components/                  # Shared UI (AppHeader, NotificationBell, ShareButton, MarkdownText, etc.)
 ├── lib/
 │   ├── auth.ts, auth-client.ts  # Auth config
 │   ├── db/schema.ts, index.ts   # Database schema + connection
 │   ├── email.ts                 # Resend email integration
 │   ├── membership.ts            # Auth helpers
 │   ├── notifications.ts         # Notification helpers
+│   ├── analytics.ts             # Typed analytics events
 │   └── stripe.ts                # Payment config
 └── middleware.ts                # Rate limiting
 ```
@@ -171,6 +207,7 @@ src/
    - `STRIPE_WEBHOOK_SECRET` — from Stripe webhook settings
    - `RESEND_API_KEY` — from Resend dashboard
    - `EMAIL_FROM` — verified sender email
+   - `ADMIN_EMAILS` — comma-separated admin email addresses
 4. Run `npm run db:push` to create database tables
 5. Set up Stripe webhook pointing to `https://your-domain/api/webhooks/stripe`
    - Event: `checkout.session.completed`
@@ -181,7 +218,7 @@ src/
 - **session** — Better Auth sessions
 - **account** — Better Auth OAuth accounts
 - **verification** — Better Auth email verification
-- **endeavor** — id, title, description, category, location, locationType, needs[], status, costPerPerson, capacity, fundingEnabled, fundingGoal, fundingRaised, joinType, creatorId
+- **endeavor** — id, title, description, category, location, locationType, needs[], status, costPerPerson, capacity, fundingEnabled, fundingGoal, fundingRaised, imageUrl, joinType, creatorId
 - **member** — id, endeavorId, userId, role (creator/collaborator), status (pending/approved/rejected)
 - **discussion** — id, endeavorId, authorId, content, createdAt
 - **task** — id, endeavorId, title, description, status (todo/in-progress/done), assigneeId, dueDate
