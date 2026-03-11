@@ -180,6 +180,7 @@ export default function FeedPage() {
   const [endeavors, setEndeavors] = useState<Endeavor[]>([]);
   const [recommended, setRecommended] = useState<Endeavor[]>([]);
   const [trending, setTrending] = useState<Endeavor[]>([]);
+  const [trendingNeeds, setTrendingNeeds] = useState<{ need: string; count: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -240,6 +241,10 @@ export default function FeedPage() {
     fetch("/api/endeavors/trending")
       .then((r) => r.json())
       .then(setTrending)
+      .catch(() => {});
+    fetch("/api/endeavors/trending-needs")
+      .then((r) => r.json())
+      .then(setTrendingNeeds)
       .catch(() => {});
   }, []);
 
@@ -310,6 +315,26 @@ export default function FeedPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {trending.slice(0, 3).map((e) => (
                 <EndeavorCard key={e.id} endeavor={e} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Trending needs */}
+        {trendingNeeds.length > 0 && (
+          <div className="mb-8">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-yellow-400">
+              {"// most wanted"}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {trendingNeeds.map((n) => (
+                <button
+                  key={n.need}
+                  onClick={() => setSearch(n.need)}
+                  className="border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 text-xs text-yellow-400 transition-colors hover:bg-yellow-400/10"
+                >
+                  need: {n.need}
+                </button>
               ))}
             </div>
           </div>

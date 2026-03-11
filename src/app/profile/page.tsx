@@ -150,7 +150,7 @@ export default function ProfilePage() {
                   <p className="mt-2 text-sm text-light-gray">{profile.bio}</p>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/users/${session.user.id}`}
                   className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-code-blue hover:text-code-blue"
@@ -163,6 +163,12 @@ export default function ProfilePage() {
                 >
                   {editing ? "Cancel" : "Edit"}
                 </button>
+                <Link
+                  href="/settings"
+                  className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-code-blue hover:text-code-blue"
+                >
+                  Settings
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="border border-medium-gray/50 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-red-400 hover:text-red-400"
