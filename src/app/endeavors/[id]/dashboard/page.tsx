@@ -77,6 +77,7 @@ type EndeavorInfo = {
   joinType: string;
   costPerPerson: number | null;
   capacity: number | null;
+  needs: string[] | null;
   imageUrl: string | null;
   fundingEnabled: boolean;
   fundingGoal: number | null;
@@ -1447,6 +1448,8 @@ function SettingsTab({
   const [capacity, setCapacity] = useState(String(endeavor.capacity ?? ""));
   const [fundingEnabled, setFundingEnabled] = useState(endeavor.fundingEnabled);
   const [fundingGoal, setFundingGoal] = useState(String(endeavor.fundingGoal ?? ""));
+  const [needs, setNeeds] = useState<string[]>(endeavor.needs || []);
+  const [needsInput, setNeedsInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const { toast: settingsToast } = useToast();
@@ -1464,6 +1467,7 @@ function SettingsTab({
         description,
         imageUrl: imageUrl || null,
         joinType,
+        needs,
         costPerPerson: costPerPerson ? Number(costPerPerson) : null,
         capacity: capacity ? Number(capacity) : null,
         fundingEnabled,
@@ -1508,7 +1512,10 @@ function SettingsTab({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-medium-gray">Description</label>
+          <label className="mb-1 block text-xs text-medium-gray">
+            Description
+            <span className="ml-2 text-[10px] text-medium-gray/50">Supports **bold**, *italic*, `code`, [links](url)</span>
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -1547,6 +1554,60 @@ function SettingsTab({
             <option value="open">Open (anyone can join)</option>
             <option value="request">Request (approval required)</option>
           </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-medium-gray">What do you need?</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={needsInput}
+              onChange={(e) => setNeedsInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const trimmed = needsInput.trim();
+                  if (trimmed && !needs.includes(trimmed)) {
+                    setNeeds([...needs, trimmed]);
+                    setNeedsInput("");
+                  }
+                }
+              }}
+              className="flex-1 border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+              placeholder="e.g., Videographer, Guide, Funding"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const trimmed = needsInput.trim();
+                if (trimmed && !needs.includes(trimmed)) {
+                  setNeeds([...needs, trimmed]);
+                  setNeedsInput("");
+                }
+              }}
+              className="border border-medium-gray/50 px-4 py-3 text-sm text-medium-gray hover:text-code-green"
+            >
+              Add
+            </button>
+          </div>
+          {needs.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {needs.map((need) => (
+                <span
+                  key={need}
+                  className="flex items-center gap-1 bg-white/5 px-2 py-1 text-xs text-light-gray"
+                >
+                  {need}
+                  <button
+                    type="button"
+                    onClick={() => setNeeds(needs.filter((n) => n !== need))}
+                    className="text-medium-gray hover:text-red-400"
+                  >
+                    x
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
