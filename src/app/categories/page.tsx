@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 
 type CategoryCount = {
   category: string;
@@ -101,6 +102,7 @@ export default function CategoriesPage() {
           })}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -1583,6 +1583,32 @@ function SettingsTab({
       </div>
 
       <div className="mt-8 border-t border-medium-gray/20 pt-6">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-code-green">
+          {"// share & invite"}
+        </h3>
+        <p className="mb-3 text-xs text-medium-gray">
+          Share this link to invite people to view and join your endeavor.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            readOnly
+            value={typeof window !== "undefined" ? `${window.location.origin}/endeavors/${endeavorId}` : `/endeavors/${endeavorId}`}
+            className="flex-1 border border-medium-gray/30 bg-medium-gray/5 px-4 py-2 text-sm text-light-gray outline-none"
+          />
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/endeavors/${endeavorId}`;
+              navigator.clipboard.writeText(url);
+            }}
+            className="border border-code-green px-4 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black"
+          >
+            Copy Link
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-8 border-t border-medium-gray/20 pt-6">
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-red-400">
           {"// danger zone"}
         </h3>

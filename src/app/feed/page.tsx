@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 import { CardSkeletonGrid } from "@/components/skeleton";
 import { analytics } from "@/lib/analytics";
 
@@ -439,6 +440,7 @@ export default function FeedPage() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

@@ -101,6 +101,56 @@ export async function sendInviteEmail(
   }
 }
 
+export async function sendStatusChangeEmail(
+  to: string,
+  name: string,
+  endeavorTitle: string,
+  endeavorId: string,
+  newStatus: string
+) {
+  const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+  const link = `${baseUrl}/endeavors/${endeavorId}`;
+  const statusMessages: Record<string, string> = {
+    "in-progress": "is now in progress! Head to your dashboard to start collaborating.",
+    completed: "has been marked as completed! Consider writing a story about your experience.",
+    cancelled: "has been cancelled.",
+    open: "is now open for new members.",
+  };
+
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to,
+      subject: `"${endeavorTitle}" status update`,
+      text: `Hi ${name},\n\n"${endeavorTitle}" ${statusMessages[newStatus] || `status changed to: ${newStatus}`}\n\nView it here: ${link}\n\n— Endeavor`,
+    });
+  } catch (err) {
+    console.error("Failed to send status change email:", err);
+  }
+}
+
+export async function sendMilestoneEmail(
+  to: string,
+  name: string,
+  milestoneTitle: string,
+  endeavorTitle: string,
+  endeavorId: string
+) {
+  const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+  const link = `${baseUrl}/endeavors/${endeavorId}/dashboard`;
+
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to,
+      subject: `Milestone reached: ${milestoneTitle}`,
+      text: `Hi ${name},\n\nGreat news! The milestone "${milestoneTitle}" in "${endeavorTitle}" has been completed.\n\nKeep up the momentum! View your dashboard: ${link}\n\n— Endeavor`,
+    });
+  } catch (err) {
+    console.error("Failed to send milestone email:", err);
+  }
+}
+
 export async function sendTaskAssignmentEmail(
   to: string,
   assigneeName: string,

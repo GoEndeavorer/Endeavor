@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 import { db } from "@/lib/db";
 import { endeavor, member, story, user } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
@@ -161,6 +162,7 @@ export default async function CompletedEndeavorsPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
