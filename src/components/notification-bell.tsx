@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { formatTimeAgo } from "@/lib/time";
+import { playNotificationSound } from "@/lib/notification-sound";
 
 type Notification = {
   id: string;
@@ -42,11 +43,20 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  const prevUnreadRef = useRef(0);
+
   const fetchNotifications = useCallback(() => {
     fetch("/api/notifications")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setNotifications(data);
+        if (Array.isArray(data)) {
+          const newUnread = data.filter((n: Notification) => !n.read).length;
+          if (newUnread > prevUnreadRef.current && prevUnreadRef.current > 0) {
+            playNotificationSound();
+          }
+          prevUnreadRef.current = newUnread;
+          setNotifications(data);
+        }
       })
       .catch(() => {});
   }, []);
