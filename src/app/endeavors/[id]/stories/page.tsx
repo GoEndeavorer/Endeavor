@@ -75,11 +75,17 @@ export default async function StoriesPage({
                 key={s.id}
                 className="border border-medium-gray/20 p-6"
               >
-                <h2 className="mb-2 text-lg font-bold">{s.title}</h2>
+                <Link href={`/stories/${s.id}`} className="group">
+                  <h2 className="mb-2 text-lg font-bold group-hover:text-code-green transition-colors">{s.title}</h2>
+                </Link>
                 <div className="mb-4 flex items-center gap-2 text-xs text-medium-gray">
                   <span>by {s.authorName}</span>
                   <span>&middot;</span>
                   <time>{new Date(s.createdAt).toLocaleDateString()}</time>
+                  <span>&middot;</span>
+                  <Link href={`/stories/${s.id}`} className="text-code-blue hover:text-code-green">
+                    permalink
+                  </Link>
                 </div>
                 <MarkdownText content={s.content} />
               </article>

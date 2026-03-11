@@ -14,7 +14,10 @@ export function Footer() {
                 Explore Endeavors
               </Link>
               <Link href="/endeavors/completed" className="text-sm text-medium-gray hover:text-code-green">
-                Success Stories
+                Completed
+              </Link>
+              <Link href="/stories" className="text-sm text-medium-gray hover:text-code-green">
+                Stories
               </Link>
               <Link href="/endeavors/create" className="text-sm text-medium-gray hover:text-code-green">
                 Start an Endeavor

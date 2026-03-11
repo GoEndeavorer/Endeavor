@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { endeavor } from "@/lib/db/schema";
+import { endeavor, story } from "@/lib/db/schema";
 import { eq, desc, or } from "drizzle-orm";
 import type { MetadataRoute } from "next";
 
@@ -19,6 +19,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ))
     .orderBy(desc(endeavor.updatedAt))
     .limit(1000);
+
+  // Get published stories for individual story pages
+  const publishedStories = await db
+    .select({ id: story.id, updatedAt: story.updatedAt })
+    .from(story)
+    .where(eq(story.published, true))
+    .orderBy(desc(story.updatedAt))
+    .limit(500);
 
   const endeavorUrls: MetadataRoute.Sitemap = endeavors.map((e) => ({
     url: `${baseUrl}/endeavors/${e.id}`,
@@ -47,9 +55,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/leaderboard`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     { url: `${baseUrl}/people`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${baseUrl}/search`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/stories`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${baseUrl}/signup`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/login`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     ...endeavorUrls,
     ...storyUrls,
+    ...publishedStories.map((s) => ({
+      url: `${baseUrl}/stories/${s.id}`,
+      lastModified: s.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
   ];
 }
