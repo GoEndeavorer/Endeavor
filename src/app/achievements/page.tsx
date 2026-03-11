@@ -1,81 +1,141 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
-import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements";
-import { Confetti } from "@/components/confetti";
+import { AchievementCard } from "@/components/achievement-card";
+import { useToast } from "@/components/toast";
 
-const TIER_COLORS = {
-  bronze: "border-orange-700/50 bg-orange-700/5",
-  silver: "border-gray-400/50 bg-gray-400/5",
-  gold: "border-yellow-400/50 bg-yellow-400/5",
-  platinum: "border-purple-400/50 bg-purple-400/5",
+type Achievement = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  criteria: { type: string; threshold: number };
+  xp_reward: number;
 };
 
-const TIER_LABELS = {
-  bronze: "text-orange-700",
-  silver: "text-gray-400",
-  gold: "text-yellow-400",
-  platinum: "text-purple-400",
+type EarnedAchievement = {
+  achievement_id: string;
+  earned_at: string;
 };
+
+const CATEGORIES = [
+  { key: "all", label: "All" },
+  { key: "community", label: "Community" },
+  { key: "contribution", label: "Contribution" },
+  { key: "milestone", label: "Milestone" },
+  { key: "skill", label: "Skill" },
+  { key: "special", label: "Special" },
+];
 
 export default function AchievementsPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const [unlocked, setUnlocked] = useState<{ key: string; unlockedAt: string }[]>([]);
+  const { toast } = useToast();
+
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [earned, setEarned] = useState<EarnedAchievement[]>([]);
+  const [stats, setStats] = useState<Record<string, number>>({});
+  const [totalXp, setTotalXp] = useState(0);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
-  const [newlyUnlocked, setNewlyUnlocked] = useState<string[]>([]);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
 
   useEffect(() => {
     if (!isPending && !session) router.push("/login");
   }, [session, isPending, router]);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!session) return;
-    fetch("/api/achievements")
-      .then((r) => r.json())
-      .then((data) => setUnlocked(data.unlocked || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+
+    try {
+      const [achievementsRes, earnedRes] = await Promise.all([
+        fetch("/api/achievements"),
+        fetch(`/api/users/${session.user.id}/achievements`),
+      ]);
+
+      const achievementsData = await achievementsRes.json();
+      const earnedData = await earnedRes.json();
+
+      setAchievements(achievementsData.achievements || []);
+      setEarned(
+        (earnedData.achievements || []).map((a: { achievement_id: string; earned_at: string }) => ({
+          achievement_id: a.achievement_id,
+          earned_at: a.earned_at,
+        }))
+      );
+      setTotalXp(earnedData.totalXp || 0);
+    } catch {
+      // Silently fail on load
+    } finally {
+      setLoading(false);
+    }
   }, [session]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   async function checkAchievements() {
     setChecking(true);
-    const res = await fetch("/api/achievements", { method: "POST" });
-    const data = await res.json();
-    if (data.newlyUnlocked?.length > 0) {
-      setNewlyUnlocked(data.newlyUnlocked);
-      setShowConfetti(true);
-      // Refresh unlocked list
-      const refresh = await fetch("/api/achievements");
-      const refreshData = await refresh.json();
-      setUnlocked(refreshData.unlocked || []);
+    try {
+      const res = await fetch("/api/achievements/check", { method: "POST" });
+      const data = await res.json();
+
+      if (data.stats) setStats(data.stats);
+      if (data.totalXp !== undefined) setTotalXp(data.totalXp);
+
+      if (data.newlyEarned?.length > 0) {
+        const names = data.newlyEarned
+          .map((a: { name: string }) => a.name)
+          .join(", ");
+        toast(`Achievement${data.newlyEarned.length > 1 ? "s" : ""} unlocked: ${names}`);
+        // Refresh the earned list
+        await loadData();
+      } else {
+        toast("No new achievements unlocked. Keep going!");
+      }
+    } catch {
+      toast("Failed to check achievements.");
+    } finally {
+      setChecking(false);
     }
-    setChecking(false);
   }
 
-  const unlockedKeys = new Set(unlocked.map((u) => u.key));
-  const unlockedCount = unlocked.length;
-  const totalCount = ACHIEVEMENTS.length;
-  const progressPct = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+  const earnedMap = new Map(earned.map((e) => [e.achievement_id, e.earned_at]));
+  const earnedCount = earned.length;
+  const totalCount = achievements.length;
+  const progressPct =
+    totalCount > 0 ? Math.round((earnedCount / totalCount) * 100) : 0;
 
-  // Group by tier
-  const grouped = {
-    platinum: ACHIEVEMENTS.filter((a) => a.tier === "platinum"),
-    gold: ACHIEVEMENTS.filter((a) => a.tier === "gold"),
-    silver: ACHIEVEMENTS.filter((a) => a.tier === "silver"),
-    bronze: ACHIEVEMENTS.filter((a) => a.tier === "bronze"),
-  };
+  const filtered =
+    activeCategory === "all"
+      ? achievements
+      : achievements.filter((a) => a.category === activeCategory);
+
+  // Sort: earned first, then by XP reward
+  const sorted = [...filtered].sort((a, b) => {
+    const aEarned = earnedMap.has(a.id) ? 1 : 0;
+    const bEarned = earnedMap.has(b.id) ? 1 : 0;
+    if (aEarned !== bEarned) return bEarned - aEarned;
+    return a.xp_reward - b.xp_reward;
+  });
+
+  // XP level calculation
+  const level = Math.floor(totalXp / 500) + 1;
+  const xpInLevel = totalXp % 500;
+  const xpForNextLevel = 500;
 
   if (loading) {
     return (
       <div className="min-h-screen">
-        <AppHeader breadcrumb={{ label: "Achievements", href: "/achievements" }} />
+        <AppHeader
+          breadcrumb={{ label: "Achievements", href: "/achievements" }}
+        />
         <main className="mx-auto max-w-3xl px-4 pt-24 pb-16">
           <div className="space-y-4">
             {[...Array(6)].map((_, i) => (
@@ -89,14 +149,17 @@ export default function AchievementsPage() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader breadcrumb={{ label: "Achievements", href: "/achievements" }} />
+      <AppHeader
+        breadcrumb={{ label: "Achievements", href: "/achievements" }}
+      />
 
       <main className="mx-auto max-w-3xl px-4 pt-24 pb-16">
+        {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Achievements</h1>
             <p className="text-sm text-medium-gray">
-              {unlockedCount} / {totalCount} unlocked ({progressPct}%)
+              {earnedCount} / {totalCount} unlocked ({progressPct}%)
             </p>
           </div>
           <button
@@ -108,8 +171,8 @@ export default function AchievementsPage() {
           </button>
         </div>
 
-        {/* Progress bar */}
-        <div className="mb-8">
+        {/* Overall progress bar */}
+        <div className="mb-6">
           <div className="h-2 w-full bg-medium-gray/20">
             <div
               className="h-2 bg-code-green transition-all duration-500"
@@ -118,71 +181,112 @@ export default function AchievementsPage() {
           </div>
         </div>
 
-        {/* Confetti celebration */}
-        <Confetti active={showConfetti} />
-
-        {/* Newly unlocked */}
-        {newlyUnlocked.length > 0 && (
-          <div className="mb-8 border border-code-green/50 bg-code-green/5 p-4">
-            <p className="mb-2 text-sm font-bold text-code-green">New achievements unlocked!</p>
-            <div className="flex flex-wrap gap-2">
-              {newlyUnlocked.map((key) => {
-                const a = ACHIEVEMENTS.find((x) => x.key === key);
-                return a ? (
-                  <span key={key} className="border border-code-green/30 px-3 py-1 text-sm text-code-green">
-                    {a.icon} {a.title}
-                  </span>
-                ) : null;
-              })}
+        {/* XP / Level display */}
+        <div className="mb-8 flex gap-6 border border-medium-gray/20 p-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-code-green">
+              {"// level"}
+            </p>
+            <p className="mt-1 text-3xl font-bold font-mono text-white">
+              {level}
+            </p>
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-code-green">
+              {"// experience"}
+            </p>
+            <p className="mt-1 text-sm text-medium-gray">
+              <span className="font-mono text-white">{totalXp}</span> XP total
+              &middot;{" "}
+              <span className="font-mono text-white">{xpInLevel}</span> /{" "}
+              {xpForNextLevel} to next level
+            </p>
+            <div className="mt-2 h-1 w-full bg-medium-gray/20">
+              <div
+                className="h-1 bg-code-blue transition-all duration-500"
+                style={{
+                  width: `${Math.round((xpInLevel / xpForNextLevel) * 100)}%`,
+                }}
+              />
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Achievement groups */}
-        {(Object.entries(grouped) as [keyof typeof grouped, AchievementDef[]][]).map(([tier, achievements]) => (
-          <section key={tier} className="mb-8">
-            <h2 className={`mb-4 text-xs font-semibold uppercase tracking-widest ${TIER_LABELS[tier]}`}>
-              {"// "}{tier}
-            </h2>
+        {/* Category filter */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.key;
+            const countInCat =
+              cat.key === "all"
+                ? achievements.length
+                : achievements.filter((a) => a.category === cat.key).length;
+            const earnedInCat =
+              cat.key === "all"
+                ? earnedCount
+                : achievements.filter(
+                    (a) => a.category === cat.key && earnedMap.has(a.id)
+                  ).length;
+
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className={`border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  isActive
+                    ? "border-code-green bg-code-green/10 text-code-green"
+                    : "border-medium-gray/20 text-medium-gray hover:border-medium-gray/40"
+                }`}
+              >
+                {cat.label}{" "}
+                <span className="font-mono">
+                  ({earnedInCat}/{countInCat})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Achievement list */}
+        <section>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+            {"// achievements"}
+          </h2>
+
+          {sorted.length === 0 ? (
+            <p className="text-sm text-medium-gray">
+              No achievements in this category yet.
+            </p>
+          ) : (
             <div className="grid gap-3 md:grid-cols-2">
-              {achievements.map((a) => {
-                const isUnlocked = unlockedKeys.has(a.key);
-                const unlockedData = unlocked.find((u) => u.key === a.key);
+              {sorted.map((a) => {
+                const earnedAt = earnedMap.get(a.id) || null;
+                const criteria = a.criteria;
+                const progress =
+                  !earnedAt && criteria?.type && criteria?.threshold
+                    ? {
+                        current: stats[criteria.type] ?? 0,
+                        threshold: criteria.threshold,
+                      }
+                    : null;
+
                 return (
-                  <div
-                    key={a.key}
-                    className={`border p-4 transition-colors ${
-                      isUnlocked
-                        ? TIER_COLORS[tier]
-                        : "border-medium-gray/10 opacity-40"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className={`text-2xl font-mono font-bold ${isUnlocked ? a.color : "text-medium-gray/30"}`}>
-                        {a.icon}
-                      </span>
-                      <div className="flex-1">
-                        <p className={`font-semibold ${isUnlocked ? "text-white" : "text-medium-gray"}`}>
-                          {a.title}
-                        </p>
-                        <p className="text-xs text-medium-gray">{a.description}</p>
-                        {isUnlocked && unlockedData && (
-                          <p className="mt-1 text-xs text-code-green">
-                            Unlocked {new Date(unlockedData.unlockedAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                      {isUnlocked && (
-                        <span className="text-code-green text-sm">&#10003;</span>
-                      )}
-                    </div>
-                  </div>
+                  <AchievementCard
+                    key={a.id}
+                    name={a.name}
+                    description={a.description}
+                    icon={a.icon}
+                    category={a.category}
+                    xpReward={a.xp_reward}
+                    earnedAt={earnedAt}
+                    progress={progress}
+                  />
                 );
               })}
             </div>
-          </section>
-        ))}
+          )}
+        </section>
       </main>
+
       <Footer />
     </div>
   );

@@ -1,27 +1,35 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { directMessage } from "@/lib/db/schema";
+import { sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq, and, count } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
+// GET — total unread message count across all conversations
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return NextResponse.json({ count: 0 });
   }
 
-  const [result] = await db
-    .select({ count: count() })
-    .from(directMessage)
-    .where(
-      and(
-        eq(directMessage.recipientId, session.user.id),
-        eq(directMessage.read, false)
-      )
-    );
+  const userId = session.user.id;
 
-  return NextResponse.json({ count: result.count });
+  const result = await db.execute(sql`
+    SELECT COALESCE(SUM(unread)::int, 0) AS count
+    FROM (
+      SELECT (
+        SELECT COUNT(*)::int
+        FROM message m
+        WHERE m.conversation_id = cp.conversation_id
+          AND m.sender_id != ${userId}
+          AND m.created_at > cp.last_read_at
+      ) AS unread
+      FROM conversation_participant cp
+      WHERE cp.user_id = ${userId}
+    ) sub
+  `);
+
+  const row = result.rows[0] as { count: number } | undefined;
+  return NextResponse.json({ count: row?.count ?? 0 });
 }
