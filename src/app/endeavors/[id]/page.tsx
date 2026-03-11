@@ -6,6 +6,8 @@ import { useSession } from "@/lib/auth-client";
 import { ShareButton } from "@/components/share-button";
 import { AppHeader } from "@/components/app-header";
 import { useToast } from "@/components/toast";
+import { MarkdownText } from "@/components/markdown-text";
+import { formatTimeAgo } from "@/lib/time";
 import { analytics } from "@/lib/analytics";
 
 type EndeavorDetail = {
@@ -269,8 +271,8 @@ export default function EndeavorDetailPage({
                 {endeavor.creator.name}
               </Link>
             </p>
-            <span className="text-xs text-medium-gray">
-              {new Date(endeavor.createdAt).toLocaleDateString()}
+            <span className="text-xs text-medium-gray" title={new Date(endeavor.createdAt).toLocaleString()}>
+              {formatTimeAgo(endeavor.createdAt)}
             </span>
             <ShareButton
               title={endeavor.title}
@@ -299,9 +301,9 @@ export default function EndeavorDetailPage({
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-code-green">
                 {"// description"}
               </h2>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-light-gray">
-                {endeavor.description}
-              </p>
+              <div className="text-sm leading-relaxed text-light-gray">
+                <MarkdownText content={endeavor.description} />
+              </div>
             </div>
 
             {endeavor.needs && endeavor.needs.length > 0 && (

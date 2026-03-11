@@ -1314,6 +1314,24 @@ export default function DashboardPage({
                 </div>
               ))}
             </div>
+
+            {/* Leave button (non-creators only) */}
+            {!isCreator && (
+              <div className="mt-6 border-t border-medium-gray/20 pt-6">
+                <button
+                  onClick={async () => {
+                    if (!confirm("Are you sure you want to leave this endeavor?")) return;
+                    const res = await fetch(`/api/endeavors/${id}/leave`, { method: "POST" });
+                    if (res.ok) {
+                      router.push("/my-endeavors");
+                    }
+                  }}
+                  className="border border-red-500/30 px-4 py-2 text-xs font-bold uppercase text-red-400 transition-colors hover:bg-red-500 hover:text-black"
+                >
+                  Leave Endeavor
+                </button>
+              </div>
+            )}
           </div>
         )}
         {/* ── Finances (creator only) ── */}
