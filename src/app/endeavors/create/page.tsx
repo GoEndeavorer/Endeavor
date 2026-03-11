@@ -144,6 +144,7 @@ export default function CreateEndeavorPage() {
           <div>
             <label htmlFor="description" className="mb-1 block text-sm text-light-gray">
               Description *
+              <span className="ml-2 text-[10px] text-medium-gray/50">Supports **bold**, *italic*, `code`, [links](url)</span>
             </label>
             <textarea
               id="description"
@@ -254,7 +255,7 @@ export default function CreateEndeavorPage() {
                     key={need}
                     className="flex items-center gap-1 bg-white/5 px-2 py-1 text-xs text-light-gray"
                   >
-                    need: {need}
+                    {need}
                     <button
                       type="button"
                       onClick={() => removeNeed(need)}

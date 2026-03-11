@@ -22,6 +22,9 @@ export function Footer() {
               <Link href="/categories" className="text-sm text-medium-gray hover:text-code-green">
                 Browse Categories
               </Link>
+              <Link href="/activity" className="text-sm text-medium-gray hover:text-code-green">
+                Platform Activity
+              </Link>
             </nav>
           </div>
           <div>
@@ -40,6 +43,9 @@ export function Footer() {
               </Link>
               <Link href="/my-endeavors" className="text-sm text-medium-gray hover:text-code-green">
                 My Endeavors
+              </Link>
+              <Link href="/saved" className="text-sm text-medium-gray hover:text-code-green">
+                Saved
               </Link>
             </nav>
           </div>

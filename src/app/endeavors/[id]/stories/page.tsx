@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MarkdownText } from "@/components/markdown-text";
+import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 import { db } from "@/lib/db";
 import { story, user, endeavor } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
@@ -51,22 +53,7 @@ export default async function StoriesPage({
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-xl font-bold">Endeavor</Link>
-            <span className="text-medium-gray">/</span>
-            <Link
-              href={`/endeavors/${id}`}
-              className="text-sm text-code-blue hover:text-code-green"
-            >
-              {end.title}
-            </Link>
-            <span className="text-medium-gray">/</span>
-            <span className="text-sm text-medium-gray">Stories</span>
-          </div>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: `${end.title} — Stories`, href: `/endeavors/${id}/stories` }} />
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
         <h1 className="mb-2 text-2xl font-bold">Stories</h1>
@@ -100,6 +87,7 @@ export default async function StoriesPage({
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

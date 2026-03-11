@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
+import { formatTimeAgo } from "@/lib/time";
 
 type Profile = {
   id: string;
@@ -177,6 +179,28 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
+
+            {/* Quick stats */}
+            {!editing && endeavors.length > 0 && (
+              <div className="mb-8 grid grid-cols-3 gap-3">
+                <div className="border border-medium-gray/20 p-3 text-center">
+                  <p className="text-xl font-bold text-code-green">{endeavors.length}</p>
+                  <p className="text-xs text-medium-gray">Endeavors</p>
+                </div>
+                <div className="border border-medium-gray/20 p-3 text-center">
+                  <p className="text-xl font-bold text-code-blue">
+                    {endeavors.filter((e) => e.status === "in-progress").length}
+                  </p>
+                  <p className="text-xs text-medium-gray">Active</p>
+                </div>
+                <div className="border border-medium-gray/20 p-3 text-center">
+                  <p className="text-xl font-bold text-purple-400">
+                    {endeavors.filter((e) => e.status === "completed").length}
+                  </p>
+                  <p className="text-xs text-medium-gray">Completed</p>
+                </div>
+              </div>
+            )}
 
             {/* Skills & Interests display */}
             {!editing && (
@@ -390,7 +414,7 @@ export default function ProfilePage() {
                       <h3 className="font-bold">{e.title}</h3>
                       <p className="text-xs text-medium-gray">
                         {e.category} &middot; {e.memberCount} members &middot;{" "}
-                        {e.status}
+                        {e.status} &middot; {formatTimeAgo(e.createdAt)}
                       </p>
                     </div>
                     <span className="text-xs text-code-blue">
@@ -403,6 +427,7 @@ export default function ProfilePage() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

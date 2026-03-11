@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { useToast } from "@/components/toast";
 import { MarkdownText } from "@/components/markdown-text";
 import { formatTimeAgo } from "@/lib/time";
+import { Footer } from "@/components/footer";
 import { analytics } from "@/lib/analytics";
 
 type EndeavorDetail = {
@@ -576,6 +577,7 @@ export default function EndeavorDetailPage({
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

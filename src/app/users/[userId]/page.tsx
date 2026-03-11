@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 
 type UserProfile = {
   id: string;
@@ -290,6 +291,7 @@ export default function PublicProfilePage({
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

@@ -113,7 +113,7 @@ function EndeavorCard({ endeavor }: { endeavor: Endeavor }) {
               key={need}
               className="bg-white/5 px-2 py-0.5 text-xs text-light-gray"
             >
-              need: {need}
+              {need}
             </span>
           ))}
           {endeavor.needs.length > 3 && (
@@ -334,7 +334,7 @@ export default function FeedPage() {
                   onClick={() => setSearch(n.need)}
                   className="border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 text-xs text-yellow-400 transition-colors hover:bg-yellow-400/10"
                 >
-                  need: {n.need}
+                  {n.need}
                 </button>
               ))}
             </div>
