@@ -7,6 +7,7 @@ import { MarkdownText } from "@/components/markdown-text";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { StoryComments } from "@/components/story-comments";
+import { RelatedStories } from "@/components/related-stories";
 import { estimateReadingTime } from "@/lib/reading-time";
 import type { Metadata } from "next";
 
@@ -135,6 +136,8 @@ export default async function StoryPage({ params }: Props) {
             </Link>
           </div>
         </div>
+
+        <RelatedStories storyId={storyId} />
 
         <StoryComments storyId={storyId} />
       </main>

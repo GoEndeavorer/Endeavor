@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { ImagePicker } from "@/components/image-picker";
 import { analytics } from "@/lib/analytics";
+import { saveDraft, loadDraft, clearDraft } from "@/lib/draft-autosave";
 
 const categories = [
   "Adventure",
@@ -85,6 +86,43 @@ export default function CreateEndeavorPage() {
   const [joinType, setJoinType] = useState("open");
   const [showTemplates, setShowTemplates] = useState(true);
 
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Load saved draft on mount
+  useEffect(() => {
+    const templateId = searchParams.get("template");
+    if (templateId) return; // Don't load draft if using template
+
+    const draft = loadDraft();
+    if (draft && draft.title) {
+      setTitle(draft.title);
+      setDescription(draft.description);
+      setCategory(draft.category);
+      setLocationType(draft.locationType);
+      setLocation(draft.location);
+      setNeeds(draft.needs);
+      setJoinType(draft.joinType);
+      setCostPerPerson(draft.costPerPerson);
+      setCapacity(draft.capacity);
+      setFundingEnabled(draft.fundingEnabled);
+      setFundingGoal(draft.fundingGoal);
+      setShowTemplates(false);
+      setDraftRestored(true);
+    }
+  }, [searchParams]);
+
+  // Auto-save draft every 5 seconds when form has content
+  useEffect(() => {
+    if (!title && !description) return;
+    const timer = setTimeout(() => {
+      saveDraft({
+        title, description, category, locationType, location,
+        needs, joinType, costPerPerson, capacity, fundingEnabled, fundingGoal,
+      });
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [title, description, category, locationType, location, needs, joinType, costPerPerson, capacity, fundingEnabled, fundingGoal]);
+
   // Auto-fill from URL template parameter (from /templates page)
   useEffect(() => {
     const templateId = searchParams.get("template");
@@ -159,6 +197,7 @@ export default function CreateEndeavorPage() {
 
       const data = await res.json();
       analytics.endeavorCreated(data.id, category);
+      clearDraft();
       router.push(`/endeavors/${data.id}/dashboard`);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -194,6 +233,24 @@ export default function CreateEndeavorPage() {
         <p className="mb-4 text-sm text-medium-gray">
           Describe what you want to do. Others will find it and join.
         </p>
+
+        {draftRestored && (
+          <div className="mb-4 flex items-center justify-between border border-code-blue/30 bg-code-blue/5 px-4 py-2">
+            <span className="text-xs text-code-blue">Draft restored from auto-save</span>
+            <button
+              onClick={() => {
+                clearDraft();
+                setTitle(""); setDescription(""); setCategory(""); setLocation("");
+                setLocationType("in-person"); setNeeds([]); setJoinType("open");
+                setCostPerPerson(""); setCapacity(""); setFundingEnabled(false); setFundingGoal("");
+                setDraftRestored(false); setShowTemplates(true);
+              }}
+              className="text-xs text-medium-gray hover:text-red-400"
+            >
+              Discard draft
+            </button>
+          </div>
+        )}
 
         {/* Quick-start templates */}
         {showTemplates && !title && (
