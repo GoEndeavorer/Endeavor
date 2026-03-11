@@ -6,6 +6,7 @@ import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { MarkdownText } from "@/components/markdown-text";
+import { formatTimeAgo } from "@/lib/time";
 
 type Discussion = {
   id: string;
@@ -462,6 +463,26 @@ export default function DashboardPage({
       <AppHeader breadcrumb={{ label: endeavor.title, href: `/endeavors/${id}` }} />
 
       <main className="mx-auto max-w-6xl px-4 pt-24 pb-16">
+        {/* Status bar */}
+        <div className="mb-4 flex items-center gap-3">
+          <span className={`px-2 py-0.5 text-xs font-bold uppercase border ${
+            endeavor.status === "open" ? "border-code-green/50 text-code-green" :
+            endeavor.status === "in-progress" ? "border-code-blue/50 text-code-blue" :
+            endeavor.status === "completed" ? "border-purple-400/50 text-purple-400" :
+            endeavor.status === "cancelled" ? "border-red-400/50 text-red-400" :
+            "border-medium-gray/50 text-medium-gray"
+          }`}>
+            {endeavor.status}
+          </span>
+          <span className="text-xs text-medium-gray">
+            {endeavor.members.length} member{endeavor.members.length !== 1 ? "s" : ""}
+            {endeavor.capacity ? ` / ${endeavor.capacity} capacity` : ""}
+          </span>
+          {isCreator && (
+            <span className="text-xs text-code-green">Creator</span>
+          )}
+        </div>
+
         <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none"
           style={{ WebkitOverflowScrolling: "touch" }}>
           {tabs.map((tab) => (
@@ -671,9 +692,8 @@ export default function DashboardPage({
                           {item.detail && (
                             <p className="mt-0.5 text-xs text-medium-gray">{item.detail}</p>
                           )}
-                          <p className="mt-0.5 text-xs text-medium-gray">
-                            {new Date(item.createdAt).toLocaleDateString()} at{" "}
-                            {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          <p className="mt-0.5 text-xs text-medium-gray" title={new Date(item.createdAt).toLocaleString()}>
+                            {formatTimeAgo(item.createdAt)}
                           </p>
                         </div>
                       </div>
@@ -1818,8 +1838,8 @@ function DiscussionMessage({
             {msg.authorName.charAt(0).toUpperCase()}
           </div>
           <span className="text-sm font-semibold">{msg.authorName}</span>
-          <span className="text-xs text-medium-gray">
-            {new Date(msg.createdAt).toLocaleDateString()}
+          <span className="text-xs text-medium-gray" title={new Date(msg.createdAt).toLocaleString()}>
+            {formatTimeAgo(msg.createdAt)}
           </span>
         </div>
         <div className="flex items-center gap-2">
