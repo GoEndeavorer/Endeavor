@@ -8,6 +8,25 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.20.0",
+    date: "March 2026",
+    title: "Engagement & Discovery",
+    items: [
+      "Activity streaks — track consecutive days of platform activity on your dashboard",
+      "Weekly goals — set and track personal objectives with inline completion",
+      "Trending topics page — explore popular categories, skills, locations, and community interests",
+      "Endorsement wall — browse community testimonials in a masonry grid layout",
+      "Personalized recommendations — skill-matched and category-based endeavor suggestions",
+      "Recently viewed sidebar — quick access to recently visited endeavors",
+      "Infinite scroll on feed — automatic loading replaces Load More button",
+      "Bookmark button — save endeavors directly to collections from detail page",
+      "API documentation page — searchable reference for all platform endpoints",
+      "Share summary API — generate shareable text summaries of endeavor progress",
+      "Template gallery enhancements — individual template detail API",
+      "Keyboard shortcuts — existing shortcuts system with help modal (press ?)",
+    ],
+  },
+  {
     version: "0.19.0",
     date: "March 2026",
     title: "Collections & Growth",
