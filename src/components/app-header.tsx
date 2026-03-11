@@ -20,6 +20,7 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
   const [results, setResults] = useState<SearchResult | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   // Keyboard shortcut: Cmd+K or Ctrl+K
   useEffect(() => {
@@ -69,11 +70,37 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
     return () => clearTimeout(timeout);
   }, [query]);
 
+  // Reset selection when results change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [results]);
+
   function navigateTo(href: string) {
     setSearchOpen(false);
     setQuery("");
     setResults(null);
+    setSelectedIndex(-1);
     router.push(href);
+  }
+
+  function handleSearchKeyDown(e: React.KeyboardEvent) {
+    if (!results) return;
+    const allItems = [
+      ...results.endeavors.map((e) => `/endeavors/${e.id}`),
+      ...results.users.map((u) => `/users/${u.id}`),
+    ];
+    if (allItems.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => Math.min(prev + 1, allItems.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((prev) => Math.max(prev - 1, 0));
+    } else if (e.key === "Enter" && selectedIndex >= 0 && selectedIndex < allItems.length) {
+      e.preventDefault();
+      navigateTo(allItems[selectedIndex]);
+    }
   }
 
   return (
@@ -215,6 +242,7 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search endeavors, people, skills..."
                 className="flex-1 bg-transparent py-4 text-sm text-white outline-none"
               />
@@ -233,11 +261,13 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                     <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-code-green">
                       Endeavors
                     </p>
-                    {results.endeavors.map((e) => (
+                    {results.endeavors.map((e, idx) => (
                       <button
                         key={e.id}
                         onClick={() => navigateTo(`/endeavors/${e.id}`)}
-                        className="flex w-full items-center gap-3 px-2 py-2 text-left hover:bg-code-green/10 transition-colors"
+                        className={`flex w-full items-center gap-3 px-2 py-2 text-left transition-colors ${
+                          selectedIndex === idx ? "bg-code-green/20" : "hover:bg-code-green/10"
+                        }`}
                       >
                         {e.imageUrl ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
@@ -261,11 +291,13 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                     <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-code-blue">
                       People
                     </p>
-                    {results.users.map((u) => (
+                    {results.users.map((u, idx) => (
                       <button
                         key={u.id}
                         onClick={() => navigateTo(`/users/${u.id}`)}
-                        className="flex w-full items-center gap-3 px-2 py-2 text-left hover:bg-code-blue/10 transition-colors"
+                        className={`flex w-full items-center gap-3 px-2 py-2 text-left transition-colors ${
+                          selectedIndex === results.endeavors.length + idx ? "bg-code-blue/20" : "hover:bg-code-blue/10"
+                        }`}
                       >
                         <div className="flex h-8 w-8 items-center justify-center bg-code-blue/10 shrink-0 text-xs text-code-blue font-bold">
                           {u.name.charAt(0).toUpperCase()}
