@@ -13,6 +13,9 @@ export function Footer() {
               <Link href="/feed" className="text-sm text-medium-gray hover:text-code-green">
                 Explore Endeavors
               </Link>
+              <Link href="/explore" className="text-sm text-medium-gray hover:text-code-green">
+                Trending
+              </Link>
               <Link href="/endeavors/completed" className="text-sm text-medium-gray hover:text-code-green">
                 Completed
               </Link>
