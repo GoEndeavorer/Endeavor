@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.7.0
+> **Version**: 0.8.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.8.0   | 2026-03-11 | Notifications page, onboarding flow, member management, discussion editing, SEO, skeletons |
 | 0.7.0   | 2026-03-11 | Cover images, activity timeline, categories, admin panel, leave endeavor, feed sorting, email notifications, markdown stories |
 | 0.6.0   | 2026-03-11 | Public profiles, settings tab, checkout pages, accessibility, task notifications |
 | 0.5.0   | 2026-03-11 | Milestones, stories, invite system, email integration, dashboard UI |
@@ -130,6 +131,29 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Member profile links on detail page
 - [x] In-progress endeavors accept new members
 
+## Phase 8: UX Polish & Management — DONE
+
+- [x] Full notifications page with read/unread filtering and time-ago display
+- [x] Enhanced public user profiles with stats (tasks, stories, discussions, endeavors)
+- [x] Endeavor duplicate/template API for reusing configurations
+- [x] Report endeavor API for user-submitted content moderation
+- [x] Discussion message editing (author can edit own messages)
+- [x] Discussion message deletion by endeavor creator (moderation)
+- [x] Markdown rendering in discussion messages
+- [x] Creator can remove members from endeavors
+- [x] Member removal API with creator authorization
+- [x] Settings tab: title, cost, capacity, funding toggle all editable
+- [x] Crew members link to public profiles in dashboard
+- [x] Onboarding welcome page with profile setup flow
+- [x] Loading skeleton components for feed cards
+- [x] Dynamic OG/Twitter meta tags with cover images for social sharing
+- [x] Enhanced sitemap with in-progress, completed, and story pages
+- [x] AppHeader adopted across all pages (feed, create, detail, dashboard, profile, users)
+- [x] Completed endeavors page with cover images and creator names
+- [x] Categories link in footer, notifications in mobile menu
+- [x] Create endeavor redirects to dashboard for immediate setup
+- [x] Robots.txt blocks notifications page
+
 ---
 
 ## Design Principles
@@ -163,7 +187,7 @@ src/
 │   ├── api/
 │   │   ├── auth/[...all]        # Better Auth handler
 │   │   ├── admin/reports         # Admin moderation
-│   │   ├── endeavors/           # CRUD, detail, join, leave, checkout, discussions, tasks, links, members, milestones, stories, invite, activity
+│   │   ├── endeavors/           # CRUD, detail, join, leave, checkout, discussions, tasks, links, members, members/[id], milestones, stories, invite, activity, duplicate, report, updates
 │   │   ├── endeavors/recommended, trending, stats  # Discovery + analytics
 │   │   ├── milestones/[id]      # Milestone CRUD
 │   │   ├── notifications/       # In-app notifications
@@ -181,9 +205,11 @@ src/
 │   ├── endeavors/completed/     # Completed endeavors showcase
 │   ├── feed/                    # Discovery feed with search, filters, sort
 │   ├── my-endeavors/            # User's endeavors (created + joined)
-│   ├── users/[userId]/          # Public user profiles
+│   ├── notifications/           # Full notifications page
+│   ├── welcome/                 # Post-signup onboarding flow
+│   ├── users/[userId]/          # Public user profiles with stats
 │   └── profile/                 # User profile editing
-├── components/                  # Shared UI (AppHeader, NotificationBell, ShareButton, MarkdownText, etc.)
+├── components/                  # Shared UI (AppHeader, NotificationBell, ShareButton, MarkdownText, Skeleton, etc.)
 ├── lib/
 │   ├── auth.ts, auth-client.ts  # Auth config
 │   ├── db/schema.ts, index.ts   # Database schema + connection
@@ -227,4 +253,5 @@ src/
 - **notification** — id, userId, type, message, endeavorId, read
 - **milestone** — id, endeavorId, title, description, targetDate, completed, completedAt
 - **story** — id, endeavorId, authorId, title, content, published
+- **update** — id, endeavorId, authorId, title, content, pinned
 - **report** — id, reporterId, endeavorId, reason, details, status
