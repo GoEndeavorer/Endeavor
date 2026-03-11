@@ -1503,6 +1503,22 @@ function SettingsTab({
       </form>
 
       <div className="mt-8 border-t border-medium-gray/20 pt-6">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-code-blue">
+          {"// data"}
+        </h3>
+        <p className="mb-3 text-xs text-medium-gray">
+          Export all endeavor data as JSON (members, tasks, milestones, discussions, payments).
+        </p>
+        <a
+          href={`/api/endeavors/${endeavorId}/export`}
+          download
+          className="inline-block border border-code-blue px-4 py-2 text-xs font-bold uppercase text-code-blue transition-colors hover:bg-code-blue hover:text-black"
+        >
+          Export Data
+        </a>
+      </div>
+
+      <div className="mt-8 border-t border-medium-gray/20 pt-6">
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-red-400">
           {"// danger zone"}
         </h3>
