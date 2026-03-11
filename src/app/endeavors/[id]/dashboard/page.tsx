@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { MarkdownText } from "@/components/markdown-text";
 import { formatTimeAgo } from "@/lib/time";
 import { useToast } from "@/components/toast";
+import { Polls } from "@/components/polls";
 
 type Discussion = {
   id: string;
@@ -501,6 +502,12 @@ export default function DashboardPage({
               {tab.label}{tab.count !== undefined ? ` (${tab.count})` : ""}
             </button>
           ))}
+          <Link
+            href={`/endeavors/${id}/chat`}
+            className="whitespace-nowrap border border-code-blue/50 px-4 py-2 text-xs font-semibold uppercase text-code-blue transition-colors hover:bg-code-blue/10"
+          >
+            Chat
+          </Link>
         </div>
 
         {/* ── Overview ── */}
@@ -651,6 +658,11 @@ export default function DashboardPage({
                 </div>
               </div>
             )}
+
+            {/* Polls */}
+            <div className="lg:col-span-1">
+              <Polls endeavorId={id} />
+            </div>
 
             {/* Activity Timeline */}
             <div className="lg:col-span-2">

@@ -299,6 +299,71 @@ export const follow = pgTable("follow", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Invite Links ────────────────────────────────────────────────────────────
+
+export const invite = pgTable("invite", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  createdById: text("created_by_id")
+    .notNull()
+    .references(() => user.id),
+  maxUses: integer("max_uses"),
+  uses: integer("uses").notNull().default(0),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Chat Messages (endeavor group chat) ─────────────────────────────────────
+
+export const message = pgTable("message", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Polls (endeavor decision-making) ────────────────────────────────────────
+
+export const pollStatusEnum = pgEnum("poll_status", [
+  "active",
+  "closed",
+]);
+
+export const poll = pgTable("poll", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  question: text("question").notNull(),
+  options: text("options").array().notNull(),
+  status: pollStatusEnum("poll_status").notNull().default("active"),
+  endsAt: timestamp("ends_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const pollVote = pgTable("poll_vote", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  pollId: uuid("poll_id")
+    .notNull()
+    .references(() => poll.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  optionIndex: integer("option_index").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Reports / Moderation ────────────────────────────────────────────────────
 
 export const report = pgTable("report", {
