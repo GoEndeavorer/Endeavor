@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { payment, endeavor, member } from "@/lib/db/schema";
+import { payment, endeavor, member, user } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import Stripe from "stripe";
+import { sendPaymentConfirmation } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -67,6 +68,19 @@ export async function POST(request: NextRequest) {
           .set({ status: "approved" })
           .where(eq(member.id, existing.id));
       }
+    }
+
+    // Send confirmation email
+    const [payer] = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+    const [end] = await db.select().from(endeavor).where(eq(endeavor.id, endeavorId)).limit(1);
+    if (payer && end) {
+      await sendPaymentConfirmation(
+        payer.email,
+        payer.name,
+        end.title,
+        amountTotal,
+        type as "join" | "donation"
+      );
     }
 
     if (type === "donation") {

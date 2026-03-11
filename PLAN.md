@@ -1,13 +1,14 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.4.0
-> **Last Updated**: 2026-03-10
+> **Version**: 0.5.0
+> **Last Updated**: 2026-03-11
 > **Status**: Built — Ready for deployment
 
 ## Changelog
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.5.0   | 2026-03-11 | Milestones, stories, invite system, email integration, dashboard UI |
 | 0.4.0   | 2026-03-10 | All phases built: notifications, links, moderation, rate limiting |
 | 0.3.0   | 2026-03-10 | Phases 1–5 built: full platform with payments & discovery |
 | 0.2.0   | 2026-03-10 | Pivot to collaborative project platform + crowdfunding   |
@@ -61,7 +62,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Member management (creator approves/rejects join requests)
 - [x] In-app notifications (join, discussion, approval)
 - [x] Notification bell in header
-- [ ] Shared timeline / milestone tracker (future)
+- [x] Shared timeline / milestone tracker (with target dates, completion tracking)
 
 ## Phase 4: Funding — DONE
 
@@ -71,7 +72,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Pricing display on feed and detail pages
 - [x] Stripe webhook for payment completion (auto-join + funding updates)
 - [x] Payment table tracking all transactions
-- [ ] Payment confirmation + receipt emails (requires Resend integration)
+- [x] Payment confirmation + receipt emails (Resend integration)
 - [ ] Refund handling (future)
 
 ## Phase 5: Discovery & Growth — DONE
@@ -82,8 +83,8 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Profile editing (bio, location, skills, interests)
 - [x] Share button (Web Share API + clipboard fallback)
 - [ ] Location-based map view (future)
-- [ ] Invite system (future)
-- [ ] Post-endeavor stories / galleries (future)
+- [x] Invite system (email invitations via Resend)
+- [x] Post-endeavor stories with draft/publish workflow
 
 ## Phase 6: Scale & Polish — PARTIAL
 
@@ -117,7 +118,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 | Payments    | Stripe                  | Done   |
 | Hosting     | Vercel                  | Ready  |
 | Storage     | Cloudflare R2 or AWS S3 | Future |
-| Email       | Resend                  | Future |
+| Email       | Resend                  | Done   |
 
 ## Architecture
 
@@ -127,8 +128,9 @@ src/
 │   ├── (auth)/login, signup     # Auth pages
 │   ├── api/
 │   │   ├── auth/[...all]        # Better Auth handler
-│   │   ├── endeavors/           # CRUD, detail, join, checkout, discussions, tasks, links, members
+│   │   ├── endeavors/           # CRUD, detail, join, checkout, discussions, tasks, links, members, milestones, stories, invite
 │   │   ├── endeavors/recommended, trending  # Discovery
+│   │   ├── milestones/[id]      # Milestone CRUD
 │   │   ├── notifications/       # In-app notifications
 │   │   ├── profile/             # User profile CRUD
 │   │   ├── reports/             # Moderation
@@ -142,6 +144,7 @@ src/
 ├── lib/
 │   ├── auth.ts, auth-client.ts  # Auth config
 │   ├── db/schema.ts, index.ts   # Database schema + connection
+│   ├── email.ts                 # Resend email integration
 │   ├── membership.ts            # Auth helpers
 │   ├── notifications.ts         # Notification helpers
 │   └── stripe.ts                # Payment config
@@ -158,6 +161,8 @@ src/
    - `BETTER_AUTH_URL` — your Vercel domain (e.g., https://endeavor.vercel.app)
    - `STRIPE_SECRET_KEY` — from Stripe dashboard
    - `STRIPE_WEBHOOK_SECRET` — from Stripe webhook settings
+   - `RESEND_API_KEY` — from Resend dashboard
+   - `EMAIL_FROM` — verified sender email
 4. Run `npm run db:push` to create database tables
 5. Set up Stripe webhook pointing to `https://your-domain/api/webhooks/stripe`
    - Event: `checkout.session.completed`
@@ -175,4 +180,6 @@ src/
 - **link** — id, endeavorId, addedById, title, url, description
 - **payment** — id, endeavorId, userId, type (join/donation), amount, stripeSessionId, status
 - **notification** — id, userId, type, message, endeavorId, read
+- **milestone** — id, endeavorId, title, description, targetDate, completed, completedAt
+- **story** — id, endeavorId, authorId, title, content, published
 - **report** — id, reporterId, endeavorId, reason, details, status

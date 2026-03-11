@@ -169,6 +169,38 @@ export const task = pgTable("task", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// ── Milestones ──────────────────────────────────────────────────────────────
+
+export const milestone = pgTable("milestone", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  targetDate: timestamp("target_date"),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Stories (post-endeavor) ─────────────────────────────────────────────────
+
+export const story = pgTable("story", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  published: boolean("published").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ── Payments ────────────────────────────────────────────────────────────────
 
 export const paymentTypeEnum = pgEnum("payment_type", [
