@@ -15,6 +15,8 @@ import { DashboardInsights } from "@/components/dashboard-insights";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { UpcomingDeadlines } from "@/components/upcoming-deadlines";
 import { NotificationDigest } from "@/components/notification-digest";
+import { WeeklyDigestCard } from "@/components/weekly-digest-card";
+import { TagCloud } from "@/components/tag-cloud";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -590,6 +592,14 @@ export default function DashboardPage() {
                   </p>
                   <p className="text-xs text-medium-gray">endeavors completed</p>
                 </div>
+              </div>
+            </section>
+
+            {/* ── weekly digest + trending tags ──────────── */}
+            <section className="mb-10 grid gap-4 sm:grid-cols-2">
+              <WeeklyDigestCard />
+              <div className="border border-medium-gray/20 p-4">
+                <TagCloud />
               </div>
             </section>
 
