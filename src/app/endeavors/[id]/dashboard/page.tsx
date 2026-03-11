@@ -539,6 +539,32 @@ export default function DashboardPage({
               >
                 View Public Page
               </Link>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/endeavors/${id}/invite-link`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ expiresInDays: 7 }),
+                    });
+                    if (res.ok) {
+                      const inv = await res.json();
+                      const url = `${window.location.origin}/invite/${inv.code}`;
+                      navigator.clipboard.writeText(url);
+                      toast("Invite link copied! Expires in 7 days.");
+                    } else {
+                      navigator.clipboard.writeText(`${window.location.origin}/endeavors/${id}`);
+                      toast("Link copied to clipboard");
+                    }
+                  } catch {
+                    navigator.clipboard.writeText(`${window.location.origin}/endeavors/${id}`);
+                    toast("Link copied to clipboard");
+                  }
+                }}
+                className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-green hover:text-code-green transition-colors"
+              >
+                Invite Link
+              </button>
               {isCreator && (
                 <button
                   onClick={() => {

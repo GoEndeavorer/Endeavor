@@ -382,6 +382,20 @@ export const report = pgTable("report", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Story Comments ─────────────────────────────────────────────────────────
+
+export const comment = pgTable("comment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  storyId: uuid("story_id")
+    .notNull()
+    .references(() => story.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Reactions ──────────────────────────────────────────────────────────────
 export const reaction = pgTable("reaction", {
   id: uuid("id").primaryKey().defaultRandom(),

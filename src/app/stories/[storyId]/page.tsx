@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MarkdownText } from "@/components/markdown-text";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
+import { StoryComments } from "@/components/story-comments";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +132,8 @@ export default async function StoryPage({ params }: Props) {
             </Link>
           </div>
         </div>
+
+        <StoryComments storyId={storyId} />
       </main>
       <Footer />
     </div>

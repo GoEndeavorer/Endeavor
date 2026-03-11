@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
@@ -65,6 +65,7 @@ const templates = [
 
 export default function CreateEndeavorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -83,6 +84,26 @@ export default function CreateEndeavorPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [joinType, setJoinType] = useState("open");
   const [showTemplates, setShowTemplates] = useState(true);
+
+  // Auto-fill from URL template parameter (from /templates page)
+  useEffect(() => {
+    const templateId = searchParams.get("template");
+    if (templateId) {
+      fetch("/api/templates")
+        .then((r) => (r.ok ? r.json() : []))
+        .then((tmps: { id: string; name: string; description: string; category: string; suggestedNeeds: string[] }[]) => {
+          const tmpl = tmps.find((t: { id: string }) => t.id === templateId);
+          if (tmpl) {
+            setTitle(tmpl.name);
+            setDescription(tmpl.description);
+            setCategory(tmpl.category);
+            setNeeds(tmpl.suggestedNeeds);
+            setShowTemplates(false);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [searchParams]);
 
   function applyTemplate(tmpl: (typeof templates)[number]) {
     setTitle(tmpl.name);
