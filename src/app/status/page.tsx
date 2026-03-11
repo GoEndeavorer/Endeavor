@@ -1,21 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 
-const PLATFORM_VERSION = "0.18.0";
-const PLATFORM_METRICS = {
-  totalPages: 57,
-  totalApiRoutes: 102,
-  totalComponents: 45,
-};
-
-type HealthCheck = {
-  status: "ok" | "error";
+type StatusResponse = {
+  status: "ok" | "degraded";
   database: "connected" | "disconnected";
-  timestamp: string;
-  uptime?: number;
+  apiVersion: string;
+  uptime: number;
+  lastChecked: string;
+  stats: {
+    totalEndeavors: number;
+    totalUsers: number;
+  };
 };
 
 type Service = {
@@ -24,125 +22,152 @@ type Service = {
   latency?: number;
 };
 
+function formatUptime(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
+  if (hours > 0) return `${hours}h ${minutes % 60}m`;
+  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
+}
+
+function StatusDot({ status }: { status: "operational" | "checking" | "down" }) {
+  return (
+    <span
+      className={`inline-block h-2 w-2 ${
+        status === "operational"
+          ? "bg-[#00FF00]"
+          : status === "checking"
+          ? "bg-[#666666] animate-pulse"
+          : "bg-red-500"
+      }`}
+    />
+  );
+}
+
 export default function StatusPage() {
-  const [health, setHealth] = useState<HealthCheck | null>(null);
-  const [apiResponseTime, setApiResponseTime] = useState<number | null>(null);
+  const [data, setData] = useState<StatusResponse | null>(null);
+  const [apiLatency, setApiLatency] = useState<number | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [services, setServices] = useState<Service[]>([
     { name: "API", status: "checking" },
     { name: "Database", status: "checking" },
     { name: "Authentication", status: "checking" },
-    { name: "Payments (Stripe)", status: "checking" },
-    { name: "Email (Resend)", status: "checking" },
   ]);
 
-  useEffect(() => {
+  const fetchStatus = useCallback(async () => {
     const start = performance.now();
-    fetch("/api/health")
-      .then((r) => {
-        const latency = Math.round(performance.now() - start);
-        setApiResponseTime(latency);
-        if (r.ok) {
-          return r.json().then((data: HealthCheck) => {
-            setHealth(data);
-            setServices((prev) =>
-              prev.map((s) => {
-                if (s.name === "API") return { ...s, status: "operational", latency };
-                if (s.name === "Database")
-                  return {
-                    ...s,
-                    status: data.database === "connected" ? "operational" : "down",
-                    latency,
-                  };
-                if (s.name === "Authentication") return { ...s, status: "operational" };
-                if (s.name === "Payments (Stripe)")
-                  return { ...s, status: "operational" };
-                if (s.name === "Email (Resend)")
-                  return { ...s, status: "operational" };
-                return s;
-              })
-            );
-          });
-        } else {
-          setServices((prev) =>
-            prev.map((s) => ({ ...s, status: "down" as const }))
-          );
-        }
-      })
-      .catch(() => {
+    try {
+      const res = await fetch("/api/status");
+      const latency = Math.round(performance.now() - start);
+      setApiLatency(latency);
+      setLastRefresh(new Date());
+
+      if (res.ok) {
+        const json: StatusResponse = await res.json();
+        setData(json);
+        setServices([
+          { name: "API", status: "operational", latency },
+          {
+            name: "Database",
+            status: json.database === "connected" ? "operational" : "down",
+            latency,
+          },
+          { name: "Authentication", status: "operational" },
+        ]);
+      } else {
         setServices((prev) =>
           prev.map((s) => ({ ...s, status: "down" as const }))
         );
-      });
+      }
+    } catch {
+      setServices((prev) =>
+        prev.map((s) => ({ ...s, status: "down" as const }))
+      );
+    }
   }, []);
 
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 30000);
+    return () => clearInterval(interval);
+  }, [fetchStatus]);
+
   const allOperational = services.every((s) => s.status === "operational");
+  const anyChecking = services.some((s) => s.status === "checking");
 
   return (
     <div className="min-h-screen">
       <AppHeader breadcrumb={{ label: "Status", href: "/status" }} />
 
       <main className="mx-auto max-w-xl px-4 pt-24 pb-16">
-        <h1 className="mb-2 text-3xl font-bold">System Status</h1>
-        <p className="mb-8 text-sm text-medium-gray">
-          Current operational status of Endeavor services.
+        {/* Page title */}
+        <h1 className="mb-1 text-3xl font-bold">System Status</h1>
+        <p className="mb-8 text-sm text-[#666666]">
+          Real-time operational status of Endeavor platform services. Auto-refreshes every 30s.
         </p>
 
-        {/* Overall status */}
+        {/* Overall status banner */}
         <div
-          className={`mb-8 border p-6 text-center ${
+          className={`mb-10 border p-6 text-center ${
             allOperational
-              ? "border-code-green/30 bg-code-green/5"
-              : services.some((s) => s.status === "checking")
-              ? "border-medium-gray/30"
+              ? "border-[#00FF00]/30 bg-[#00FF00]/5"
+              : anyChecking
+              ? "border-[#666666]/30 bg-[#666666]/5"
               : "border-red-500/30 bg-red-500/5"
           }`}
         >
-          <p className={`text-lg font-semibold ${allOperational ? "text-code-green" : services.some((s) => s.status === "checking") ? "text-medium-gray" : "text-red-400"}`}>
+          <p
+            className={`text-lg font-semibold ${
+              allOperational
+                ? "text-[#00FF00]"
+                : anyChecking
+                ? "text-[#666666]"
+                : "text-red-400"
+            }`}
+          >
             {allOperational
               ? "All Systems Operational"
-              : services.some((s) => s.status === "checking")
-              ? "Checking..."
+              : anyChecking
+              ? "Checking Systems..."
               : "Some Services Experiencing Issues"}
           </p>
-          {health && (
-            <p className="mt-1 text-xs text-medium-gray">
-              Last checked: {new Date(health.timestamp).toLocaleString()}
+          {lastRefresh && (
+            <p className="mt-1 text-xs text-[#666666]">
+              Last checked: {lastRefresh.toLocaleString()}
             </p>
           )}
         </div>
 
-        {/* Individual services */}
+        {/* // services */}
+        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#00FF00]">
+          {"// services"}
+        </p>
         <div className="space-y-2">
           {services.map((service) => (
             <div
               key={service.name}
-              className="flex items-center justify-between border border-medium-gray/20 p-4"
+              className="flex items-center justify-between border border-[#666666]/20 p-4"
             >
               <span className="text-sm">{service.name}</span>
               <div className="flex items-center gap-3">
                 {service.latency !== undefined && (
-                  <span className="text-xs text-medium-gray">
+                  <span className="text-xs font-mono text-[#666666]">
                     {service.latency}ms
                   </span>
                 )}
                 <span
                   className={`flex items-center gap-1.5 text-xs font-semibold ${
                     service.status === "operational"
-                      ? "text-code-green"
+                      ? "text-[#00FF00]"
                       : service.status === "checking"
-                      ? "text-medium-gray"
+                      ? "text-[#666666]"
                       : "text-red-400"
                   }`}
                 >
-                  <span
-                    className={`h-2 w-2 ${
-                      service.status === "operational"
-                        ? "bg-code-green"
-                        : service.status === "checking"
-                        ? "bg-medium-gray animate-pulse"
-                        : "bg-red-400"
-                    }`}
-                  />
+                  <StatusDot status={service.status} />
                   {service.status === "operational"
                     ? "Operational"
                     : service.status === "checking"
@@ -154,18 +179,20 @@ export default function StatusPage() {
           ))}
         </div>
 
-        {/* System Health Checks */}
-        <h2 className="mt-12 mb-4 text-xl font-bold">System Health Checks</h2>
+        {/* // health checks */}
+        <p className="mt-12 mb-4 text-xs font-semibold uppercase tracking-widest text-[#00FF00]">
+          {"// health checks"}
+        </p>
         <div className="space-y-2">
           {/* Database Connectivity */}
-          <div className="flex items-center justify-between border border-medium-gray/20 p-4">
+          <div className="flex items-center justify-between border border-[#666666]/20 p-4">
             <div className="flex items-center gap-3">
               <span
                 className={`h-3 w-3 rounded-full ${
-                  health?.database === "connected"
-                    ? "bg-code-green"
-                    : health === null
-                    ? "bg-medium-gray animate-pulse"
+                  data?.database === "connected"
+                    ? "bg-[#00FF00]"
+                    : data === null
+                    ? "bg-[#666666] animate-pulse"
                     : "bg-red-400"
                 }`}
               />
@@ -173,30 +200,30 @@ export default function StatusPage() {
             </div>
             <span
               className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
-                health?.database === "connected"
-                  ? "bg-code-green/10 text-code-green"
-                  : health === null
-                  ? "bg-medium-gray/10 text-medium-gray"
+                data?.database === "connected"
+                  ? "bg-[#00FF00]/10 text-[#00FF00]"
+                  : data === null
+                  ? "bg-[#666666]/10 text-[#666666]"
                   : "bg-red-400/10 text-red-400"
               }`}
             >
-              {health?.database === "connected"
+              {data?.database === "connected"
                 ? "Connected"
-                : health === null
+                : data === null
                 ? "Checking..."
                 : "Error"}
             </span>
           </div>
 
           {/* API Response Time */}
-          <div className="flex items-center justify-between border border-medium-gray/20 p-4">
+          <div className="flex items-center justify-between border border-[#666666]/20 p-4">
             <div className="flex items-center gap-3">
               <span
                 className={`h-3 w-3 rounded-full ${
-                  apiResponseTime !== null && apiResponseTime < 1000
-                    ? "bg-code-green"
-                    : apiResponseTime === null
-                    ? "bg-medium-gray animate-pulse"
+                  apiLatency !== null && apiLatency < 1000
+                    ? "bg-[#00FF00]"
+                    : apiLatency === null
+                    ? "bg-[#666666] animate-pulse"
                     : "bg-red-400"
                 }`}
               />
@@ -204,68 +231,104 @@ export default function StatusPage() {
             </div>
             <span
               className={`rounded-full px-3 py-0.5 text-xs font-semibold font-mono ${
-                apiResponseTime !== null && apiResponseTime < 1000
-                  ? "bg-code-green/10 text-code-green"
-                  : apiResponseTime === null
-                  ? "bg-medium-gray/10 text-medium-gray"
+                apiLatency !== null && apiLatency < 1000
+                  ? "bg-[#00FF00]/10 text-[#00FF00]"
+                  : apiLatency === null
+                  ? "bg-[#666666]/10 text-[#666666]"
                   : "bg-red-400/10 text-red-400"
               }`}
             >
-              {apiResponseTime !== null ? `${apiResponseTime}ms` : "Measuring..."}
+              {apiLatency !== null ? `${apiLatency}ms` : "Measuring..."}
             </span>
           </div>
 
-          {/* Total Uptime */}
-          <div className="flex items-center justify-between border border-medium-gray/20 p-4">
+          {/* Uptime */}
+          <div className="flex items-center justify-between border border-[#666666]/20 p-4">
             <div className="flex items-center gap-3">
               <span
                 className={`h-3 w-3 rounded-full ${
-                  allOperational ? "bg-code-green" : "bg-medium-gray animate-pulse"
+                  data ? "bg-[#00FF00]" : "bg-[#666666] animate-pulse"
                 }`}
               />
-              <span className="text-sm font-medium">Total Uptime</span>
+              <span className="text-sm font-medium">Server Uptime</span>
             </div>
             <span
-              className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
-                allOperational
-                  ? "bg-code-green/10 text-code-green"
-                  : "bg-medium-gray/10 text-medium-gray"
+              className={`rounded-full px-3 py-0.5 text-xs font-semibold font-mono ${
+                data
+                  ? "bg-[#00FF00]/10 text-[#00FF00]"
+                  : "bg-[#666666]/10 text-[#666666]"
               }`}
             >
-              {allOperational ? "Online" : "Checking..."}
+              {data ? formatUptime(data.uptime) : "Checking..."}
             </span>
           </div>
         </div>
 
-        {/* Platform Metrics */}
-        <h2 className="mt-12 mb-4 text-xl font-bold">Platform Metrics</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="border border-medium-gray/20 p-4">
-            <p className="text-xs text-medium-gray uppercase tracking-wider">Version</p>
-            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
-              v{PLATFORM_VERSION}
+        {/* // platform stats */}
+        <p className="mt-12 mb-4 text-xs font-semibold uppercase tracking-widest text-[#00FF00]">
+          {"// platform stats"}
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="border border-[#666666]/20 p-4">
+            <p className="text-xs text-[#666666] uppercase tracking-wider">
+              Version
+            </p>
+            <p className="mt-1 text-lg font-mono font-semibold text-[#00A1D6]">
+              v{data?.apiVersion ?? "---"}
             </p>
           </div>
-          <div className="border border-medium-gray/20 p-4">
-            <p className="text-xs text-medium-gray uppercase tracking-wider">Total Pages</p>
-            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
-              {PLATFORM_METRICS.totalPages}
+          <div className="border border-[#666666]/20 p-4">
+            <p className="text-xs text-[#666666] uppercase tracking-wider">
+              Endeavors
+            </p>
+            <p className="mt-1 text-lg font-mono font-semibold text-[#00A1D6]">
+              {data?.stats.totalEndeavors ?? "---"}
             </p>
           </div>
-          <div className="border border-medium-gray/20 p-4">
-            <p className="text-xs text-medium-gray uppercase tracking-wider">API Routes</p>
-            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
-              {PLATFORM_METRICS.totalApiRoutes}
+          <div className="border border-[#666666]/20 p-4">
+            <p className="text-xs text-[#666666] uppercase tracking-wider">
+              Users
             </p>
-          </div>
-          <div className="border border-medium-gray/20 p-4">
-            <p className="text-xs text-medium-gray uppercase tracking-wider">Components</p>
-            <p className="mt-1 text-lg font-mono font-semibold text-code-blue">
-              {PLATFORM_METRICS.totalComponents}
+            <p className="mt-1 text-lg font-mono font-semibold text-[#00A1D6]">
+              {data?.stats.totalUsers ?? "---"}
             </p>
           </div>
         </div>
+
+        {/* // system info */}
+        <p className="mt-12 mb-4 text-xs font-semibold uppercase tracking-widest text-[#00FF00]">
+          {"// system info"}
+        </p>
+        <div className="border border-[#666666]/20 p-4 font-mono text-xs text-[#666666] space-y-1">
+          <p>
+            status:{" "}
+            <span className={data?.status === "ok" ? "text-[#00FF00]" : "text-red-400"}>
+              {data?.status ?? "checking"}
+            </span>
+          </p>
+          <p>
+            api_version:{" "}
+            <span className="text-[#00A1D6]">{data?.apiVersion ?? "---"}</span>
+          </p>
+          <p>
+            uptime:{" "}
+            <span className="text-white">
+              {data ? formatUptime(data.uptime) : "---"}
+            </span>
+          </p>
+          <p>
+            last_checked:{" "}
+            <span className="text-white">
+              {data?.lastChecked ?? "---"}
+            </span>
+          </p>
+          <p>
+            refresh_interval:{" "}
+            <span className="text-white">30s</span>
+          </p>
+        </div>
       </main>
+
       <Footer />
     </div>
   );
