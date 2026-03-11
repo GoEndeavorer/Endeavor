@@ -31,6 +31,7 @@ type Task = {
   dueDate: string | null;
   assigneeId: string | null;
   assigneeName: string | null;
+  priority: string;
   createdAt: string;
 };
 
@@ -146,6 +147,7 @@ export default function DashboardPage({
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState("medium");
   const [newLinkTitle, setNewLinkTitle] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
@@ -233,6 +235,7 @@ export default function DashboardPage({
         description: newTaskDescription || null,
         assigneeId: newTaskAssignee || null,
         dueDate: newTaskDueDate || null,
+        priority: newTaskPriority,
       }),
     });
     if (res.ok) {
@@ -242,6 +245,7 @@ export default function DashboardPage({
       setNewTaskDescription("");
       setNewTaskDueDate("");
       setNewTaskAssignee("");
+      setNewTaskPriority("medium");
     }
   }
 
@@ -967,6 +971,16 @@ export default function DashboardPage({
                   {endeavor.members.map((m) => (
                     <option key={m.userId} value={m.userId}>{m.userName}</option>
                   ))}
+                </select>
+                <select
+                  value={newTaskPriority}
+                  onChange={(e) => setNewTaskPriority(e.target.value)}
+                  className="border border-medium-gray/30 bg-black px-3 py-2 text-sm text-white outline-none"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
                 </select>
                 <input
                   type="date"
@@ -1919,7 +1933,18 @@ function TaskCard({
   return (
     <div className="border border-medium-gray/20 p-3">
       <div className="mb-1 flex items-start justify-between">
-        <p className="text-sm font-semibold">{t.title}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold">{t.title}</p>
+          {t.priority && t.priority !== "medium" && (
+            <span className={`px-1 py-0.5 text-[10px] font-bold uppercase ${
+              t.priority === "urgent" ? "bg-red-500/20 text-red-400" :
+              t.priority === "high" ? "bg-orange-400/20 text-orange-400" :
+              "bg-medium-gray/10 text-medium-gray"
+            }`}>
+              {t.priority}
+            </span>
+          )}
+        </div>
         <button onClick={() => onDelete(t.id)} className="ml-2 flex-shrink-0 text-xs text-medium-gray hover:text-red-400">x</button>
       </div>
       {t.description && <p className="mb-1 text-xs text-light-gray">{t.description}</p>}

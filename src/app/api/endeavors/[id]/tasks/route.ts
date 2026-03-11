@@ -29,6 +29,7 @@ export async function GET(
       createdAt: task.createdAt,
       assigneeId: task.assigneeId,
       assigneeName: user.name,
+      priority: task.priority,
     })
     .from(task)
     .leftJoin(user, eq(task.assigneeId, user.id))
@@ -48,7 +49,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { title, description, assigneeId, dueDate } = await request.json();
+  const { title, description, assigneeId, dueDate, priority } = await request.json();
   if (!title?.trim()) {
     return NextResponse.json(
       { error: "Title is required" },
@@ -64,6 +65,7 @@ export async function POST(
       description: description?.trim() || null,
       assigneeId: assigneeId || null,
       dueDate: dueDate ? new Date(dueDate) : null,
+      priority: priority || "medium",
       createdById: session.user.id,
     })
     .returning();
