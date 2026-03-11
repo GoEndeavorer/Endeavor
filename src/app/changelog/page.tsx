@@ -8,6 +8,31 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.28.0",
+    date: "March 2026",
+    title: "Productivity & Communication",
+    items: [
+      "Chat rooms — real-time messaging with room creation and message polling",
+      "Kanban board — visual task management with drag-and-drop columns",
+      "Time tracking — log hours with period summaries and activity stats",
+      "Daily standups — share yesterday/today/blockers with mood tracking",
+      "Community polls — single and multiple choice voting with live results",
+      "Wiki system — collaborative documentation with revision tracking",
+      "Announcements — priority-based announcements with pinning support",
+      "Forums — threaded discussion boards with category organization",
+      "Code snippets — share and discover code with language filters and likes",
+      "Learning playlists — curated resource collections by category",
+      "Marketplace — buy, sell, and trade services within the community",
+      "Gallery viewer — image lightbox with keyboard navigation",
+      "Roadmap timeline component — visual milestone tracking",
+      "User presence API — online status and status messages",
+      "Project templates API — shareable project configurations",
+      "Report export API — CSV and JSON data export",
+      "Endeavor metrics API — growth analytics and trend data",
+      "User activity stream API — unified contribution feed",
+    ],
+  },
+  {
     version: "0.25.0",
     date: "March 2026",
     title: "Social & Collaboration",

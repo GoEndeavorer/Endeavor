@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const CURRENT_VERSION = "0.25.0";
+const CURRENT_VERSION = "0.28.0";
 const BANNER_KEY = `endeavor_whats_new_${CURRENT_VERSION}`;
 
 const highlights = [
-  "Q&A with voting",
-  "Challenges & XP rewards",
-  "Community groups",
-  "Direct messaging",
-  "Achievements system",
-  "Integrations hub",
-  "Notes & reactions",
+  "Chat rooms",
+  "Kanban boards",
+  "Time tracking",
+  "Daily standups",
+  "Polls & voting",
+  "Wiki pages",
+  "Forums & snippets",
+  "Marketplace",
 ];
 
 export function WhatsNewBanner() {

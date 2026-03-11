@@ -115,6 +115,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/kanban`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     { url: `${baseUrl}/time-tracking`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 },
     { url: `${baseUrl}/standups`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 },
+    { url: `${baseUrl}/resources`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
+    { url: `${baseUrl}/meetings`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     ...endeavorUrls,
     ...storyUrls,
     ...publishedStories.map((s) => ({

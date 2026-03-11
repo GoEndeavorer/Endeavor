@@ -85,6 +85,8 @@ const sections: CommandSection[] = [
       { label: "Kanban Board", icon: "K", action: "/kanban" },
       { label: "Time Tracking", icon: "T", action: "/time-tracking" },
       { label: "Standups", icon: "S", action: "/standups" },
+      { label: "Resources", icon: "R", action: "/resources" },
+      { label: "Meetings", icon: "M", action: "/meetings" },
     ],
   },
 ];
