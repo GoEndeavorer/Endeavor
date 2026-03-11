@@ -25,6 +25,7 @@ import { MemberActivity } from "@/components/member-activity";
 import { EndeavorActivityHeatmap } from "@/components/endeavor-activity-heatmap";
 import { WatchButton } from "@/components/watch-button";
 import { CompletionMeter } from "@/components/completion-meter";
+import { MilestoneProgress } from "@/components/milestone-progress";
 
 type EndeavorDetail = {
   id: string;
@@ -498,6 +499,9 @@ export default function EndeavorDetailPage({
             {/* Completion meter */}
             <CompletionMeter endeavorId={endeavor.id} />
 
+            {/* Milestone progress */}
+            <MilestoneProgress endeavorId={endeavor.id} />
+
             {/* Stories link */}
             <Link
               href={`/endeavors/${endeavor.id}/stories`}
@@ -521,6 +525,15 @@ export default function EndeavorDetailPage({
                 Use as Template
               </button>
             )}
+
+            {/* Print view */}
+            <Link
+              href={`/endeavors/${endeavor.id}/print`}
+              target="_blank"
+              className="block w-full border border-medium-gray/30 px-4 py-3 text-center text-sm text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
+            >
+              Print / Export PDF
+            </Link>
 
             {/* Join button */}
             {joinMessage && (

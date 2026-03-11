@@ -12,6 +12,7 @@ import { ActivitySparkline } from "@/components/activity-sparkline";
 import { ActivityStreak } from "@/components/activity-streak";
 import { WeeklyGoals } from "@/components/weekly-goals";
 import { DashboardInsights } from "@/components/dashboard-insights";
+import { OnboardingChecklist } from "@/components/onboarding-checklist";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -536,6 +537,11 @@ export default function DashboardPage() {
                 </div>
               </section>
             )}
+
+            {/* ── onboarding checklist ──────────────── */}
+            <section className="mb-10">
+              <OnboardingChecklist />
+            </section>
 
             {/* ── insights ─────────────────────────── */}
             <section className="mb-10">
