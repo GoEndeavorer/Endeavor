@@ -8,6 +8,32 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.25.0",
+    date: "March 2026",
+    title: "Social & Collaboration",
+    items: [
+      "Q&A system — ask questions, post answers, vote, and accept solutions",
+      "Question detail page — threaded answers with voting and acceptance",
+      "Challenges system — create challenges with difficulty, XP rewards, and progress tracking",
+      "Community groups — public/private groups with categories and member management",
+      "Direct messaging — conversations with unread counts and message threads",
+      "Achievements system — badges with criteria checking and progress tracking",
+      "Templates marketplace — rate, review, and use project templates",
+      "Integrations hub — connect GitHub, Slack, Figma, and 10+ services",
+      "Media library — upload and manage images, videos, and documents",
+      "Invitations system — invite users to endeavors and groups",
+      "Audit log — track account activity and security events",
+      "Content moderation — report inappropriate content with reason categories",
+      "User blocking — block users with automatic unfollow",
+      "Reactions API — emoji reactions (👍❤️🎉🚀) on any content type",
+      "Saved searches — save and revisit search queries with notification alerts",
+      "Personal notes — scratchpad with pinning, editing, and markdown support",
+      "Contribution heatmap component — GitHub-style activity visualization",
+      "Endorsement list and portfolio on user profiles",
+      "Enhanced command palette with 15+ new navigation shortcuts",
+    ],
+  },
+  {
     version: "0.23.0",
     date: "March 2026",
     title: "Community & Growth",
