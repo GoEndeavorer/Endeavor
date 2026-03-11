@@ -488,3 +488,17 @@ export const media = pgTable("media", {
   caption: text("caption"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ── FAQ (endeavor Q&A) ───────────────────────────────────────────────────────
+
+export const faq = pgTable("faq", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+

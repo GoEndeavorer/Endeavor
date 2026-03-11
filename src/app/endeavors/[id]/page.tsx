@@ -14,6 +14,7 @@ import { analytics } from "@/lib/analytics";
 import { ProgressTracker } from "@/components/progress-tracker";
 import { Endorsements } from "@/components/endorsements";
 import { SocialShare } from "@/components/social-share";
+import { EndeavorFaq } from "@/components/endeavor-faq";
 
 type EndeavorDetail = {
   id: string;
@@ -567,6 +568,11 @@ export default function EndeavorDetailPage({
         <div className="mt-8 border border-medium-gray/20 p-4">
           <p className="mb-2 text-xs text-medium-gray uppercase tracking-widest">Share this endeavor</p>
           <SocialShare title={endeavor.title} url={`/endeavors/${endeavor.id}`} description={endeavor.description.slice(0, 160)} />
+        </div>
+
+        {/* FAQ */}
+        <div className="mt-12">
+          <EndeavorFaq endeavorId={endeavor.id} isCreator={isCreator} />
         </div>
 
         {/* Endorsements */}
