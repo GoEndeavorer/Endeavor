@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { formatTimeAgo } from "@/lib/time";
 
 type Endeavor = {
   id: string;
@@ -66,7 +67,7 @@ export default function MyEndeavorsPage() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader />
+      <AppHeader breadcrumb={{ label: "My Endeavors", href: "/my-endeavors" }} />
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
         <h1 className="mb-6 text-3xl font-bold">My Endeavors</h1>
@@ -146,8 +147,8 @@ export default function MyEndeavorsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-medium-gray">
-                    {e.category} &middot; {e.memberCount} members
-                    {e.creatorId === session.user.id ? " · You created this" : ""}
+                    {e.category} &middot; {e.memberCount} members &middot; {formatTimeAgo(e.createdAt)}
+                    {e.creatorId === session.user.id ? " · Creator" : ""}
                   </p>
                 </div>
                 <div className="flex gap-2">
