@@ -43,6 +43,12 @@ export function Footer() {
               <Link href="/tags" className="text-sm text-medium-gray hover:text-code-green">
                 Tags
               </Link>
+              <Link href="/map" className="text-sm text-medium-gray hover:text-code-green">
+                Map
+              </Link>
+              <Link href="/calendar" className="text-sm text-medium-gray hover:text-code-green">
+                Calendar
+              </Link>
               <Link href="/search" className="text-sm text-medium-gray hover:text-code-green">
                 Search
               </Link>
@@ -64,6 +70,9 @@ export function Footer() {
               </Link>
               <Link href="/login" className="text-sm text-medium-gray hover:text-code-green">
                 Log In
+              </Link>
+              <Link href="/dashboard" className="text-sm text-medium-gray hover:text-code-green">
+                Dashboard
               </Link>
               <Link href="/profile" className="text-sm text-medium-gray hover:text-code-green">
                 Profile

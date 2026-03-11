@@ -149,10 +149,18 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             <Link href="/leaderboard" className="text-sm text-medium-gray hover:text-code-green">
               Ranks
             </Link>
+            <Link href="/map" className="text-sm text-medium-gray hover:text-code-green">
+              Map
+            </Link>
             {session && (
-              <Link href="/following" className="text-sm text-medium-gray hover:text-code-green">
-                Following
-              </Link>
+              <>
+                <Link href="/following" className="text-sm text-medium-gray hover:text-code-green">
+                  Following
+                </Link>
+                <Link href="/calendar" className="text-sm text-medium-gray hover:text-code-green">
+                  Calendar
+                </Link>
+              </>
             )}
             {session ? (
               <>
@@ -224,6 +232,9 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             <Link href="/stories" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
               Stories
             </Link>
+            <Link href="/map" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+              Map
+            </Link>
             {session ? (
               <>
                 <Link href="/following" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
@@ -237,6 +248,12 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 </Link>
                 <Link href="/saved" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
                   Saved
+                </Link>
+                <Link href="/dashboard" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link href="/calendar" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
+                  Calendar
                 </Link>
                 <Link href="/notifications" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
                   Notifications
