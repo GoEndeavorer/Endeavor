@@ -16,6 +16,8 @@ import { Endorsements } from "@/components/endorsements";
 import { SocialShare } from "@/components/social-share";
 import { EndeavorFaq } from "@/components/endeavor-faq";
 import { MemberContributions } from "@/components/member-contributions";
+import { EndeavorProgress } from "@/components/endeavor-progress";
+import { ReportModal } from "@/components/report-modal";
 
 type EndeavorDetail = {
   id: string;
@@ -71,6 +73,7 @@ export default function EndeavorDetailPage({
   const [joinMessage, setJoinMessage] = useState("");
   const [bookmarked, setBookmarked] = useState(false);
   const [similar, setSimilar] = useState<{ id: string; title: string; category: string; status: string; imageUrl: string | null; memberCount: number }[]>([]);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     async function fetchEndeavor() {
@@ -585,6 +588,30 @@ export default function EndeavorDetailPage({
         <div className="mt-12">
           <Endorsements endeavorId={endeavor.id} isMember={isMember || isCreator} />
         </div>
+
+        {/* Progress summary */}
+        <div className="mt-12">
+          <EndeavorProgress endeavorId={endeavor.id} />
+        </div>
+
+        {/* Report */}
+        {session && !isCreator && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setShowReport(true)}
+              className="text-xs text-medium-gray hover:text-red-400 transition-colors"
+            >
+              Report this endeavor
+            </button>
+          </div>
+        )}
+        {showReport && (
+          <ReportModal
+            targetType="endeavor"
+            targetId={endeavor.id}
+            onClose={() => setShowReport(false)}
+          />
+        )}
 
         {/* Similar endeavors */}
         {similar.length > 0 && (
