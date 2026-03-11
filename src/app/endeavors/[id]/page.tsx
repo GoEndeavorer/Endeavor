@@ -348,6 +348,14 @@ export default function EndeavorDetailPage({
               )}
             </div>
 
+            {/* Stories link */}
+            <Link
+              href={`/endeavors/${endeavor.id}/stories`}
+              className="block w-full border border-medium-gray/30 px-4 py-3 text-center text-sm text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
+            >
+              View Stories
+            </Link>
+
             {/* Join button */}
             {joinMessage && (
               <div className="border border-code-green/30 bg-code-green/10 px-4 py-3 text-sm text-code-green">

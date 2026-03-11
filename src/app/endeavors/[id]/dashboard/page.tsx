@@ -64,12 +64,22 @@ type Story = {
 type EndeavorInfo = {
   id: string;
   title: string;
+  description: string;
+  category: string;
+  status: string;
+  location: string | null;
+  locationType: string;
+  joinType: string;
+  costPerPerson: number | null;
+  capacity: number | null;
+  fundingEnabled: boolean;
+  fundingGoal: number | null;
   creatorId: string;
   members: Member[];
   pendingMembers: Member[];
 };
 
-type TabId = "discussion" | "tasks" | "milestones" | "stories" | "links" | "members";
+type TabId = "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "settings";
 
 export default function DashboardPage({
   params,
@@ -319,6 +329,7 @@ export default function DashboardPage({
     { id: "stories", label: "Stories", count: stories.length },
     { id: "links", label: "Links", count: links.length },
     { id: "members", label: "Members", count: endeavor.members.length },
+    ...(isCreator ? [{ id: "settings" as TabId, label: "Settings" }] : []),
   ];
 
   return (
@@ -748,7 +759,98 @@ export default function DashboardPage({
             </div>
           </div>
         )}
+        {/* ── Settings (creator only) ── */}
+        {activeTab === "settings" && isCreator && (
+          <SettingsTab endeavor={endeavor} endeavorId={id} onUpdate={fetchData} />
+        )}
       </main>
+    </div>
+  );
+}
+
+function SettingsTab({
+  endeavor,
+  endeavorId,
+  onUpdate,
+}: {
+  endeavor: EndeavorInfo;
+  endeavorId: string;
+  onUpdate: () => void;
+}) {
+  const [status, setStatus] = useState(endeavor.status);
+  const [description, setDescription] = useState(endeavor.description);
+  const [joinType, setJoinType] = useState(endeavor.joinType);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setSaved(false);
+    const res = await fetch(`/api/endeavors/${endeavorId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status, description, joinType }),
+    });
+    if (res.ok) {
+      setSaved(true);
+      onUpdate();
+      setTimeout(() => setSaved(false), 3000);
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="max-w-xl">
+      <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+        {"// endeavor settings"}
+      </h3>
+      <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label className="mb-1 block text-xs text-medium-gray">Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full border border-medium-gray/50 bg-black px-4 py-3 text-sm text-white outline-none"
+          >
+            <option value="draft">Draft</option>
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-medium-gray">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={6}
+            className="w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-medium-gray">Join Type</label>
+          <select
+            value={joinType}
+            onChange={(e) => setJoinType(e.target.value)}
+            className="w-full border border-medium-gray/50 bg-black px-4 py-3 text-sm text-white outline-none"
+          >
+            <option value="open">Open (anyone can join)</option>
+            <option value="request">Request (approval required)</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={saving}
+            className="border border-code-green px-6 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+          {saved && <span className="text-xs text-code-green">Saved!</span>}
+        </div>
+      </form>
     </div>
   );
 }
