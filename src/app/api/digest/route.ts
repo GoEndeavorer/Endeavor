@@ -12,6 +12,146 @@ export const dynamic = "force-dynamic";
 
 const FROM = process.env.EMAIL_FROM || "Endeavor <digest@endeavor.app>";
 
+// ── GET: public weekly digest for the digest page ──────────────────────────
+
+export async function GET() {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [
+    newEndeavorsCountResult,
+    topNewEndeavorsResult,
+    completedMilestonesResult,
+    newMembersResult,
+    mostActiveResult,
+    topStoriesResult,
+  ] = await Promise.all([
+    // New endeavors created in the past 7 days
+    db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM endeavor
+      WHERE created_at >= ${sevenDaysAgo}::timestamp
+    `),
+
+    // Top 5 new endeavors by member count
+    db.execute(sql`
+      SELECT
+        e.id,
+        e.title,
+        e.category,
+        e.image_url AS "imageUrl",
+        e.created_at AS "createdAt",
+        COALESCE(mc.member_count, 0)::int AS "memberCount"
+      FROM endeavor e
+      LEFT JOIN (
+        SELECT endeavor_id, COUNT(*)::int AS member_count
+        FROM member
+        WHERE status = 'approved'
+        GROUP BY endeavor_id
+      ) mc ON mc.endeavor_id = e.id
+      WHERE e.created_at >= ${sevenDaysAgo}::timestamp
+      ORDER BY mc.member_count DESC NULLS LAST, e.created_at DESC
+      LIMIT 5
+    `),
+
+    // Completed milestones count
+    db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM milestone
+      WHERE completed = true
+        AND completed_at >= ${sevenDaysAgo}::timestamp
+    `),
+
+    // New members joined the platform (users created in last 7 days)
+    db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM "user"
+      WHERE created_at >= ${sevenDaysAgo}::timestamp
+    `),
+
+    // Most active endeavors (by discussion + task activity)
+    db.execute(sql`
+      SELECT
+        e.id,
+        e.title,
+        e.category,
+        e.image_url AS "imageUrl",
+        (
+          (SELECT COUNT(*) FROM discussion d WHERE d.endeavor_id = e.id AND d.created_at >= ${sevenDaysAgo}::timestamp) +
+          (SELECT COUNT(*) FROM task t WHERE t.endeavor_id = e.id AND t.created_at >= ${sevenDaysAgo}::timestamp)
+        )::int AS "activityCount"
+      FROM endeavor e
+      WHERE e.status != 'completed'
+      HAVING (
+        (SELECT COUNT(*) FROM discussion d WHERE d.endeavor_id = e.id AND d.created_at >= ${sevenDaysAgo}::timestamp) +
+        (SELECT COUNT(*) FROM task t WHERE t.endeavor_id = e.id AND t.created_at >= ${sevenDaysAgo}::timestamp)
+      ) > 0
+      ORDER BY "activityCount" DESC
+      LIMIT 5
+    `),
+
+    // Top stories published
+    db.execute(sql`
+      SELECT
+        s.id,
+        s.title,
+        s.created_at AS "createdAt",
+        e.id AS "endeavorId",
+        e.title AS "endeavorTitle",
+        u.name AS "authorName"
+      FROM story s
+      INNER JOIN endeavor e ON e.id = s.endeavor_id
+      INNER JOIN "user" u ON u.id = s.author_id
+      WHERE s.published = true
+        AND s.created_at >= ${sevenDaysAgo}::timestamp
+      ORDER BY s.created_at DESC
+      LIMIT 5
+    `),
+  ]);
+
+  const newEndeavorsCount = (newEndeavorsCountResult.rows[0] as { count: number })?.count ?? 0;
+  const completedMilestones = (completedMilestonesResult.rows[0] as { count: number })?.count ?? 0;
+  const newMembers = (newMembersResult.rows[0] as { count: number })?.count ?? 0;
+
+  const topNewEndeavors = topNewEndeavorsResult.rows as {
+    id: string;
+    title: string;
+    category: string;
+    imageUrl: string | null;
+    createdAt: string;
+    memberCount: number;
+  }[];
+
+  const mostActive = mostActiveResult.rows as {
+    id: string;
+    title: string;
+    category: string;
+    imageUrl: string | null;
+    activityCount: number;
+  }[];
+
+  const topStories = topStoriesResult.rows as {
+    id: string;
+    title: string;
+    createdAt: string;
+    endeavorId: string;
+    endeavorTitle: string;
+    authorName: string;
+  }[];
+
+  return NextResponse.json({
+    weekStart: sevenDaysAgo,
+    weekEnd: new Date().toISOString(),
+    newEndeavorsCount,
+    topNewEndeavors,
+    completedMilestones,
+    newMembers,
+    mostActive,
+    topStories,
+  });
+}
+
+// ── POST: send email digests (cron job) ────────────────────────────────────
+
 export async function POST(request: NextRequest) {
   // Verify cron secret
   const authHeader = request.headers.get("Authorization");

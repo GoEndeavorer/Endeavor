@@ -21,6 +21,7 @@ import { ReportModal } from "@/components/report-modal";
 import { BookmarkButton } from "@/components/bookmark-button";
 import { MilestoneRoadmap } from "@/components/milestone-roadmap";
 import { EndeavorReviews } from "@/components/endeavor-reviews";
+import { MemberActivity } from "@/components/member-activity";
 
 type EndeavorDetail = {
   id: string;
@@ -480,6 +481,9 @@ export default function EndeavorDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Recent activity */}
+            <MemberActivity endeavorId={endeavor.id} />
 
             {/* Progress bars */}
             <ProgressTracker endeavorId={endeavor.id} />

@@ -9,6 +9,7 @@ import { UserBadges } from "@/components/user-badges";
 import { ContributionHeatmap } from "@/components/contribution-heatmap";
 import { PinnedEndeavors } from "@/components/pinned-endeavors";
 import { ContributionStats } from "@/components/contribution-stats";
+import { UserTimeline } from "@/components/user-timeline";
 
 type UserProfile = {
   id: string;
@@ -370,6 +371,11 @@ export default function PublicProfilePage({
             <p className="text-sm">This user hasn&apos;t joined any endeavors yet.</p>
           </div>
         )}
+
+        {/* Activity timeline */}
+        <div className="mt-8">
+          <UserTimeline userId={userId} />
+        </div>
       </main>
       <Footer />
     </div>

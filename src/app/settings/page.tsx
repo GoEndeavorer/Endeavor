@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { useToast } from "@/components/toast";
+import { EmailPreferences } from "@/components/email-preferences";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -201,7 +202,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Notification Preferences */}
+        {/* In-App Notification Preferences */}
         <section className="mb-8">
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
             {"// notifications"}
@@ -233,6 +234,11 @@ export default function SettingsPage() {
               </label>
             ))}
           </div>
+        </section>
+
+        {/* Email Notification Preferences */}
+        <section className="mb-8">
+          <EmailPreferences />
         </section>
 
         {/* Quick links */}

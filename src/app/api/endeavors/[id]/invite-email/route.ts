@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { member, endeavor, inviteLink } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { randomBytes } from "crypto";
-import Resend from "resend";
+import { Resend } from "resend";
 
 export const dynamic = "force-dynamic";
 

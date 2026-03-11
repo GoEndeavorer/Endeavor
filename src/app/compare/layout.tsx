@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Compare Endeavors — Endeavor",
-  description: "Compare endeavors side by side to evaluate progress, teams, and funding across projects.",
+  title: "Compare Endeavors | Endeavor",
+  description:
+    "Compare endeavors side by side to evaluate members, funding, milestones, and more.",
 };
 
-export default function CompareLayout({ children }: { children: React.ReactNode }) {
+export default function CompareLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return children;
 }

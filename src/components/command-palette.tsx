@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { QuickTaskModal } from "@/components/quick-task-modal";
 
 type Command = {
   label: string;
@@ -35,14 +36,29 @@ const sections: CommandSection[] = [
     commands: [
       { label: "New Endeavor", icon: "+", action: "/endeavors/create" },
       { label: "New Story", icon: "$", action: "/stories/new" },
+      { label: "Quick Task", icon: "!", action: "__quick_task" },
+    ],
+  },
+  {
+    title: "Discover",
+    commands: [
+      { label: "Trending Topics", icon: "^", action: "/trending" },
+      { label: "Discover", icon: "~", action: "/discover" },
+      { label: "Categories", icon: "#", action: "/categories" },
+      { label: "Leaderboard", icon: "=", action: "/leaderboard" },
+      { label: "People", icon: "@", action: "/people" },
+      { label: "Tags", icon: ".", action: "/tags" },
+      { label: "Map", icon: "M", action: "/map" },
     ],
   },
   {
     title: "Quick Actions",
     commands: [
-      { label: "Toggle Theme", icon: "^", action: "__toggle_theme" },
       { label: "View Changelog", icon: ".", action: "/changelog" },
-      { label: "View Leaderboard", icon: "=", action: "/leaderboard" },
+      { label: "Weekly Digest", icon: "D", action: "/digest" },
+      { label: "Analytics", icon: "%", action: "/analytics" },
+      { label: "Achievements", icon: "*", action: "/achievements" },
+      { label: "Collections", icon: "C", action: "/collections" },
     ],
   },
 ];
@@ -55,6 +71,7 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [quickTaskOpen, setQuickTaskOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -113,8 +130,11 @@ export function CommandPalette() {
   const executeCommand = useCallback(
     (command: (typeof allCommands)[number]) => {
       setOpen(false);
-      if (command.action === "__toggle_theme") {
-        // No-op for now
+      if (command.action === "__quick_task") {
+        setQuickTaskOpen(true);
+        return;
+      }
+      if (command.action.startsWith("__")) {
         return;
       }
       router.push(command.action);
@@ -162,9 +182,15 @@ export function CommandPalette() {
     }
   }
 
-  if (!open) return null;
+  if (!open && !quickTaskOpen) return null;
+
+  if (!open && quickTaskOpen) {
+    return <QuickTaskModal onClose={() => setQuickTaskOpen(false)} />;
+  }
 
   return (
+    <>
+    {quickTaskOpen && <QuickTaskModal onClose={() => setQuickTaskOpen(false)} />}
     <div
       className="fixed inset-0 z-[70] flex items-start justify-center bg-black/80 px-4 pt-[15vh]"
       onClick={() => setOpen(false)}
@@ -280,5 +306,6 @@ export function CommandPalette() {
         </div>
       </div>
     </div>
+    </>
   );
 }

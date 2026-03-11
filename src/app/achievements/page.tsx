@@ -6,6 +6,7 @@ import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements";
+import { Confetti } from "@/components/confetti";
 
 const TIER_COLORS = {
   bronze: "border-orange-700/50 bg-orange-700/5",
@@ -28,6 +29,7 @@ export default function AchievementsPage() {
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [newlyUnlocked, setNewlyUnlocked] = useState<string[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session) router.push("/login");
@@ -48,6 +50,7 @@ export default function AchievementsPage() {
     const data = await res.json();
     if (data.newlyUnlocked?.length > 0) {
       setNewlyUnlocked(data.newlyUnlocked);
+      setShowConfetti(true);
       // Refresh unlocked list
       const refresh = await fetch("/api/achievements");
       const refreshData = await refresh.json();
@@ -114,6 +117,9 @@ export default function AchievementsPage() {
             />
           </div>
         </div>
+
+        {/* Confetti celebration */}
+        <Confetti active={showConfetti} />
 
         {/* Newly unlocked */}
         {newlyUnlocked.length > 0 && (
