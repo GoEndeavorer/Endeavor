@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.12.0
+> **Version**: 0.13.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Production ready
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.13.0  | 2026-03-11 | Search page, people directory, password reset, stories hub, RSS feed, JSON-LD, PWA manifest, enhanced OG metadata |
 | 0.12.0  | 2026-03-11 | Who's Hiring page, leaderboard, recently viewed, form progress indicator, loading skeletons for auth/create/admin |
 | 0.11.0  | 2026-03-11 | Platform activity feed, admin users tab, notification preferences, CSV export, Footer standardization, needs tag fix |
 | 0.10.0  | 2026-03-11 | Discussion threading, account deletion, task reassignment, activity stats, share links, loading skeletons, relative timestamps, markdown descriptions |
@@ -236,6 +237,29 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Hiring link in desktop and mobile navigation
 - [x] SEO metadata layouts for hiring and leaderboard pages
 
+## Phase 13: Search, Identity & SEO — DONE
+
+- [x] Dedicated search page (/search) with tabbed results (endeavors/people)
+- [x] Search overlay links to full search page on Enter
+- [x] People directory (/people) with skill filtering and sort options
+- [x] People API endpoint with popular skills aggregation
+- [x] Forgot password page (/forgot-password) with email-based reset
+- [x] Reset password page (/reset-password) with scrypt hashing
+- [x] Password reset API endpoints using Better Auth-compatible hashing
+- [x] "Forgot password?" link on login page
+- [x] Stories hub page (/stories) listing all published stories across platform
+- [x] Individual story pages (/stories/[storyId]) with full OG metadata
+- [x] Story permalinks from endeavor stories pages
+- [x] RSS feed at /feed.xml (latest 50 endeavors)
+- [x] JSON-LD WebApplication structured data on homepage
+- [x] PWA manifest with Endeavor branding
+- [x] RSS autodiscovery link in root layout
+- [x] Enhanced OG metadata for endeavor pages (member count, creator, status)
+- [x] OG metadata for user profile pages
+- [x] People and Search links in navigation and footer
+- [x] Individual stories indexed in sitemap
+- [x] People and search pages in sitemap
+
 ---
 
 ## Design Principles
@@ -265,7 +289,7 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 ```
 src/
 ├── app/
-│   ├── (auth)/login, signup     # Auth pages
+│   ├── (auth)/login, signup, forgot-password, reset-password  # Auth pages
 │   ├── api/
 │   │   ├── auth/[...all]        # Better Auth handler
 │   │   ├── admin/reports         # Admin moderation
@@ -287,6 +311,9 @@ src/
 │   │   ├── follow/              # Follow toggle + list
 │   │   ├── feed/                # Following feed API
 │   │   ├── search/              # Global search API
+│   │   ├── people/              # User directory API
+│   │   ├── forgot-password/     # Password reset request
+│   │   ├── reset-password/      # Password reset execution
 │   │   └── webhooks/stripe      # Payment webhooks
 │   ├── activity/                # Platform-wide activity feed
 │   ├── hiring/                  # Skill-based endeavor matching
@@ -304,6 +331,11 @@ src/
 │   ├── settings/                # Account settings + notification preferences
 │   ├── welcome/                 # Post-signup onboarding flow
 │   ├── users/[userId]/          # Public user profiles with stats + follows
+│   ├── people/                  # User directory with skill filtering
+│   ├── search/                  # Full search results page
+│   ├── stories/                 # Stories hub (all published stories)
+│   ├── stories/[storyId]/       # Individual story pages
+│   ├── feed.xml/                # RSS feed
 │   └── profile/                 # User profile editing
 ├── components/                  # Shared UI (AppHeader, Footer, NotificationBell, ShareButton, MarkdownText, Skeleton, PlatformStats, Toast, etc.)
 ├── lib/
@@ -314,6 +346,7 @@ src/
 │   ├── notifications.ts         # Notification helpers
 │   ├── analytics.ts             # Typed analytics events
 │   ├── time.ts                  # Shared time formatting utilities
+│   ├── recently-viewed.ts       # LocalStorage recently viewed tracking
 │   └── stripe.ts                # Payment config
 └── middleware.ts                # Rate limiting
 ```
