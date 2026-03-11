@@ -14,7 +14,7 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-6 md:flex">
           <a href="#how-it-works" className="text-sm text-code-blue hover:text-code-green transition-colors">
             How It Works
           </a>
@@ -46,7 +46,7 @@ export function Header() {
 
       {/* Mobile nav */}
       {menuOpen && (
-        <nav className="flex flex-col gap-4 border-t border-medium-gray/30 bg-black px-4 py-6 md:hidden">
+        <nav aria-label="Mobile navigation" className="flex flex-col gap-4 border-t border-medium-gray/30 bg-black px-4 py-6 md:hidden">
           <a href="#how-it-works" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
             How It Works
           </a>

@@ -255,7 +255,7 @@ export default function FeedPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pt-24 pb-16">
+      <main id="main-content" className="mx-auto max-w-6xl px-4 pt-24 pb-16">
         <h1 className="mb-8 text-3xl font-bold">Explore Endeavors</h1>
 
         {/* Recommended for you */}

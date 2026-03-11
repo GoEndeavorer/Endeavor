@@ -52,17 +52,20 @@ export function NotificationBell() {
       <button
         onClick={() => setOpen(!open)}
         className="relative text-sm text-code-blue hover:text-code-green"
+        aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ""}`}
+        aria-expanded={open}
+        aria-haspopup="true"
       >
         Alerts
         {unread > 0 && (
-          <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center bg-code-green text-[10px] font-bold text-black">
+          <span aria-hidden="true" className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center bg-code-green text-[10px] font-bold text-black">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-50 w-80 border border-medium-gray/30 bg-black shadow-lg">
+        <div role="menu" aria-label="Notifications" className="absolute right-0 top-8 z-50 w-80 border border-medium-gray/30 bg-black shadow-lg">
           <div className="flex items-center justify-between border-b border-medium-gray/30 px-4 py-3">
             <span className="text-xs font-semibold uppercase tracking-widest text-code-green">
               Notifications
