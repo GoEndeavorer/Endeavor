@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { NotificationBell } from "@/components/notification-bell";
 
@@ -14,6 +14,7 @@ type SearchResult = {
 export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: string } }) {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -129,35 +130,36 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
           </div>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-4 md:flex">
+          <nav aria-label="Main navigation" className="hidden items-center gap-4 md:flex">
             <button
               onClick={() => setSearchOpen(true)}
+              aria-label="Open search (Cmd+K)"
               className="flex items-center gap-2 border border-medium-gray/30 px-3 py-1.5 text-xs text-medium-gray transition-colors hover:border-code-green hover:text-code-green"
             >
               Search
               <kbd className="border border-medium-gray/30 px-1 text-[10px]">⌘K</kbd>
             </button>
-            <Link href="/feed" className="text-sm text-code-blue hover:text-code-green">
+            <Link href="/feed" className="text-sm text-code-blue hover:text-code-green" aria-current={pathname === "/feed" ? "page" : undefined}>
               Explore
             </Link>
-            <Link href="/hiring" className="text-sm text-medium-gray hover:text-code-green">
+            <Link href="/hiring" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/hiring" ? "page" : undefined}>
               Hiring
             </Link>
-            <Link href="/people" className="text-sm text-medium-gray hover:text-code-green">
+            <Link href="/people" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/people" ? "page" : undefined}>
               People
             </Link>
-            <Link href="/leaderboard" className="text-sm text-medium-gray hover:text-code-green">
+            <Link href="/leaderboard" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/leaderboard" ? "page" : undefined}>
               Ranks
             </Link>
-            <Link href="/map" className="text-sm text-medium-gray hover:text-code-green">
+            <Link href="/map" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/map" ? "page" : undefined}>
               Map
             </Link>
             {session && (
               <>
-                <Link href="/following" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/following" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/following" ? "page" : undefined}>
                   Following
                 </Link>
-                <Link href="/calendar" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/calendar" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/calendar" ? "page" : undefined}>
                   Calendar
                 </Link>
               </>
@@ -167,37 +169,39 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 <Link
                   href="/endeavors/create"
                   className="border border-code-green bg-code-green px-4 py-2 text-xs font-bold uppercase text-black transition-colors hover:bg-transparent hover:text-code-green"
+                  aria-current={pathname === "/endeavors/create" ? "page" : undefined}
                 >
                   + New
                 </Link>
-                <Link href="/my-endeavors" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/my-endeavors" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/my-endeavors" ? "page" : undefined}>
                   My Endeavors
                 </Link>
-                <Link href="/saved" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/saved" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/saved" ? "page" : undefined}>
                   Saved
                 </Link>
-                <Link href="/collections" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/collections" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/collections" ? "page" : undefined}>
                   Lists
                 </Link>
-                <Link href="/digest" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/digest" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/digest" ? "page" : undefined}>
                   Digest
                 </Link>
-                <Link href="/messages" className="text-sm text-medium-gray hover:text-code-green">
+                <Link href="/messages" className="text-sm text-medium-gray hover:text-code-green" aria-current={pathname === "/messages" ? "page" : undefined}>
                   DMs
                 </Link>
                 <NotificationBell />
-                <Link href="/profile" className="text-sm text-code-blue hover:text-code-green">
+                <Link href="/profile" className="text-sm text-code-blue hover:text-code-green" aria-current={pathname === "/profile" ? "page" : undefined}>
                   Profile
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-sm text-code-blue hover:text-code-green">
+                <Link href="/login" className="text-sm text-code-blue hover:text-code-green" aria-current={pathname === "/login" ? "page" : undefined}>
                   Log In
                 </Link>
                 <Link
                   href="/signup"
                   className="border border-medium-gray bg-white px-4 py-2 text-xs font-semibold text-black"
+                  aria-current={pathname === "/signup" ? "page" : undefined}
                 >
                   Sign Up
                 </Link>
@@ -210,6 +214,8 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
             className="flex flex-col gap-1.5 md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
           >
             <span className={`block h-0.5 w-6 bg-white transition-transform ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
             <span className={`block h-0.5 w-6 bg-white transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
@@ -219,7 +225,7 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
 
         {/* Mobile nav */}
         {menuOpen && (
-          <nav className="flex flex-col gap-3 border-t border-medium-gray/30 bg-black px-4 py-4 md:hidden">
+          <nav id="mobile-nav" aria-label="Mobile navigation" className="flex flex-col gap-3 border-t border-medium-gray/30 bg-black px-4 py-4 md:hidden">
             <Link href="/feed" className="text-sm text-code-blue" onClick={() => setMenuOpen(false)}>
               Explore
             </Link>
@@ -293,10 +299,10 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
 
       {/* Search overlay */}
       {searchOpen && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/80 pt-20 px-4">
+        <div role="dialog" aria-label="Search" className="fixed inset-0 z-[60] flex items-start justify-center bg-black/80 pt-20 px-4">
           <div ref={searchRef} className="w-full max-w-lg border border-medium-gray/30 bg-black">
-            <div className="flex items-center border-b border-medium-gray/20 px-4">
-              <span className="text-sm text-medium-gray mr-2">&gt;</span>
+            <div role="search" className="flex items-center border-b border-medium-gray/20 px-4">
+              <span className="text-sm text-medium-gray mr-2" aria-hidden="true">&gt;</span>
               <input
                 ref={inputRef}
                 type="text"
@@ -304,10 +310,12 @@ export function AppHeader({ breadcrumb }: { breadcrumb?: { label: string; href: 
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search endeavors, people, skills..."
+                aria-label="Search endeavors, people, skills"
                 className="flex-1 bg-transparent py-4 text-sm text-white outline-none"
               />
               <button
                 onClick={() => { setSearchOpen(false); setQuery(""); setResults(null); }}
+                aria-label="Close search"
                 className="text-xs text-medium-gray hover:text-white"
               >
                 ESC
