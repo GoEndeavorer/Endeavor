@@ -12,6 +12,7 @@ import { Polls } from "@/components/polls";
 import { Schedule } from "@/components/schedule";
 import { ActivityFeed } from "@/components/activity-feed";
 import { MediaGallery } from "@/components/media-gallery";
+import { CreatorChecklist } from "@/components/creator-checklist";
 
 type Discussion = {
   id: string;
@@ -521,6 +522,21 @@ export default function DashboardPage({
         {/* ── Overview ── */}
         {activeTab === "overview" && (
           <div className="grid gap-6 lg:grid-cols-3">
+            {/* Creator Checklist */}
+            {isCreator && endeavor && (
+              <div className="lg:col-span-3">
+                <CreatorChecklist
+                  endeavorId={id}
+                  hasDescription={Boolean(endeavor.description && endeavor.description.length > 50)}
+                  hasImage={Boolean(endeavor.imageUrl)}
+                  hasNeeds={Boolean(endeavor.needs && endeavor.needs.length > 0)}
+                  memberCount={endeavor.members.length}
+                  taskCount={tasks.length}
+                  milestoneCount={milestones.length}
+                  hasUpdate={updates.length > 0}
+                />
+              </div>
+            )}
             {/* Quick Actions */}
             <div className="lg:col-span-3 flex flex-wrap gap-2">
               <button
@@ -546,6 +562,12 @@ export default function DashboardPage({
                 className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-code-blue hover:text-code-blue transition-colors"
               >
                 View Public Page
+              </Link>
+              <Link
+                href={`/endeavors/${id}/timeline`}
+                className="border border-medium-gray/30 px-4 py-2 text-xs text-medium-gray hover:border-yellow-400 hover:text-yellow-400 transition-colors"
+              >
+                Timeline
               </Link>
               <button
                 onClick={async () => {
@@ -1311,6 +1333,27 @@ export default function DashboardPage({
               </form>
               {inviteStatus && (
                 <p className="mt-2 text-xs text-code-green">{inviteStatus}</p>
+              )}
+              {isCreator && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/endeavors/${id}/invite`, { method: "POST" });
+                      if (res.ok) {
+                        const data = await res.json();
+                        const url = `${window.location.origin}${data.url}`;
+                        await navigator.clipboard.writeText(url);
+                        toast("Invite link copied to clipboard!");
+                      }
+                    } catch {
+                      toast("Failed to generate invite link");
+                    }
+                  }}
+                  className="mt-2 text-xs text-code-blue hover:text-code-green transition-colors"
+                >
+                  Or copy invite link &rarr;
+                </button>
               )}
             </div>
 

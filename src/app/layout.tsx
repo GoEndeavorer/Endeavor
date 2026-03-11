@@ -5,6 +5,7 @@ import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { WhatsNewBanner } from "@/components/whats-new-banner";
 import { QuickActionsFAB } from "@/components/quick-actions-fab";
+import { QuickCreateModal } from "@/components/quick-create-modal";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -47,6 +48,7 @@ export default function RootLayout({
           <WhatsNewBanner />
           {children}
           <QuickActionsFAB />
+          <QuickCreateModal />
         </ToastProvider>
       </body>
     </html>
