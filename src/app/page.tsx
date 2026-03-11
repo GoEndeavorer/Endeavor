@@ -18,8 +18,28 @@ async function LiveOrStaticExplore() {
 }
 
 export default function Home() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Endeavor",
+    description:
+      "Post what you want to do. Find people who want to do it with you. Plan it, fund it, make it happen.",
+    url: process.env.BETTER_AUTH_URL || "https://endeavor.vercel.app",
+    applicationCategory: "SocialNetworkingApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       <main id="main-content">
         <Hero />

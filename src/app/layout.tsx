@@ -19,6 +19,11 @@ export const metadata: Metadata = {
       "Post what you want to do. Find people who want to do it with you. Plan it, fund it, make it happen.",
     type: "website",
   },
+  alternates: {
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
+  },
 };
 
 export default function RootLayout({
