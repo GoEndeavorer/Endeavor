@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { member, endeavor } from "@/lib/db/schema";
+import { member, endeavor, notification } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, and } from "drizzle-orm";
 
-// Remove a member (creator only)
+// Remove a member (creator or self)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string; memberId: string }> }
@@ -17,18 +17,6 @@ export async function DELETE(
 
   const { id, memberId } = await params;
 
-  // Verify caller is the endeavor creator
-  const [end] = await db
-    .select({ creatorId: endeavor.creatorId })
-    .from(endeavor)
-    .where(eq(endeavor.id, id))
-    .limit(1);
-
-  if (!end || end.creatorId !== session.user.id) {
-    return NextResponse.json({ error: "Only the creator can remove members" }, { status: 403 });
-  }
-
-  // Verify the member exists and isn't the creator
   const [existing] = await db
     .select()
     .from(member)
@@ -39,11 +27,48 @@ export async function DELETE(
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
-  if (existing.role === "creator") {
+  const [end] = await db
+    .select({ creatorId: endeavor.creatorId, title: endeavor.title })
+    .from(endeavor)
+    .where(eq(endeavor.id, id))
+    .limit(1);
+
+  if (!end) {
+    return NextResponse.json({ error: "Endeavor not found" }, { status: 404 });
+  }
+
+  const isCreator = end.creatorId === session.user.id;
+  const isSelf = existing.userId === session.user.id;
+
+  if (!isCreator && !isSelf) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
+  if (existing.role === "creator" && !isSelf) {
     return NextResponse.json({ error: "Cannot remove the creator" }, { status: 400 });
   }
 
   await db.delete(member).where(eq(member.id, memberId));
+
+  // Notify removed member (when removed by creator)
+  if (isCreator && !isSelf) {
+    await db.insert(notification).values({
+      userId: existing.userId,
+      type: "member_removed",
+      message: `You were removed from "${end.title}"`,
+      endeavorId: id,
+    });
+  }
+
+  // Notify creator when member leaves
+  if (isSelf && !isCreator) {
+    await db.insert(notification).values({
+      userId: end.creatorId,
+      type: "member_left",
+      message: `A member left "${end.title}"`,
+      endeavorId: id,
+    });
+  }
 
   return NextResponse.json({ success: true });
 }
