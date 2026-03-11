@@ -1,6 +1,6 @@
 # Endeavor — Project Plan
 
-> **Version**: 0.5.0
+> **Version**: 0.6.0
 > **Last Updated**: 2026-03-11
 > **Status**: Built — Ready for deployment
 
@@ -8,6 +8,7 @@
 
 | Version | Date       | Changes                                                  |
 | ------- | ---------- | -------------------------------------------------------- |
+| 0.6.0   | 2026-03-11 | Public profiles, settings tab, checkout pages, accessibility, task notifications |
 | 0.5.0   | 2026-03-11 | Milestones, stories, invite system, email integration, dashboard UI |
 | 0.4.0   | 2026-03-10 | All phases built: notifications, links, moderation, rate limiting |
 | 0.3.0   | 2026-03-10 | Phases 1–5 built: full platform with payments & discovery |
@@ -86,12 +87,19 @@ Endeavor is a platform where anyone can post a project (an "endeavor"), others c
 - [x] Invite system (email invitations via Resend)
 - [x] Post-endeavor stories with draft/publish workflow
 
-## Phase 6: Scale & Polish — PARTIAL
+## Phase 6: Scale & Polish — MOSTLY DONE
 
 - [x] Rate limiting middleware (per-IP, per-minute)
 - [x] Report/flag system (users can report endeavors)
+- [x] Accessibility: focus-visible styles, skip-to-content, ARIA labels, reduced motion
+- [x] Error/loading states: global loading.tsx, error.tsx boundary, 404 page
+- [x] Checkout success/cancel pages for Stripe redirects
+- [x] Public user profiles (/users/[id])
+- [x] Public stories page (/endeavors/[id]/stories)
+- [x] Endeavor editing (creator settings tab in dashboard)
+- [x] Task assignment notifications
+- [x] Endeavor status display in feed cards
 - [ ] Performance optimization (image CDN, lazy loading)
-- [ ] Accessibility audit (WCAG 2.1 AA)
 - [ ] Analytics integration
 - [ ] Error monitoring (Sentry)
 - [ ] Automated testing (unit + E2E)
