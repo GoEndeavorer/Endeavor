@@ -81,6 +81,15 @@ type EndeavorInfo = {
   pendingMembers: Member[];
 };
 
+type Update = {
+  id: string;
+  title: string;
+  content: string;
+  pinned: boolean;
+  createdAt: string;
+  authorName: string;
+};
+
 type ActivityItem = {
   id: string;
   type: string;
@@ -90,7 +99,7 @@ type ActivityItem = {
   createdAt: string;
 };
 
-type TabId = "overview" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "settings";
+type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "members" | "settings";
 
 export default function DashboardPage({
   params,
@@ -107,6 +116,7 @@ export default function DashboardPage({
   const [links, setLinks] = useState<SharedLink[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
+  const [updates, setUpdates] = useState<Update[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [newMessage, setNewMessage] = useState("");
@@ -119,6 +129,9 @@ export default function DashboardPage({
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
   const [newMilestoneDescription, setNewMilestoneDescription] = useState("");
   const [newMilestoneDate, setNewMilestoneDate] = useState("");
+  const [newUpdateTitle, setNewUpdateTitle] = useState("");
+  const [newUpdateContent, setNewUpdateContent] = useState("");
+  const [newUpdatePinned, setNewUpdatePinned] = useState(false);
   const [newStoryTitle, setNewStoryTitle] = useState("");
   const [newStoryContent, setNewStoryContent] = useState("");
   const [newStoryPublished, setNewStoryPublished] = useState(false);
@@ -129,7 +142,7 @@ export default function DashboardPage({
 
   const fetchData = useCallback(async () => {
     try {
-      const [endRes, discRes, taskRes, linkRes, msRes, storyRes, actRes] = await Promise.all([
+      const [endRes, discRes, taskRes, linkRes, msRes, storyRes, actRes, updRes] = await Promise.all([
         fetch(`/api/endeavors/${id}`),
         fetch(`/api/endeavors/${id}/discussions`),
         fetch(`/api/endeavors/${id}/tasks`),
@@ -137,6 +150,7 @@ export default function DashboardPage({
         fetch(`/api/endeavors/${id}/milestones`),
         fetch(`/api/endeavors/${id}/stories`),
         fetch(`/api/endeavors/${id}/activity`),
+        fetch(`/api/endeavors/${id}/updates`),
       ]);
 
       if (endRes.ok) setEndeavor(await endRes.json());
@@ -146,6 +160,7 @@ export default function DashboardPage({
       if (msRes.ok) setMilestones(await msRes.json());
       if (storyRes.ok) setStories(await storyRes.json());
       if (actRes.ok) setActivity(await actRes.json());
+      if (updRes.ok) setUpdates(await updRes.json());
     } catch (err) {
       console.error("Failed to load dashboard:", err);
     } finally {
@@ -274,6 +289,27 @@ export default function DashboardPage({
     if (res.ok) setMilestones(milestones.filter((m) => m.id !== msId));
   }
 
+  async function createUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newUpdateTitle.trim() || !newUpdateContent.trim()) return;
+    const res = await fetch(`/api/endeavors/${id}/updates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newUpdateTitle,
+        content: newUpdateContent,
+        pinned: newUpdatePinned,
+      }),
+    });
+    if (res.ok) {
+      const u = await res.json();
+      setUpdates([u, ...updates]);
+      setNewUpdateTitle("");
+      setNewUpdateContent("");
+      setNewUpdatePinned(false);
+    }
+  }
+
   async function createStory(e: React.FormEvent) {
     e.preventDefault();
     if (!newStoryTitle.trim() || !newStoryContent.trim()) return;
@@ -377,6 +413,7 @@ export default function DashboardPage({
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
     { id: "overview", label: "Overview" },
+    { id: "updates", label: "Updates", count: updates.length },
     { id: "discussion", label: "Discussion" },
     { id: "tasks", label: "Tasks", count: tasks.length },
     { id: "milestones", label: "Milestones", count: milestones.length },
@@ -530,6 +567,77 @@ export default function DashboardPage({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ── Updates ── */}
+        {activeTab === "updates" && (
+          <div>
+            {/* Post update (creator only) */}
+            {isCreator && (
+              <div className="mb-6 border border-medium-gray/20 p-4">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-code-green">
+                  {"// post an update"}
+                </h3>
+                <form onSubmit={createUpdate}>
+                  <input
+                    type="text"
+                    value={newUpdateTitle}
+                    onChange={(e) => setNewUpdateTitle(e.target.value)}
+                    placeholder="Update title..."
+                    className="mb-2 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                  />
+                  <textarea
+                    value={newUpdateContent}
+                    onChange={(e) => setNewUpdateContent(e.target.value)}
+                    rows={4}
+                    placeholder="Share what's happening with the endeavor..."
+                    className="mb-2 w-full border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                  />
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 text-sm text-medium-gray">
+                      <input
+                        type="checkbox"
+                        checked={newUpdatePinned}
+                        onChange={(e) => setNewUpdatePinned(e.target.checked)}
+                        className="accent-code-green"
+                      />
+                      Pin this update
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={!newUpdateTitle.trim() || !newUpdateContent.trim()}
+                      className="border border-code-green px-4 py-2 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
+                    >
+                      Post Update
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {updates.length === 0 ? (
+              <div className="border border-medium-gray/20 p-8 text-center text-sm text-medium-gray">
+                No updates yet.{isCreator ? " Post one above to keep your crew informed." : ""}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {updates.map((u) => (
+                  <div key={u.id} className={`border p-5 ${u.pinned ? "border-code-green/50 bg-code-green/5" : "border-medium-gray/20"}`}>
+                    {u.pinned && (
+                      <p className="mb-2 text-xs font-semibold uppercase text-code-green">Pinned</p>
+                    )}
+                    <h4 className="mb-1 text-base font-bold">{u.title}</h4>
+                    <MarkdownText content={u.content} />
+                    <div className="mt-3 flex items-center gap-2 text-xs text-medium-gray">
+                      <span>by {u.authorName}</span>
+                      <span>&middot;</span>
+                      <span>{new Date(u.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

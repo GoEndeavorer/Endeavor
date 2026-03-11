@@ -256,6 +256,22 @@ export const notification = pgTable("notification", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Updates (creator announcements) ─────────────────────────────────────────
+
+export const update = pgTable("update", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endeavorId: uuid("endeavor_id")
+    .notNull()
+    .references(() => endeavor.id),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  pinned: boolean("pinned").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Reports / Moderation ────────────────────────────────────────────────────
 
 export const report = pgTable("report", {

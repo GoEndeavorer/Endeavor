@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { endeavor, member, user, discussion, task, milestone, story, link, notification, payment } from "@/lib/db/schema";
+import { endeavor, member, user, discussion, task, milestone, story, link, notification, payment, update } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
@@ -154,6 +154,7 @@ export async function DELETE(
   // Delete all related data (order matters for FK constraints)
   await db.delete(notification).where(eq(notification.endeavorId, id));
   await db.delete(payment).where(eq(payment.endeavorId, id));
+  await db.delete(update).where(eq(update.endeavorId, id));
   await db.delete(story).where(eq(story.endeavorId, id));
   await db.delete(milestone).where(eq(milestone.endeavorId, id));
   await db.delete(link).where(eq(link.endeavorId, id));
