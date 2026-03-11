@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 import { analytics } from "@/lib/analytics";
 
 const categories = [
@@ -113,9 +114,37 @@ export default function CreateEndeavorPage() {
 
       <main className="mx-auto max-w-2xl px-4 pt-24 pb-16">
         <h1 className="mb-2 text-3xl font-bold">Create an Endeavor</h1>
-        <p className="mb-8 text-sm text-medium-gray">
+        <p className="mb-4 text-sm text-medium-gray">
           Describe what you want to do. Others will find it and join.
         </p>
+
+        {/* Completeness indicator */}
+        {(() => {
+          const fields = [
+            !!title,
+            !!description,
+            !!category,
+            !!location,
+            needs.length > 0,
+            !!imageUrl,
+          ];
+          const filled = fields.filter(Boolean).length;
+          const pct = Math.round((filled / fields.length) * 100);
+          return (
+            <div className="mb-8">
+              <div className="mb-1 flex justify-between text-xs text-medium-gray">
+                <span>{filled}/{fields.length} fields completed</span>
+                <span>{pct}%</span>
+              </div>
+              <div className="h-1 w-full bg-medium-gray/20">
+                <div
+                  className="h-1 bg-code-green transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
 
         {error && (
           <div className="mb-6 border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -399,6 +428,7 @@ export default function CreateEndeavorPage() {
           </button>
         </form>
       </main>
+      <Footer />
     </div>
   );
 }

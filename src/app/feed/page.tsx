@@ -7,6 +7,7 @@ import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { CardSkeletonGrid } from "@/components/skeleton";
+import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { analytics } from "@/lib/analytics";
 
 type Endeavor = {
@@ -182,6 +183,7 @@ export default function FeedPage() {
   const [recommended, setRecommended] = useState<Endeavor[]>([]);
   const [trending, setTrending] = useState<Endeavor[]>([]);
   const [trendingNeeds, setTrendingNeeds] = useState<{ need: string; count: string }[]>([]);
+  const [recentlyViewed, setRecentlyViewed] = useState<{ id: string; title: string; category: string; imageUrl: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -236,6 +238,11 @@ export default function FeedPage() {
   useEffect(() => {
     fetchEndeavors();
   }, [fetchEndeavors]);
+
+  // Load recently viewed from localStorage
+  useEffect(() => {
+    setRecentlyViewed(getRecentlyViewed());
+  }, []);
 
   // Fetch trending and recommended on mount
   useEffect(() => {
@@ -336,6 +343,37 @@ export default function FeedPage() {
                 >
                   {n.need}
                 </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recently viewed */}
+        {recentlyViewed.length > 0 && !search && category === "All" && (
+          <div className="mb-8">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-medium-gray">
+              {"// recently viewed"}
+            </h2>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {recentlyViewed.slice(0, 5).map((r) => (
+                <Link
+                  key={r.id}
+                  href={`/endeavors/${r.id}`}
+                  className="flex-shrink-0 w-40 border border-medium-gray/20 overflow-hidden transition-colors hover:border-code-green/50 group"
+                >
+                  {r.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={r.imageUrl} alt="" className="h-20 w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex h-20 items-center justify-center bg-code-green/5 text-xl font-bold text-code-green/20">
+                      {r.title.charAt(0)}
+                    </div>
+                  )}
+                  <div className="p-2">
+                    <p className="text-xs font-semibold truncate group-hover:text-code-green transition-colors">{r.title}</p>
+                    <p className="text-[10px] text-medium-gray">{r.category}</p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>

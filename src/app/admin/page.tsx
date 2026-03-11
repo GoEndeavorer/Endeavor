@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 import { formatTimeAgo } from "@/lib/time";
 
 type Report = {
@@ -395,6 +396,7 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

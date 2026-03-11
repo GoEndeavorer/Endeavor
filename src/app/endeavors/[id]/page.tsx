@@ -9,6 +9,7 @@ import { useToast } from "@/components/toast";
 import { MarkdownText } from "@/components/markdown-text";
 import { formatTimeAgo } from "@/lib/time";
 import { Footer } from "@/components/footer";
+import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { analytics } from "@/lib/analytics";
 
 type EndeavorDetail = {
@@ -74,6 +75,12 @@ export default function EndeavorDetailPage({
           const data = await res.json();
           setEndeavor(data);
           analytics.endeavorViewed(id, data.category);
+          addRecentlyViewed({
+            id: data.id,
+            title: data.title,
+            category: data.category,
+            imageUrl: data.imageUrl,
+          });
         }
       } catch (err) {
         console.error("Failed to fetch endeavor:", err);
