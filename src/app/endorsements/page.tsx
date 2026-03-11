@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { formatTimeAgo } from "@/lib/time";
 
 type Endorsement = {
   id: string;
-  message: string;
-  createdAt: string;
-  endeavorId: string;
-  endeavorTitle: string;
-  endorserId: string;
-  endorserName: string;
-  endorserImage: string | null;
+  endeavor_id: string;
+  author_id: string;
+  content: string;
+  rating: number;
+  created_at: string;
+  from_name: string;
+  from_image: string | null;
+  to_name: string;
 };
 
 export default function EndorsementsPage() {
@@ -22,9 +22,11 @@ export default function EndorsementsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/endorsements/wall")
+    fetch("/api/endorsements/recent")
       .then((r) => r.json())
-      .then(setEndorsements)
+      .then((data) => {
+        if (Array.isArray(data)) setEndorsements(data);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -32,68 +34,65 @@ export default function EndorsementsPage() {
   return (
     <div className="min-h-screen">
       <AppHeader
-        breadcrumb={{ label: "Endorsement Wall", href: "/endorsements" }}
+        breadcrumb={{ label: "Endorsements", href: "/endorsements" }}
       />
 
-      <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
-        <h1 className="mb-2 font-mono text-3xl font-bold">Endorsement Wall</h1>
-        <p className="mb-8 text-sm text-medium-gray">
-          What collaborators are saying about the endeavors they have been part
-          of.
+      <main className="mx-auto max-w-5xl px-4 pt-24 pb-16">
+        <p className="mb-6 font-mono text-sm text-code-green">
+          {"// endorsement wall"}
         </p>
 
         {loading ? (
-          <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div
-                key={i}
-                className="mb-4 break-inside-avoid animate-pulse border border-medium-gray/20 p-5"
-              >
-                <div className="mb-3 h-4 w-3/4 bg-medium-gray/10" />
-                <div className="mb-2 h-3 w-full bg-medium-gray/10" />
-                <div className="mb-4 h-3 w-2/3 bg-medium-gray/10" />
-                <div className="h-3 w-1/2 bg-medium-gray/10" />
-              </div>
-            ))}
-          </div>
+          <p className="py-16 text-center font-mono text-xs text-medium-gray">
+            Loading...
+          </p>
         ) : endorsements.length === 0 ? (
-          <p className="py-16 text-center text-sm text-medium-gray">
-            No endorsements yet. Be the first to endorse an endeavor you have
-            joined.
+          <p className="py-16 text-center font-mono text-xs text-medium-gray">
+            No endorsements yet. Be the first to endorse someone!
           </p>
         ) : (
           <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
             {endorsements.map((e) => (
               <div
                 key={e.id}
-                className="mb-4 break-inside-avoid border border-medium-gray/20 p-5 transition-colors hover:border-code-green/40"
+                className="mb-4 break-inside-avoid border border-medium-gray/20 p-4 transition-colors hover:border-code-green/40"
               >
-                <p className="mb-4 font-mono text-sm leading-relaxed text-light-gray">
-                  &quot;{e.message}&quot;
-                </p>
-
-                <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-accent text-xs font-bold">
-                    {e.endorserName.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/users/${e.endorserId}`}
-                      className="block truncate text-sm font-semibold transition-colors hover:text-code-green"
-                    >
-                      {e.endorserName}
-                    </Link>
-                    <Link
-                      href={`/endeavors/${e.endeavorId}`}
-                      className="block truncate text-xs text-code-blue transition-colors hover:text-code-green"
-                    >
-                      {e.endeavorTitle}
-                    </Link>
-                  </div>
+                <div className="mb-3 flex items-center gap-2">
+                  {e.from_image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={e.from_image}
+                      alt=""
+                      className="h-6 w-6 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center bg-accent font-mono text-[10px] font-bold">
+                      {e.from_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="truncate font-mono text-xs font-semibold">
+                    {e.from_name}
+                  </span>
                 </div>
 
-                <p className="mt-3 text-right font-mono text-xs text-medium-gray">
-                  {formatTimeAgo(e.createdAt)}
+                <p className="mb-2 font-mono text-xs text-medium-gray">
+                  endorsed{" "}
+                  <span className="text-code-blue">{e.to_name}</span>
+                </p>
+
+                <p className="mb-2 font-mono text-xs text-code-green">
+                  {"★".repeat(e.rating)}
+                  {"☆".repeat(5 - e.rating)}
+                </p>
+
+                {e.content && (
+                  <p className="mb-3 font-mono text-xs leading-relaxed text-light-gray">
+                    &quot;{e.content}&quot;
+                  </p>
+                )}
+
+                <p className="text-right font-mono text-[10px] text-medium-gray">
+                  {formatTimeAgo(e.created_at)}
                 </p>
               </div>
             ))}

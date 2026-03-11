@@ -70,6 +70,13 @@ body {
   animation: slide-in 0.2s ease-out;
 }
 
+/* Focus mode - hide non-essential UI elements */
+body.focus-mode .whats-new-banner,
+body.focus-mode .quick-actions-fab,
+body.focus-mode .scroll-to-top {
+  display: none !important;
+}
+
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,

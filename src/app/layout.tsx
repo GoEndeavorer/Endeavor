@@ -8,6 +8,7 @@ import { QuickActionsFAB } from "@/components/quick-actions-fab";
 import { QuickCreateModal } from "@/components/quick-create-modal";
 import { CommandPalette } from "@/components/command-palette";
 import { OnlineIndicator } from "@/components/online-indicator";
+import { ShortcutsModal } from "@/components/shortcuts-modal";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -53,6 +54,7 @@ export default function RootLayout({
           <QuickCreateModal />
           <CommandPalette />
           <OnlineIndicator />
+          <ShortcutsModal />
         </ToastProvider>
       </body>
     </html>

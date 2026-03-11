@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Endorsement Wall | Endeavor",
+  title: "Endorsements — Endeavor",
   description:
-    "Browse endorsements from across the Endeavor community. See what collaborators are saying about the endeavors they have joined.",
+    "See what people are saying about each other on Endeavor.",
 };
 
 export default function EndorsementsLayout({

@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Search | Endeavor",
+  title: "Search Results | Endeavor",
   description:
-    "Search for endeavors, people, skills, and locations on Endeavor.",
+    "Search for endeavors, people, categories, skills, and locations across the Endeavor community.",
+  openGraph: {
+    title: "Search | Endeavor",
+    description: "Find endeavors, collaborators, and categories on Endeavor.",
+  },
 };
 
 export default function SearchLayout({

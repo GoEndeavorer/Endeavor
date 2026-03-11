@@ -24,6 +24,7 @@ import { EndeavorReviews } from "@/components/endeavor-reviews";
 import { MemberActivity } from "@/components/member-activity";
 import { EndeavorActivityHeatmap } from "@/components/endeavor-activity-heatmap";
 import { WatchButton } from "@/components/watch-button";
+import { CompletionMeter } from "@/components/completion-meter";
 
 type EndeavorDetail = {
   id: string;
@@ -493,6 +494,9 @@ export default function EndeavorDetailPage({
 
             {/* Progress bars */}
             <ProgressTracker endeavorId={endeavor.id} />
+
+            {/* Completion meter */}
+            <CompletionMeter endeavorId={endeavor.id} />
 
             {/* Stories link */}
             <Link

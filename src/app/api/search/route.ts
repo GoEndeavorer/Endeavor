@@ -3,111 +3,191 @@ import { db } from "@/lib/db";
 import { endeavor, member, user, story, discussion } from "@/lib/db/schema";
 import { sql, or, eq, and, desc, ilike, SQL } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 12;
+
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const q = params.get("q")?.trim();
+  const type = params.get("type")?.trim() || "all";
+  const page = Math.max(1, parseInt(params.get("page") || "1", 10));
   const category = params.get("category")?.trim();
   const status = params.get("status")?.trim();
-  const locationType = params.get("locationType")?.trim();
   const sort = params.get("sort")?.trim() || "relevant";
 
   // If no query and no filters, return empty
-  if ((!q || q.length < 2) && !category && !status && !locationType) {
-    return NextResponse.json({ endeavors: [], users: [] });
+  if ((!q || q.length < 2) && !category && !status) {
+    return NextResponse.json({
+      endeavors: [],
+      users: [],
+      categories: [],
+      stories: [],
+      discussions: [],
+      counts: { endeavors: 0, users: 0, categories: 0, stories: 0, discussions: 0, total: 0 },
+      page,
+      pageSize: PAGE_SIZE,
+      hasMore: false,
+    });
   }
 
-  // ── Build endeavor filter conditions ─────────────────────────────────────
+  const offset = (page - 1) * PAGE_SIZE;
+  const searchPattern = q && q.length >= 2 ? `%${q}%` : null;
 
-  const conditions: SQL[] = [];
+  // ── Endeavors ──────────────────────────────────────────────────────────────
 
-  // Text search (if query provided)
-  if (q && q.length >= 2) {
-    const searchPattern = `%${q}%`;
-    conditions.push(
-      sql`(${endeavor.title} ILIKE ${searchPattern}
-        OR ${endeavor.description} ILIKE ${searchPattern}
-        OR ${endeavor.location} ILIKE ${searchPattern}
-        OR EXISTS (SELECT 1 FROM unnest(${endeavor.needs}) AS n WHERE n ILIKE ${searchPattern}))`
+  let endeavors: {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    status: string;
+    locationType: string;
+    imageUrl: string | null;
+    memberCount: number;
+  }[] = [];
+  let endeavorCount = 0;
+
+  if (type === "all" || type === "endeavor") {
+    const conditions: SQL[] = [];
+
+    if (searchPattern) {
+      conditions.push(
+        sql`(${endeavor.title} ILIKE ${searchPattern}
+          OR ${endeavor.description} ILIKE ${searchPattern}
+          OR ${endeavor.location} ILIKE ${searchPattern}
+          OR EXISTS (SELECT 1 FROM unnest(${endeavor.needs}) AS n WHERE n ILIKE ${searchPattern}))`
+      );
+    }
+
+    if (category) {
+      conditions.push(eq(endeavor.category, category));
+    }
+
+    if (status) {
+      conditions.push(eq(endeavor.status, status as "open" | "in-progress" | "completed" | "draft" | "cancelled"));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Sort clause
+    let orderBy: SQL;
+    if (sort === "newest") {
+      orderBy = desc(endeavor.createdAt);
+    } else if (sort === "popular") {
+      orderBy = sql`(SELECT COUNT(*) FROM "member" WHERE "member"."endeavor_id" = ${endeavor.id} AND "member"."status" = 'approved') DESC`;
+    } else {
+      orderBy = desc(endeavor.createdAt);
+    }
+
+    // Count
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(endeavor)
+      .where(whereClause);
+    endeavorCount = countResult?.count || 0;
+
+    // Paginated results with member count subselect
+    endeavors = await db
+      .select({
+        id: endeavor.id,
+        title: endeavor.title,
+        description: endeavor.description,
+        category: endeavor.category,
+        status: endeavor.status,
+        locationType: endeavor.locationType,
+        imageUrl: endeavor.imageUrl,
+        memberCount: sql<number>`(SELECT COUNT(*)::int FROM "member" WHERE "member"."endeavor_id" = ${endeavor.id} AND "member"."status" = 'approved')`,
+      })
+      .from(endeavor)
+      .where(whereClause)
+      .orderBy(orderBy)
+      .limit(PAGE_SIZE)
+      .offset(offset);
+  }
+
+  // ── Users ──────────────────────────────────────────────────────────────────
+
+  let users: {
+    id: string;
+    name: string;
+    bio: string | null;
+    image: string | null;
+    skills: string[] | null;
+    location: string | null;
+  }[] = [];
+  let userCount = 0;
+
+  if ((type === "all" || type === "user") && searchPattern) {
+    const userWhere = or(
+      sql`${user.name} ILIKE ${searchPattern}`,
+      sql`${user.bio} ILIKE ${searchPattern}`,
+      sql`EXISTS (SELECT 1 FROM unnest(${user.skills}) AS s WHERE s ILIKE ${searchPattern})`,
+      sql`EXISTS (SELECT 1 FROM unnest(${user.interests}) AS i WHERE i ILIKE ${searchPattern})`
     );
-  }
 
-  // Category filter
-  if (category) {
-    conditions.push(eq(endeavor.category, category));
-  }
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(user)
+      .where(userWhere);
+    userCount = countResult?.count || 0;
 
-  // Status filter (open, in-progress, completed)
-  if (status) {
-    conditions.push(eq(endeavor.status, status as "open" | "in-progress" | "completed" | "draft" | "cancelled"));
-  }
-
-  // Location type filter (in-person, remote, either)
-  if (locationType) {
-    conditions.push(eq(endeavor.locationType, locationType as "in-person" | "remote" | "either"));
-  }
-
-  // ── Build sort / order clause ────────────────────────────────────────────
-
-  let orderBy: SQL;
-  if (sort === "newest") {
-    orderBy = desc(endeavor.createdAt);
-  } else if (sort === "popular") {
-    // Sub-select: count approved members
-    orderBy = sql`(SELECT COUNT(*) FROM "member" WHERE "member"."endeavor_id" = ${endeavor.id} AND "member"."status" = 'approved') DESC`;
-  } else {
-    // "relevant" — default: newest as a sensible fallback
-    orderBy = desc(endeavor.createdAt);
-  }
-
-  // ── Query endeavors ──────────────────────────────────────────────────────
-
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-  const endeavors = await db
-    .select({
-      id: endeavor.id,
-      title: endeavor.title,
-      category: endeavor.category,
-      status: endeavor.status,
-      locationType: endeavor.locationType,
-      imageUrl: endeavor.imageUrl,
-    })
-    .from(endeavor)
-    .where(whereClause)
-    .orderBy(orderBy)
-    .limit(10);
-
-  // ── Search users (only when a text query is provided) ────────────────────
-
-  let users: { id: string; name: string; bio: string | null; image: string | null }[] = [];
-
-  if (q && q.length >= 2) {
-    const searchPattern = `%${q}%`;
     users = await db
       .select({
         id: user.id,
         name: user.name,
         bio: user.bio,
         image: user.image,
+        skills: user.skills,
+        location: user.location,
       })
       .from(user)
-      .where(
-        or(
-          sql`${user.name} ILIKE ${searchPattern}`,
-          sql`${user.bio} ILIKE ${searchPattern}`,
-          sql`EXISTS (SELECT 1 FROM unnest(${user.skills}) AS s WHERE s ILIKE ${searchPattern})`,
-          sql`EXISTS (SELECT 1 FROM unnest(${user.interests}) AS i WHERE i ILIKE ${searchPattern})`
-        )
-      )
-      .limit(5);
+      .where(userWhere)
+      .limit(PAGE_SIZE)
+      .offset(offset);
   }
 
-  // ── Search stories ────────────────────────────────────────────────────────
+  // ── Categories ─────────────────────────────────────────────────────────────
+
+  let categories: { category: string; count: number }[] = [];
+  let categoryCount = 0;
+
+  if ((type === "all" || type === "category") && searchPattern) {
+    const catResults = await db
+      .select({
+        category: endeavor.category,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(endeavor)
+      .where(sql`${endeavor.category} ILIKE ${searchPattern}`)
+      .groupBy(endeavor.category)
+      .orderBy(sql`count(*) DESC`);
+
+    categories = catResults;
+    categoryCount = catResults.length;
+  }
+
+  // ── Stories ────────────────────────────────────────────────────────────────
 
   let stories: { id: string; title: string; endeavorId: string; authorName: string; createdAt: Date }[] = [];
+  let storyCount = 0;
 
-  if (q && q.length >= 2) {
-    const searchPattern = `%${q}%`;
+  if ((type === "all" || type === "endeavor") && searchPattern) {
+    const storyWhere = and(
+      eq(story.published, true),
+      or(
+        ilike(story.title, searchPattern),
+        ilike(story.content, searchPattern)
+      )
+    );
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(story)
+      .innerJoin(user, eq(story.authorId, user.id))
+      .where(storyWhere);
+    storyCount = countResult?.count || 0;
+
     stories = await db
       .select({
         id: story.id,
@@ -118,25 +198,27 @@ export async function GET(request: NextRequest) {
       })
       .from(story)
       .innerJoin(user, eq(story.authorId, user.id))
-      .where(
-        and(
-          eq(story.published, true),
-          or(
-            ilike(story.title, searchPattern),
-            ilike(story.content, searchPattern)
-          )
-        )
-      )
+      .where(storyWhere)
       .orderBy(desc(story.createdAt))
-      .limit(5);
+      .limit(PAGE_SIZE)
+      .offset(offset);
   }
 
-  // ── Search discussions ──────────────────────────────────────────────────────
+  // ── Discussions ────────────────────────────────────────────────────────────
 
   let discussions: { id: string; content: string; endeavorId: string; authorName: string; createdAt: Date }[] = [];
+  let discussionCount = 0;
 
-  if (q && q.length >= 2) {
-    const searchPattern = `%${q}%`;
+  if ((type === "all" || type === "endeavor") && searchPattern) {
+    const discWhere = ilike(discussion.content, searchPattern);
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(discussion)
+      .innerJoin(user, eq(discussion.authorId, user.id))
+      .where(discWhere);
+    discussionCount = countResult?.count || 0;
+
     discussions = await db
       .select({
         id: discussion.id,
@@ -147,10 +229,38 @@ export async function GET(request: NextRequest) {
       })
       .from(discussion)
       .innerJoin(user, eq(discussion.authorId, user.id))
-      .where(ilike(discussion.content, searchPattern))
+      .where(discWhere)
       .orderBy(desc(discussion.createdAt))
-      .limit(5);
+      .limit(PAGE_SIZE)
+      .offset(offset);
   }
 
-  return NextResponse.json({ endeavors, users, stories, discussions });
+  // ── Response ───────────────────────────────────────────────────────────────
+
+  const total = endeavorCount + userCount + categoryCount + storyCount + discussionCount;
+  const currentTypeCount =
+    type === "endeavor" ? endeavorCount :
+    type === "user" ? userCount :
+    type === "category" ? categoryCount :
+    total;
+  const hasMore = offset + PAGE_SIZE < currentTypeCount;
+
+  return NextResponse.json({
+    endeavors,
+    users,
+    categories,
+    stories,
+    discussions,
+    counts: {
+      endeavors: endeavorCount,
+      users: userCount,
+      categories: categoryCount,
+      stories: storyCount,
+      discussions: discussionCount,
+      total,
+    },
+    page,
+    pageSize: PAGE_SIZE,
+    hasMore,
+  });
 }
