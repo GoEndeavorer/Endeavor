@@ -558,6 +558,60 @@ export default function DashboardPage({
               </div>
             </div>
 
+            {/* Upcoming milestones */}
+            {pendingMilestones.length > 0 && (
+              <div className="lg:col-span-1">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-purple-400">
+                  {"// upcoming"}
+                </h3>
+                <div className="space-y-2">
+                  {pendingMilestones.slice(0, 3).map((m) => (
+                    <div key={m.id} className="border border-purple-400/20 p-3">
+                      <p className="text-sm font-semibold">{m.title}</p>
+                      {m.targetDate && (
+                        <p className={`mt-1 text-xs ${
+                          new Date(m.targetDate) < new Date() ? "text-red-400" : "text-medium-gray"
+                        }`}>
+                          {new Date(m.targetDate).toLocaleDateString()}
+                          {new Date(m.targetDate) < new Date() && " (overdue)"}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                  {pendingMilestones.length > 3 && (
+                    <button
+                      onClick={() => setActiveTab("milestones")}
+                      className="text-xs text-purple-400 hover:text-code-green"
+                    >
+                      +{pendingMilestones.length - 3} more
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Pinned Updates */}
+            {updates.filter((u) => u.pinned).length > 0 && (
+              <div className="lg:col-span-2">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-yellow-400">
+                  {"// pinned"}
+                </h3>
+                <div className="space-y-2">
+                  {updates.filter((u) => u.pinned).map((u) => (
+                    <div key={u.id} className="border border-yellow-400/30 bg-yellow-400/5 p-4">
+                      <p className="text-sm font-semibold">{u.title}</p>
+                      <p className="mt-1 text-xs text-light-gray line-clamp-2">
+                        <MarkdownText content={u.content} />
+                      </p>
+                      <p className="mt-2 text-xs text-medium-gray">
+                        {u.authorName} &middot; {new Date(u.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Activity Timeline */}
             <div className="lg:col-span-2">
               <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">

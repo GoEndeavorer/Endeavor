@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "@/lib/auth-client";
-import { NotificationBell } from "@/components/notification-bell";
+import { AppHeader } from "@/components/app-header";
 
 type CategoryCount = {
   category: string;
@@ -36,7 +35,6 @@ const categoryColors: Record<string, { border: string; text: string; bg: string 
 };
 
 export default function CategoriesPage() {
-  const { data: session } = useSession();
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -53,26 +51,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-medium-gray/30 bg-black/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-xl font-bold">
-            Endeavor
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link href="/feed" className="text-sm text-code-blue hover:text-code-green">
-              Explore
-            </Link>
-            {session && (
-              <>
-                <NotificationBell />
-                <Link href="/profile" className="text-sm text-code-blue hover:text-code-green">
-                  Profile
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <AppHeader breadcrumb={{ label: "Categories", href: "/categories" }} />
 
       <main className="mx-auto max-w-4xl px-4 pt-24 pb-16">
         <h1 className="mb-2 text-3xl font-bold">Browse by Category</h1>
