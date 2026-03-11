@@ -8,6 +8,31 @@ export const metadata = {
 
 const releases = [
   {
+    version: "0.22.0",
+    date: "March 2026",
+    title: "Management & Moderation",
+    items: [
+      "Creator reports dashboard — analytics across all your endeavors with growth charts",
+      "Admin moderation panel — review, resolve, and dismiss reported content",
+      "Kanban task board — drag-and-drop tasks between columns (todo/in-progress/done)",
+      "Notification preferences page — per-type toggle controls for all notification types",
+      "Feed filtering & sorting — filter by category, status, and sort by newest/trending",
+      "Endorsement wall page — browse all platform endorsements in a masonry grid",
+      "Full search results page — tabbed search across endeavors, people, and categories",
+      "Invitations management — view sent and received invitations in one place",
+      "Printable endeavor summary — printer-friendly view for PDF export",
+      "CSV export endpoint — download endeavor data as spreadsheet",
+      "Role management component — creators can assign member/moderator/admin roles",
+      "Discussion reactions UI — toggle reactions with optimistic updates",
+      "Keyboard shortcuts help modal — press ? to see all available shortcuts",
+      "Focus mode — hide non-essential UI elements for distraction-free work",
+      "Enhanced share button — social sharing dropdown (X, LinkedIn, email)",
+      "Expandable text component — read more/less for long content",
+      "Contribution graph component — GitHub-style daily activity visualization",
+      "Notification count API — real-time unread count endpoint",
+    ],
+  },
+  {
     version: "0.21.0",
     date: "March 2026",
     title: "Intelligence & Integration",

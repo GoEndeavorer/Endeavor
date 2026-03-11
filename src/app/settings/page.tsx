@@ -22,6 +22,8 @@ export default function SettingsPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [notificationSounds, setNotificationSounds] = useState(false);
+  const [compactMode, setCompactMode] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState({
     joinRequests: true,
     newMembers: true,
@@ -45,6 +47,13 @@ export default function SettingsPage() {
       try {
         const stored = localStorage.getItem("endeavor_notif_prefs");
         if (stored) setNotifPrefs(JSON.parse(stored));
+      } catch {}
+      // Load theme preferences
+      try {
+        const storedSounds = localStorage.getItem("endeavor-notification-sounds");
+        if (storedSounds !== null) setNotificationSounds(storedSounds === "true");
+        const storedCompact = localStorage.getItem("endeavor-compact-mode");
+        if (storedCompact !== null) setCompactMode(storedCompact === "true");
       } catch {}
     }
   }, [session]);
@@ -239,6 +248,78 @@ export default function SettingsPage() {
         {/* Email Notification Preferences */}
         <section className="mb-8">
           <EmailPreferences />
+        </section>
+
+        {/* Theme preferences */}
+        <section className="mb-8">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+            {"// theme preferences"}
+          </h2>
+          <div className="space-y-1">
+            <label className="flex cursor-pointer items-center justify-between border border-medium-gray/20 p-4 transition-colors hover:border-code-green/30">
+              <div>
+                <p className="text-sm">Notification sounds</p>
+                <p className="text-xs text-medium-gray">Play audio cues for in-app notifications</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={notificationSounds}
+                onChange={() => {
+                  const next = !notificationSounds;
+                  setNotificationSounds(next);
+                  localStorage.setItem("endeavor-notification-sounds", String(next));
+                  toast("Preference saved");
+                }}
+                className="h-4 w-4 accent-code-green"
+              />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between border border-medium-gray/20 p-4 transition-colors hover:border-code-green/30">
+              <div>
+                <p className="text-sm">Compact mode</p>
+                <p className="text-xs text-medium-gray">Reduce spacing and use smaller UI elements</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={compactMode}
+                onChange={() => {
+                  const next = !compactMode;
+                  setCompactMode(next);
+                  localStorage.setItem("endeavor-compact-mode", String(next));
+                  toast("Preference saved");
+                }}
+                className="h-4 w-4 accent-code-green"
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* Data export */}
+        <section className="mb-8">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+            {"// data export"}
+          </h2>
+          <div className="space-y-2">
+            <a
+              href="/api/users/me/export"
+              className="flex w-full items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
+            >
+              <div>
+                <p>Export Profile Data</p>
+                <p className="text-xs text-medium-gray">Download your profile information as JSON</p>
+              </div>
+              <span className="text-xs text-medium-gray">&darr;</span>
+            </a>
+            <a
+              href="/api/endeavors/mine/export"
+              className="flex w-full items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
+            >
+              <div>
+                <p>Download All Endeavors</p>
+                <p className="text-xs text-medium-gray">Export every endeavor you own or have joined</p>
+              </div>
+              <span className="text-xs text-medium-gray">&darr;</span>
+            </a>
+          </div>
         </section>
 
         {/* Quick links */}
