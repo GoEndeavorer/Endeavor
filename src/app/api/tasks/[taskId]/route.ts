@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { isMemberOf } from "@/lib/membership";
+import { notifyUser } from "@/lib/notifications";
 
 export async function PATCH(
   request: NextRequest,
@@ -45,6 +46,20 @@ export async function PATCH(
     .set(updates)
     .where(eq(task.id, taskId))
     .returning();
+
+  // Notify newly assigned user
+  if (
+    body.assigneeId &&
+    body.assigneeId !== existing.assigneeId &&
+    body.assigneeId !== session.user.id
+  ) {
+    await notifyUser(
+      body.assigneeId,
+      "task_assigned",
+      `${session.user.name} assigned you a task: "${existing.title}"`,
+      existing.endeavorId
+    );
+  }
 
   return NextResponse.json(updated);
 }

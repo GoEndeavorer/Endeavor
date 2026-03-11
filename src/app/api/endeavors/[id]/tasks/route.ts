@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { isMemberOf } from "@/lib/membership";
+import { notifyUser } from "@/lib/notifications";
 
 export async function GET(
   _request: NextRequest,
@@ -65,6 +66,16 @@ export async function POST(
       createdById: session.user.id,
     })
     .returning();
+
+  // Notify assigned user
+  if (assigneeId && assigneeId !== session.user.id) {
+    await notifyUser(
+      assigneeId,
+      "task_assigned",
+      `${session.user.name} assigned you a task: "${title.trim()}"`,
+      id
+    );
+  }
 
   return NextResponse.json(newTask, { status: 201 });
 }

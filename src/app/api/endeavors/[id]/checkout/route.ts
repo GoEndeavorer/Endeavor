@@ -91,8 +91,8 @@ export async function POST(
             },
           ],
         }),
-    success_url: `${baseUrl}/endeavors/${id}?payment=success`,
-    cancel_url: `${baseUrl}/endeavors/${id}?payment=cancelled`,
+    success_url: `${baseUrl}/endeavors/${id}/checkout/success`,
+    cancel_url: `${baseUrl}/endeavors/${id}/checkout/cancel`,
     metadata: {
       endeavorId: id,
       userId: session.user.id,

@@ -12,6 +12,7 @@ type Endeavor = {
   category: string;
   location: string | null;
   locationType: string;
+  status: string;
   needs: string[] | null;
   costPerPerson: number | null;
   capacity: number | null;
@@ -70,6 +71,16 @@ function EndeavorCard({ endeavor }: { endeavor: Endeavor }) {
             ? "Remote"
             : "In-Person / Remote"}
         </span>
+        {endeavor.status && endeavor.status !== "open" && (
+          <span className={`text-xs ${
+            endeavor.status === "completed" ? "text-code-green" :
+            endeavor.status === "in-progress" ? "text-code-blue" :
+            endeavor.status === "cancelled" ? "text-red-400" :
+            "text-medium-gray"
+          }`}>
+            {endeavor.status}
+          </span>
+        )}
       </div>
 
       <h3 className="mb-1 text-lg font-bold">{endeavor.title}</h3>
