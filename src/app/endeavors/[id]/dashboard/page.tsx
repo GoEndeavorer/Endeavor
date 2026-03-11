@@ -110,10 +110,13 @@ export default function DashboardPage({
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [newMessage, setNewMessage] = useState("");
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
   const [newLinkTitle, setNewLinkTitle] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
+  const [newMilestoneDescription, setNewMilestoneDescription] = useState("");
   const [newMilestoneDate, setNewMilestoneDate] = useState("");
   const [newStoryTitle, setNewStoryTitle] = useState("");
   const [newStoryContent, setNewStoryContent] = useState("");
@@ -183,12 +186,19 @@ export default function DashboardPage({
     const res = await fetch(`/api/endeavors/${id}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTaskTitle, assigneeId: newTaskAssignee || null }),
+      body: JSON.stringify({
+        title: newTaskTitle,
+        description: newTaskDescription || null,
+        assigneeId: newTaskAssignee || null,
+        dueDate: newTaskDueDate || null,
+      }),
     });
     if (res.ok) {
       const t = await res.json();
       setTasks([...tasks, t]);
       setNewTaskTitle("");
+      setNewTaskDescription("");
+      setNewTaskDueDate("");
       setNewTaskAssignee("");
     }
   }
@@ -233,6 +243,7 @@ export default function DashboardPage({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: newMilestoneTitle,
+        description: newMilestoneDescription || null,
         targetDate: newMilestoneDate || null,
       }),
     });
@@ -240,6 +251,7 @@ export default function DashboardPage({
       const m = await res.json();
       setMilestones([...milestones, m]);
       setNewMilestoneTitle("");
+      setNewMilestoneDescription("");
       setNewMilestoneDate("");
     }
   }
@@ -389,12 +401,13 @@ export default function DashboardPage({
       </header>
 
       <main className="mx-auto max-w-6xl px-4 pt-24 pb-16">
-        <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none"
+          style={{ WebkitOverflowScrolling: "touch" }}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`border px-4 py-2 text-xs font-semibold uppercase transition-colors ${
+              className={`whitespace-nowrap border px-4 py-2 text-xs font-semibold uppercase transition-colors ${
                 activeTab === tab.id
                   ? "border-code-green bg-code-green text-black"
                   : "border-medium-gray/50 text-medium-gray hover:border-code-green hover:text-code-green"
@@ -576,31 +589,49 @@ export default function DashboardPage({
         {/* ── Tasks ── */}
         {activeTab === "tasks" && (
           <div>
-            <form onSubmit={createTask} className="mb-6 flex gap-2">
+            <form onSubmit={createTask} className="mb-6 space-y-2 border border-medium-gray/20 p-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  placeholder="New task title..."
+                  className="flex-1 border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                />
+                <button
+                  type="submit"
+                  disabled={!newTaskTitle.trim()}
+                  className="border border-code-green px-4 py-3 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
+                >
+                  Add
+                </button>
+              </div>
               <input
                 type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder="New task..."
-                className="flex-1 border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                value={newTaskDescription}
+                onChange={(e) => setNewTaskDescription(e.target.value)}
+                placeholder="Description (optional)"
+                className="w-full border border-medium-gray/30 bg-transparent px-4 py-2 text-sm text-light-gray outline-none focus:border-code-green"
               />
-              <select
-                value={newTaskAssignee}
-                onChange={(e) => setNewTaskAssignee(e.target.value)}
-                className="border border-medium-gray/50 bg-black px-3 py-3 text-sm text-white outline-none"
-              >
-                <option value="">Unassigned</option>
-                {endeavor.members.map((m) => (
-                  <option key={m.userId} value={m.userId}>{m.userName}</option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                disabled={!newTaskTitle.trim()}
-                className="border border-code-green px-4 py-3 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
-              >
-                Add
-              </button>
+              <div className="flex gap-2">
+                <select
+                  value={newTaskAssignee}
+                  onChange={(e) => setNewTaskAssignee(e.target.value)}
+                  className="flex-1 border border-medium-gray/30 bg-black px-3 py-2 text-sm text-white outline-none"
+                >
+                  <option value="">Unassigned</option>
+                  {endeavor.members.map((m) => (
+                    <option key={m.userId} value={m.userId}>{m.userName}</option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  value={newTaskDueDate}
+                  onChange={(e) => setNewTaskDueDate(e.target.value)}
+                  className="border border-medium-gray/30 bg-black px-3 py-2 text-sm text-white outline-none"
+                  placeholder="Due date"
+                />
+              </div>
             </form>
             <div className="grid gap-4 md:grid-cols-3">
               <TaskColumn title="To Do" tasks={todoTasks} color="medium-gray" onStatusChange={updateTaskStatus} onDelete={deleteTask} />
@@ -613,27 +644,36 @@ export default function DashboardPage({
         {/* ── Milestones ── */}
         {activeTab === "milestones" && (
           <div>
-            <form onSubmit={createMilestone} className="mb-6 flex gap-2">
+            <form onSubmit={createMilestone} className="mb-6 space-y-2 border border-medium-gray/20 p-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newMilestoneTitle}
+                  onChange={(e) => setNewMilestoneTitle(e.target.value)}
+                  placeholder="New milestone..."
+                  className="flex-1 border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                />
+                <button
+                  type="submit"
+                  disabled={!newMilestoneTitle.trim()}
+                  className="border border-code-green px-4 py-3 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
+                >
+                  Add
+                </button>
+              </div>
               <input
                 type="text"
-                value={newMilestoneTitle}
-                onChange={(e) => setNewMilestoneTitle(e.target.value)}
-                placeholder="New milestone..."
-                className="flex-1 border border-medium-gray/50 bg-transparent px-4 py-3 text-sm text-white outline-none focus:border-code-green"
+                value={newMilestoneDescription}
+                onChange={(e) => setNewMilestoneDescription(e.target.value)}
+                placeholder="Description (optional)"
+                className="w-full border border-medium-gray/30 bg-transparent px-4 py-2 text-sm text-light-gray outline-none focus:border-code-green"
               />
               <input
                 type="date"
                 value={newMilestoneDate}
                 onChange={(e) => setNewMilestoneDate(e.target.value)}
-                className="border border-medium-gray/50 bg-black px-3 py-3 text-sm text-white outline-none"
+                className="border border-medium-gray/30 bg-black px-3 py-2 text-sm text-white outline-none"
               />
-              <button
-                type="submit"
-                disabled={!newMilestoneTitle.trim()}
-                className="border border-code-green px-4 py-3 text-xs font-bold uppercase text-code-green transition-colors hover:bg-code-green hover:text-black disabled:opacity-50"
-              >
-                Add
-              </button>
             </form>
 
             {pendingMilestones.length > 0 && (
@@ -1153,10 +1193,16 @@ function TaskColumn({
           <div key={t.id} className="border border-medium-gray/20 p-3">
             <div className="mb-1 flex items-start justify-between">
               <p className="text-sm font-semibold">{t.title}</p>
-              <button onClick={() => onDelete(t.id)} className="text-xs text-medium-gray hover:text-red-400">x</button>
+              <button onClick={() => onDelete(t.id)} className="ml-2 flex-shrink-0 text-xs text-medium-gray hover:text-red-400">x</button>
             </div>
+            {t.description && <p className="mb-1 text-xs text-light-gray">{t.description}</p>}
             {t.assigneeName && <p className="mb-1 text-xs text-medium-gray">Assigned to {t.assigneeName}</p>}
-            {t.dueDate && <p className="mb-1 text-xs text-medium-gray">Due {new Date(t.dueDate).toLocaleDateString()}</p>}
+            {t.dueDate && (
+              <p className={`mb-1 text-xs ${new Date(t.dueDate) < new Date() && t.status !== "done" ? "text-red-400" : "text-medium-gray"}`}>
+                Due {new Date(t.dueDate).toLocaleDateString()}
+                {new Date(t.dueDate) < new Date() && t.status !== "done" && " (overdue)"}
+              </p>
+            )}
             <button
               onClick={() => onStatusChange(t.id, nextStatus[t.status])}
               className="mt-1 text-xs text-code-blue hover:text-code-green"
