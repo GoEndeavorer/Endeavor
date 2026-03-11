@@ -7,6 +7,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { AppHeader } from "@/components/app-header";
 import { Footer } from "@/components/footer";
 import { UserBadges } from "@/components/user-badges";
+import { ProfileCompleteness } from "@/components/profile-completeness";
 import { formatTimeAgo } from "@/lib/time";
 
 type Profile = {
@@ -217,6 +218,13 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
+
+            {/* Profile completeness */}
+            {!editing && profile && (
+              <div className="mb-6">
+                <ProfileCompleteness profile={profile} />
+              </div>
+            )}
 
             {/* Badges */}
             {!editing && session && (

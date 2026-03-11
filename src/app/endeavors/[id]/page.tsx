@@ -19,6 +19,7 @@ import { MemberContributions } from "@/components/member-contributions";
 import { EndeavorProgress } from "@/components/endeavor-progress";
 import { ReportModal } from "@/components/report-modal";
 import { BookmarkButton } from "@/components/bookmark-button";
+import { MilestoneRoadmap } from "@/components/milestone-roadmap";
 
 type EndeavorDetail = {
   id: string;
@@ -591,6 +592,11 @@ export default function EndeavorDetailPage({
         {/* Endorsements */}
         <div className="mt-12">
           <Endorsements endeavorId={endeavor.id} isMember={isMember || isCreator} />
+        </div>
+
+        {/* Milestone Roadmap */}
+        <div className="mt-12">
+          <MilestoneRoadmap endeavorId={endeavor.id} />
         </div>
 
         {/* Progress summary */}
