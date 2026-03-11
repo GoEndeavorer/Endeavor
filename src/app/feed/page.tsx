@@ -192,6 +192,7 @@ export default function FeedPage() {
   const [category, setCategory] = useState(searchParams.get("category") || "All");
   const [locationType, setLocationType] = useState("");
   const [sort, setSort] = useState("newest");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const PAGE_SIZE = 20;
 
@@ -424,6 +425,7 @@ export default function FeedPage() {
               { value: "newest", label: "Newest" },
               { value: "popular", label: "Popular" },
               { value: "oldest", label: "Oldest" },
+              { value: "funded", label: "Most Funded" },
             ].map((s) => (
               <button
                 key={s.value}
@@ -437,6 +439,25 @@ export default function FeedPage() {
                 {s.label}
               </button>
             ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-medium-gray">View:</span>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`border px-3 py-1.5 text-xs uppercase transition-colors ${
+                viewMode === "grid" ? "border-code-green text-code-green font-semibold" : "border-medium-gray/50 text-medium-gray hover:border-code-green hover:text-code-green"
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`border px-3 py-1.5 text-xs uppercase transition-colors ${
+                viewMode === "list" ? "border-code-green text-code-green font-semibold" : "border-medium-gray/50 text-medium-gray hover:border-code-green hover:text-code-green"
+              }`}
+            >
+              List
+            </button>
           </div>
         </div>
 
@@ -459,10 +480,35 @@ export default function FeedPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {endeavors.map((e) => (
-                <EndeavorCard key={e.id} endeavor={e} />
-              ))}
+            <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
+              {endeavors.map((e) =>
+                viewMode === "grid" ? (
+                  <EndeavorCard key={e.id} endeavor={e} />
+                ) : (
+                  <Link
+                    key={e.id}
+                    href={`/endeavors/${e.id}`}
+                    className="flex items-center gap-4 border border-medium-gray/20 p-4 transition-colors hover:border-code-green/50"
+                  >
+                    {e.imageUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={e.imageUrl} alt="" className="h-14 w-20 object-cover shrink-0" />
+                    ) : (
+                      <div className="flex h-14 w-20 items-center justify-center bg-code-green/10 shrink-0 text-xl font-bold text-code-green/30">
+                        {e.title.charAt(0)}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">{e.title}</p>
+                      <p className="text-xs text-medium-gray">
+                        {e.category} &middot; {e.status} &middot; {e.memberCount} member{e.memberCount !== 1 ? "s" : ""}
+                        {e.location && ` &middot; ${e.location}`}
+                      </p>
+                    </div>
+                    <span className="text-xs text-code-green shrink-0">&rarr;</span>
+                  </Link>
+                )
+              )}
             </div>
             {hasMore && (
               <div className="mt-8 text-center">

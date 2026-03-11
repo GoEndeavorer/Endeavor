@@ -92,7 +92,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const orderBy = sort === "oldest" ? asc(endeavor.createdAt) : desc(endeavor.createdAt);
+  const orderBy = sort === "oldest"
+    ? asc(endeavor.createdAt)
+    : sort === "funded"
+    ? desc(endeavor.fundingRaised)
+    : desc(endeavor.createdAt);
 
   const results = await db
     .select()
