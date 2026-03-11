@@ -155,6 +155,7 @@ export default function DashboardPage({
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
   const [newMilestoneDescription, setNewMilestoneDescription] = useState("");
   const [newMilestoneDate, setNewMilestoneDate] = useState("");
+  const [discussionSearch, setDiscussionSearch] = useState("");
   const [newUpdateTitle, setNewUpdateTitle] = useState("");
   const [newUpdateContent, setNewUpdateContent] = useState("");
   const [newUpdatePinned, setNewUpdatePinned] = useState(false);
@@ -890,6 +891,17 @@ export default function DashboardPage({
                 {sending ? "Sending..." : replyTo ? "Reply" : "Send"}
               </button>
             </form>
+            {discussions.length > 5 && (
+              <div className="mb-4">
+                <input
+                  type="text"
+                  value={discussionSearch}
+                  onChange={(e) => setDiscussionSearch(e.target.value)}
+                  placeholder="Search discussions..."
+                  className="w-full border border-medium-gray/30 bg-transparent px-4 py-2 text-sm text-white outline-none focus:border-code-green"
+                />
+              </div>
+            )}
             {discussions.length === 0 ? (
               <div className="border border-medium-gray/20 p-8 text-center text-sm text-medium-gray">
                 No messages yet. Start the conversation!
@@ -898,6 +910,11 @@ export default function DashboardPage({
               <div className="space-y-4">
                 {discussions
                   .filter((msg) => !msg.parentId)
+                  .filter((msg) => {
+                    if (!discussionSearch.trim()) return true;
+                    const q = discussionSearch.toLowerCase();
+                    return msg.content.toLowerCase().includes(q) || msg.authorName.toLowerCase().includes(q);
+                  })
                   .sort((a, b) => {
                     // Pinned messages first
                     if (a.pinned && !b.pinned) return -1;
