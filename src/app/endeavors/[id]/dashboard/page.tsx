@@ -18,6 +18,7 @@ import { GanttChart } from "@/components/gantt-chart";
 import { ResourceList } from "@/components/resource-list";
 import { MemberDirectory } from "@/components/member-directory";
 import { Announcements } from "@/components/announcements";
+import { WikiViewer } from "@/components/wiki-viewer";
 
 type Discussion = {
   id: string;
@@ -126,7 +127,7 @@ type Payment = {
   createdAt: string;
 };
 
-type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "media" | "members" | "finances" | "settings";
+type TabId = "overview" | "updates" | "discussion" | "tasks" | "milestones" | "stories" | "links" | "media" | "members" | "wiki" | "finances" | "settings";
 
 export default function DashboardPage({
   params,
@@ -474,6 +475,7 @@ export default function DashboardPage({
     { id: "stories", label: "Stories", count: stories.length },
     { id: "links", label: "Links", count: links.length },
     { id: "media", label: "Media" },
+    { id: "wiki", label: "Wiki" },
     { id: "members", label: "Members", count: endeavor.members.length },
     ...(isCreator ? [{ id: "finances" as TabId, label: "Finances" }] : []),
     ...(isCreator ? [{ id: "settings" as TabId, label: "Settings" }] : []),
@@ -1421,6 +1423,11 @@ export default function DashboardPage({
         {/* ── Media ── */}
         {activeTab === "media" && (
           <MediaGallery endeavorId={id} />
+        )}
+
+        {/* ── Wiki ── */}
+        {activeTab === "wiki" && (
+          <WikiViewer endeavorId={id} canEdit={true} />
         )}
 
         {/* ── Members ── */}
