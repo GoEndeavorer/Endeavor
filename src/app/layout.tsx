@@ -8,6 +8,7 @@ import { QuickActionsFAB } from "@/components/quick-actions-fab";
 import { QuickCreateModal } from "@/components/quick-create-modal";
 import { CommandPalette } from "@/components/command-palette";
 import { OnlineIndicator } from "@/components/online-indicator";
+import { LiveActivity } from "@/components/live-activity";
 import { ShortcutsModal } from "@/components/shortcuts-modal";
 import "./globals.css";
 
@@ -54,6 +55,7 @@ export default function RootLayout({
           <QuickCreateModal />
           <CommandPalette />
           <OnlineIndicator />
+          <LiveActivity />
           <ShortcutsModal />
         </ToastProvider>
       </body>

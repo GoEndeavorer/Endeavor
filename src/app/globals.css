@@ -70,6 +70,22 @@ body {
   animation: slide-in 0.2s ease-out;
 }
 
+/* Live activity slide-in from top */
+@keyframes slide-in-top {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-top {
+  animation: slide-in-top 0.3s ease-out;
+}
+
 /* Focus mode - hide non-essential UI elements */
 body.focus-mode .whats-new-banner,
 body.focus-mode .quick-actions-fab,

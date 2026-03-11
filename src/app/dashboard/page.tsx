@@ -13,6 +13,7 @@ import { ActivityStreak } from "@/components/activity-streak";
 import { WeeklyGoals } from "@/components/weekly-goals";
 import { DashboardInsights } from "@/components/dashboard-insights";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { UpcomingDeadlines } from "@/components/upcoming-deadlines";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -546,6 +547,11 @@ export default function DashboardPage() {
             {/* ── insights ─────────────────────────── */}
             <section className="mb-10">
               <DashboardInsights />
+            </section>
+
+            {/* ── upcoming deadlines ────────────────── */}
+            <section className="mb-10">
+              <UpcomingDeadlines />
             </section>
 
             {/* ── streak + goals ─────────────────────── */}

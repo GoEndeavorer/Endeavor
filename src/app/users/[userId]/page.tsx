@@ -9,6 +9,7 @@ import { UserBadges } from "@/components/user-badges";
 import { ContributionHeatmap } from "@/components/contribution-heatmap";
 import { PinnedEndeavors } from "@/components/pinned-endeavors";
 import { ContributionStats } from "@/components/contribution-stats";
+import { ContributionGraph } from "@/components/contribution-graph";
 import { UserTimeline } from "@/components/user-timeline";
 import { SimilarUsers } from "@/components/similar-users";
 
@@ -64,6 +65,9 @@ export default function PublicProfilePage({
   const [tab, setTab] = useState<"endeavors" | "created">("endeavors");
   const [followData, setFollowData] = useState({ followers: 0, following: 0, isFollowing: false });
   const [followLoading, setFollowLoading] = useState(false);
+  const [recentDiscussions, setRecentDiscussions] = useState<
+    { id: string; content: string; createdAt: string; endeavorId: string; endeavorTitle: string }[]
+  >([]);
 
   useEffect(() => {
     fetch(`/api/users/${userId}`)
@@ -76,6 +80,13 @@ export default function PublicProfilePage({
     fetch(`/api/follow?userId=${userId}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => { if (data) setFollowData(data); })
+      .catch(() => {});
+  }, [userId]);
+
+  useEffect(() => {
+    fetch(`/api/users/${userId}/discussions`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setRecentDiscussions(data))
       .catch(() => {});
   }, [userId]);
 
@@ -245,6 +256,11 @@ export default function PublicProfilePage({
           <ContributionHeatmap userId={userId} />
         </div>
 
+        {/* Contribution graph */}
+        <div className="mb-8">
+          <ContributionGraph userId={userId} />
+        </div>
+
         {/* Stats grid */}
         <div className="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Endeavors" value={profile.stats.endeavorsJoined} />
@@ -370,6 +386,38 @@ export default function PublicProfilePage({
         {profile.endeavors.length === 0 && (
           <div className="text-center py-12 text-medium-gray">
             <p className="text-sm">This user hasn&apos;t joined any endeavors yet.</p>
+          </div>
+        )}
+
+        {/* Recent discussions */}
+        {recentDiscussions.length > 0 && (
+          <div className="mt-8">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+              {"// recent discussions"}
+            </h2>
+            <div className="space-y-2">
+              {recentDiscussions.map((d) => (
+                <Link
+                  key={d.id}
+                  href={`/endeavors/${d.endeavorId}?tab=discussion`}
+                  className="block border border-medium-gray/20 p-3 transition-colors hover:border-code-green/50 group"
+                >
+                  <p className="text-sm text-light-gray line-clamp-2 group-hover:text-white transition-colors">
+                    {d.content}
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-2 text-xs text-medium-gray">
+                    <span className="text-code-blue">{d.endeavorTitle}</span>
+                    <span>&middot;</span>
+                    <span>
+                      {new Date(d.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
