@@ -23,6 +23,9 @@ import { DailyStandup } from "@/components/daily-standup";
 import { TimeTracker } from "@/components/time-tracker";
 import { Retrospective } from "@/components/retrospective";
 import { DecisionLog } from "@/components/decision-log";
+import { BudgetTracker } from "@/components/budget-tracker";
+import { RiskMatrix } from "@/components/risk-matrix";
+import { FAQSection } from "@/components/faq-section";
 
 type Discussion = {
   id: string;
@@ -829,6 +832,15 @@ export default function DashboardPage({
             {/* Retrospective */}
             <div className="lg:col-span-3 mt-4">
               <Retrospective endeavorId={id} />
+            </div>
+            {/* Budget & Risks */}
+            <div className="lg:col-span-3 mt-4 grid gap-4 sm:grid-cols-2">
+              <BudgetTracker endeavorId={id} canEdit={isCreator} />
+              <RiskMatrix endeavorId={id} canEdit={isCreator} />
+            </div>
+            {/* FAQ */}
+            <div className="lg:col-span-3 mt-4">
+              <FAQSection endeavorId={id} canEdit={isCreator} />
             </div>
           </div>
         )}
