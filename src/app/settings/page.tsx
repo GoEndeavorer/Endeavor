@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
+import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
+import { Footer } from "@/components/footer";
 import { useToast } from "@/components/toast";
 
 export default function SettingsPage() {
@@ -14,6 +16,13 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState({
+    joinRequests: true,
+    newMembers: true,
+    discussions: true,
+    milestones: true,
+    updates: true,
+  });
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -24,8 +33,20 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session) {
       setName(session.user.name);
+      // Load notification preferences from localStorage
+      try {
+        const stored = localStorage.getItem("endeavor_notif_prefs");
+        if (stored) setNotifPrefs(JSON.parse(stored));
+      } catch {}
     }
   }, [session]);
+
+  function toggleNotifPref(key: keyof typeof notifPrefs) {
+    const updated = { ...notifPrefs, [key]: !notifPrefs[key] };
+    setNotifPrefs(updated);
+    localStorage.setItem("endeavor_notif_prefs", JSON.stringify(updated));
+    toast("Preference saved");
+  }
 
   async function handleSaveName() {
     if (!name.trim()) return;
@@ -99,40 +120,72 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Notification Preferences */}
+        <section className="mb-8">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
+            {"// notifications"}
+          </h2>
+          <div className="space-y-1">
+            {[
+              { key: "joinRequests" as const, label: "Join requests", desc: "When someone requests to join your endeavor" },
+              { key: "newMembers" as const, label: "New members", desc: "When someone joins your endeavor" },
+              { key: "discussions" as const, label: "Discussion messages", desc: "When a new message is posted in your endeavor" },
+              { key: "milestones" as const, label: "Milestone updates", desc: "When a milestone is completed" },
+              { key: "updates" as const, label: "Endeavor updates", desc: "When an update is posted in endeavors you follow" },
+            ].map((pref) => (
+              <label
+                key={pref.key}
+                className="flex cursor-pointer items-center justify-between border border-medium-gray/20 p-4 transition-colors hover:border-code-green/30"
+              >
+                <div>
+                  <p className="text-sm">{pref.label}</p>
+                  <p className="text-xs text-medium-gray">{pref.desc}</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifPrefs[pref.key]}
+                  onChange={() => toggleNotifPref(pref.key)}
+                  className="h-4 w-4 accent-code-green"
+                />
+              </label>
+            ))}
+          </div>
+        </section>
+
         {/* Quick links */}
         <section className="mb-8">
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-code-green">
             {"// manage"}
           </h2>
           <div className="space-y-2">
-            <a
+            <Link
               href="/profile"
               className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
             >
               <span>Edit Profile</span>
               <span className="text-xs text-medium-gray">&rarr;</span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/saved"
               className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
             >
               <span>Saved Endeavors</span>
               <span className="text-xs text-medium-gray">&rarr;</span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/my-endeavors"
               className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
             >
               <span>My Endeavors</span>
               <span className="text-xs text-medium-gray">&rarr;</span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/notifications"
               className="flex items-center justify-between border border-medium-gray/20 p-4 text-sm transition-colors hover:border-code-green/30"
             >
               <span>Notifications</span>
               <span className="text-xs text-medium-gray">&rarr;</span>
-            </a>
+            </Link>
           </div>
         </section>
 
@@ -196,6 +249,7 @@ export default function SettingsPage() {
           )}
         </section>
       </main>
+      <Footer />
     </div>
   );
 }
