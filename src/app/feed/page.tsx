@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { NotificationBell } from "@/components/notification-bell";
 import { analytics } from "@/lib/analytics";
@@ -173,6 +174,7 @@ function EndeavorCard({ endeavor }: { endeavor: Endeavor }) {
 }
 
 export default function FeedPage() {
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [endeavors, setEndeavors] = useState<Endeavor[]>([]);
   const [recommended, setRecommended] = useState<Endeavor[]>([]);
@@ -182,7 +184,7 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState(searchParams.get("category") || "All");
   const [locationType, setLocationType] = useState("");
   const [sort, setSort] = useState("newest");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -303,7 +305,15 @@ export default function FeedPage() {
       </header>
 
       <main id="main-content" className="mx-auto max-w-6xl px-4 pt-24 pb-16">
-        <h1 className="mb-8 text-3xl font-bold">Explore Endeavors</h1>
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Explore Endeavors</h1>
+          <Link
+            href="/categories"
+            className="text-sm text-medium-gray hover:text-code-green"
+          >
+            Browse Categories
+          </Link>
+        </div>
 
         {/* Recommended for you */}
         {session && recommended.length > 0 && (
